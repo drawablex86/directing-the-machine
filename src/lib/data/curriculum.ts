@@ -7,6 +7,11 @@ export interface DailyTask {
 	targetModalityId: string; // 'm0' .. 'm7' or 'logs'
 	actionPrompt: string;
 	referenceSection?: string;
+	objective: string;
+	executionSteps: string[];
+	successCriterion: string;
+	failureTrap: string;
+	protocolRef?: string;
 }
 
 export interface DayPlan {
@@ -40,7 +45,7 @@ export interface WeekPlan {
 	days: DayPlan[];
 }
 
-// Generate the 7 standard daily tasks customized for a specific day's assignment
+// Generate the 8 standard daily tasks customized for a specific day's assignment with explicit execution protocols
 function makeDayTasks(params: {
 	weekNum: number;
 	dayNum: number;
@@ -67,7 +72,16 @@ function makeDayTasks(params: {
 			time: '20–30m',
 			description: 'Read the assigned core concept. Do not read ahead into other modules.',
 			targetModalityId: primaryModId,
-			actionPrompt: `Study the core concepts of ${readModule}. Distinguish understanding from mere familiarity.`
+			actionPrompt: `Study the core concepts of ${readModule}. Distinguish deep generative understanding from mere familiarity.`,
+			objective: `Ingest and internalize the governing mental models and generative theory of ${readModule} before touching any model or studio prompt.`,
+			executionSteps: [
+				'Open the assigned reading drawer or modal (20m dedicated reading with zero multi-tasking).',
+				'Identify the single core distinction or mechanism that separates novice from master practice.',
+				'Write a 2-sentence synthesis in your own words answering: "What causal mistake does this theory prevent?"'
+			],
+			successCriterion: 'You can explain the core mechanism aloud without referencing the source text.',
+			failureTrap: 'Skimming quickly or reading ahead into subsequent modules instead of grappling with today\'s specific mental model.',
+			protocolRef: 'Core Syllabus'
 		},
 		{
 			id: `${prefix}_practise`,
@@ -76,7 +90,16 @@ function makeDayTasks(params: {
 			time: '60–90m',
 			description: drillDesc,
 			targetModalityId: primaryModId,
-			actionPrompt: 'Isolate this specific micro-skill. Aim for the 70–80% success zone (failing 2–3 reps out of 10).'
+			actionPrompt: 'Isolate this specific micro-skill. Aim for the 70–80% success zone (failing 2–3 reps out of 10).',
+			objective: `Isolate and condition the reflex for "${drillTitle}". Deliberately calibrate task difficulty to trigger neuroplastic adaptation.`,
+			executionSteps: [
+				'Launch the isolation studio workbench in deliberate practice mode.',
+				'Run 5 to 10 rapid iterations targeting only this narrow mechanism (e.g. prompt constraint, observation calibration, or steering rep).',
+				'If you succeed 100% of the time, immediately tighten the constraint. If you fail more than 40% of the time, reduce scope to restore the 70–80% learning zone.'
+			],
+			successCriterion: 'Completed at least 5 disciplined reps, with 20–30% demonstrating boundary failures that teach you the model\'s edge.',
+			failureTrap: 'Wandering into broad creative tinkering or settling for safe tasks where you never experience a breakdown.',
+			protocolRef: 'Appendix I: Drill Library'
 		},
 		{
 			id: `${prefix}_study`,
@@ -85,7 +108,16 @@ function makeDayTasks(params: {
 			time: '60m',
 			description: studyDesc,
 			targetModalityId: primaryModId,
-			actionPrompt: 'Execution as knowledge. Trace mechanisms rather than copying surface style.'
+			actionPrompt: 'Execution as knowledge. Trace mechanisms rather than copying surface style.',
+			objective: `Deconstruct exemplar human or machine artifacts to uncover the hidden generative grammar and steering mechanisms behind them.`,
+			executionSteps: [
+				'Select a reference exemplar or benchmark case study (human masterpiece or gold-standard synthetic generation).',
+				'Perform a 3-layer decomposition: (1) Architecture/Premise, (2) Structural Rhythm/Pacing, (3) Micro-texture/Syntax.',
+				'Trace exactly which directing decisions, temperature shifts, or latent constraints produced the distinguishing qualities.'
+			],
+			successCriterion: 'A reverse-engineered structural breakdown identifying at least 3 non-obvious design choices.',
+			failureTrap: 'Passive aesthetic appreciation or admiring surface polish without extracting reproducible causal principles.',
+			protocolRef: 'Appendix H: Craft Study Protocol'
 		},
 		{
 			id: `${prefix}_make`,
@@ -94,7 +126,16 @@ function makeDayTasks(params: {
 			time: '2–3h',
 			description: `Work directly on your active milestone for Project ${projectId.toUpperCase()}.`,
 			targetModalityId: primaryModId,
-			actionPrompt: 'Execute against the brief. Maintain provenance and record human vs. model decisions.'
+			actionPrompt: 'Execute against the brief. Maintain provenance and record human vs. model decisions.',
+			objective: `Deliver tangible progress on Project ${projectId.toUpperCase()} by applying the day\'s reading and drill to the active project brief.`,
+			executionSteps: [
+				'Review the active project brief, milestone constraints, and governing acceptance rubrics.',
+				'Execute focused production sprints (50m work / 10m review) directly inside the assigned studio modality.',
+				'Log all steering decisions, prompt interventions, and rejected candidate generations in your workspace.'
+			],
+			successCriterion: 'Shipped concrete milestone assets adhering strictly to the constraints specified in the Project Brief.',
+			failureTrap: 'Endless prompt drifting or accepting machine defaults without enforcing your original artistic intent.',
+			protocolRef: `Project ${projectId.toUpperCase()} Brief`
 		},
 		{
 			id: `${prefix}_diagnose`,
@@ -103,7 +144,16 @@ function makeDayTasks(params: {
 			time: '30m',
 			description: diagDesc,
 			targetModalityId: 'm2',
-			actionPrompt: 'Audit the output. Rule: Do not optimize a lower level while a higher level remains broken.'
+			actionPrompt: 'Audit the output. Rule: Do not optimize a lower level while a higher level remains broken.',
+			objective: 'Enforce top-down triage on today\'s generated outputs using the 5-rung diagnostic ladder.',
+			executionSteps: [
+				'Audit the work starting strictly from the highest rung: (1) Concept/Premise → (2) Structural Form → (3) Coherence → (4) Style/Voice → (5) Polish/Syntax.',
+				'Identify the highest-level breakdown. If Level 1 or 2 is flawed, halt all line edits or color grading.',
+				'Formulate an explicit surgical intervention to correct the root error before running any new generations.'
+			],
+			successCriterion: 'A clear written diagnosis noting which diagnostic rung failed and the exact root-cause fix.',
+			failureTrap: 'Polishing surface wording, typography, or micro-details while the core premise or structural logic is flawed.',
+			protocolRef: 'Diagnostic Ladder (M2)'
 		},
 		{
 			id: `${prefix}_log`,
@@ -112,7 +162,16 @@ function makeDayTasks(params: {
 			time: '10–15m',
 			description: '10-minute maximum countdown: Problem-Finding, Calibration, or Decision Log.',
 			targetModalityId: 'logs',
-			actionPrompt: 'Capture decisions and predictions quickly. The document is not the practice.'
+			actionPrompt: 'Capture decisions and predictions quickly. The document is not the practice.',
+			objective: 'Calibrate your metacognitive accuracy and register key machine directing discoveries before memory decays.',
+			executionSteps: [
+				'Start the 10-minute countdown timer (do not exceed 15 minutes under any circumstances).',
+				'Record 1 surprising machine response, 1 steering intervention that worked, and 1 calibrated prediction for tomorrow.',
+				'Tag your entry with today\'s active modality and save it directly into your persistent studio logbook.'
+			],
+			successCriterion: 'A concise log entry completed within the 10-minute cap with zero perfectionist editing.',
+			failureTrap: 'Spending 45 minutes writing essays about practice instead of actually practicing, or skipping reflection entirely.',
+			protocolRef: 'Studio Logbook'
 		},
 		{
 			id: `${prefix}_transfer`,
@@ -121,7 +180,16 @@ function makeDayTasks(params: {
 			time: '30–60m',
 			description: transferDesc,
 			targetModalityId: primaryModId,
-			actionPrompt: 'Apply this understanding to an unfamiliar context or medium with scaffolding removed.'
+			actionPrompt: 'Apply this understanding to an unfamiliar context or medium with scaffolding removed.',
+			objective: 'Stress-test your mastery by applying today\'s isolated skill to an alien domain or novel genre with zero guidance.',
+			executionSteps: [
+				'Choose a completely different domain, genre, or format (e.g. if drilling prose pacing, apply it to code architecture or video montage).',
+				'Remove all templates, linter assists, and provided scaffolding.',
+				'Execute 1 rapid synthesis sprint to verify that the mental model transfers across mediums.'
+			],
+			successCriterion: 'Successfully executed the target principle in an unfamiliar problem space without reference materials.',
+			failureTrap: 'Re-running the exact same drill under a different name rather than genuinely challenging your transfer capacity.',
+			protocolRef: 'Unassisted Synthesis'
 		},
 		{
 			id: `${prefix}_play`,
@@ -130,7 +198,16 @@ function makeDayTasks(params: {
 			time: '30m',
 			description: 'Make something for no reason at all. Evaluation and rubrics are forbidden.',
 			targetModalityId: 'm0',
-			actionPrompt: 'Engage curiosity without instrumental intent. End with 1 sentence: "What did I enjoy?"'
+			actionPrompt: 'Engage curiosity without instrumental intent. End with 1 sentence: "What did I enjoy?"',
+			objective: 'Restore creative agency, curiosity, and psychological safety by removing all rubrics, evaluation, and instrumental goals.',
+			executionSteps: [
+				'Open any studio workbench or physical sketchbook with zero assignment, deliverable, or client in mind.',
+				'Follow whatever strange or whimsical intuition emerges for 25 uninterrupted minutes.',
+				'Conclude the session with a single written reflection sentence: "What did I genuinely enjoy exploring today?"'
+			],
+			successCriterion: 'Spent 30 minutes in pure creative exploration with zero self-critique or grading.',
+			failureTrap: 'Sneaking project work or evaluation rubrics into play time, or skipping play because it feels "unproductive".',
+			protocolRef: 'Protected Play Protocol'
 		}
 	];
 }

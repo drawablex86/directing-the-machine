@@ -28,8 +28,11 @@
 	import { getReadingByCode, type CoreReading } from '$lib/data/core-readings';
 	import { getAppendixById } from '$lib/data/appendices';
 	import ReadingModal from './ReadingModal.svelte';
+	import ProjectBriefModal from '../course/ProjectBriefModal.svelte';
 
 	let { onSelectModality }: { onSelectModality: (modId: string) => void } = $props();
+
+	let isProjectModalOpen = $state(false);
 
 	// Active week and day models
 	let currentWeekData = $derived(
@@ -319,8 +322,6 @@
 							<ArrowRight class="w-4 h-4" />
 						</button>
 					{/if}
-
-					<!-- Secondary Studio Button -->
 					<button
 						type="button"
 						onclick={() => onSelectModality(activeTask.targetModalityId)}
@@ -329,14 +330,103 @@
 					>
 						<span>Studio ({activeTask.targetModalityId.toUpperCase()})</span>
 					</button>
-				{:else if activeTask.targetModalityId === 'logs'}
+
+				{:else if currentStep.id === 'practise'}
+					<button
+						type="button"
+						onclick={() => onSelectModality(activeTask.targetModalityId)}
+						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+					>
+						<Play class="w-4 h-4 fill-current" />
+						<span>Launch Micro-Drill in Studio ({activeTask.targetModalityId.toUpperCase()})</span>
+						<ArrowRight class="w-4 h-4" />
+					</button>
+					<a
+						href="/app?tab=manual&appendix=appendix-i"
+						class="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700 flex items-center gap-1.5 transition"
+					>
+						<BookMarked class="w-4 h-4 text-amber-400" />
+						<span>Drill Library (App I)</span>
+					</a>
+
+				{:else if currentStep.id === 'study'}
+					<button
+						type="button"
+						onclick={() => onSelectModality(activeTask.targetModalityId)}
+						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+					>
+						<Eye class="w-4 h-4" />
+						<span>Deconstruct Exemplar in Studio</span>
+						<ArrowRight class="w-4 h-4" />
+					</button>
+					<a
+						href="/app?tab=manual&appendix=appendix-h"
+						class="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700 flex items-center gap-1.5 transition"
+					>
+						<BookMarked class="w-4 h-4 text-amber-400" />
+						<span>Craft Protocol (App H)</span>
+					</a>
+
+				{:else if currentStep.id === 'make'}
+					<button
+						type="button"
+						onclick={() => isProjectModalOpen = true}
+						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+					>
+						<Layers class="w-4 h-4" />
+						<span>View Project {currentProject.number} Brief & Rubrics</span>
+						<ArrowRight class="w-4 h-4" />
+					</button>
+					<button
+						type="button"
+						onclick={() => onSelectModality(activeTask.targetModalityId)}
+						class="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700 flex items-center gap-1.5 transition cursor-pointer"
+					>
+						<span>Studio ({activeTask.targetModalityId.toUpperCase()})</span>
+					</button>
+
+				{:else if currentStep.id === 'diagnose'}
+					<button
+						type="button"
+						onclick={() => onSelectModality('m2')}
+						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+					>
+						<Scale class="w-4 h-4" />
+						<span>Open Diagnostic Ladder (M2)</span>
+						<ArrowRight class="w-4 h-4" />
+					</button>
+
+				{:else if currentStep.id === 'log' || activeTask.targetModalityId === 'logs'}
 					<a
 						href="/logs"
 						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
 					>
-						<span>Open Studio Logbook</span>
+						<Clock class="w-4 h-4" />
+						<span>Start 10m Studio Logbook</span>
 						<ArrowRight class="w-4 h-4" />
 					</a>
+
+				{:else if currentStep.id === 'transfer'}
+					<button
+						type="button"
+						onclick={() => onSelectModality(activeTask.targetModalityId)}
+						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+					>
+						<Compass class="w-4 h-4" />
+						<span>Execute Transfer Rep (No Scaffolding)</span>
+						<ArrowRight class="w-4 h-4" />
+					</button>
+
+				{:else if currentStep.id === 'play'}
+					<button
+						type="button"
+						onclick={() => onSelectModality('m0')}
+						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+					>
+						<Sparkles class="w-4 h-4" />
+						<span>Protected Play Session (No Rubrics)</span>
+						<ArrowRight class="w-4 h-4" />
+					</button>
 				{:else}
 					<button
 						type="button"
@@ -357,6 +447,80 @@
 				>
 					Next Step →
 				</button>
+			</div>
+		</div>
+
+		<!-- Step Directive Execution Protocol Card -->
+		<div class="rounded-xl bg-neutral-950/70 border border-neutral-800/80 p-4 space-y-4">
+			<div class="flex items-center justify-between border-b border-neutral-800/60 pb-3">
+				<div class="flex items-center gap-2 text-xs font-semibold text-neutral-300">
+					<Brain class="w-4 h-4 text-amber-400" />
+					<span>Execution Protocol & Directive</span>
+				</div>
+				{#if activeTask.protocolRef}
+					<span class="text-[11px] font-mono px-2 py-0.5 rounded bg-neutral-800 text-neutral-400 border border-neutral-700/60">
+						Ref: {activeTask.protocolRef}
+					</span>
+				{/if}
+			</div>
+
+			<!-- Core Objective -->
+			<div class="space-y-1">
+				<div class="text-[11px] font-mono uppercase tracking-wider text-amber-400/90 font-bold">
+					Core Objective
+				</div>
+				<p class="text-xs md:text-sm text-neutral-200 leading-relaxed font-sans">
+					{activeTask.objective}
+				</p>
+			</div>
+
+			<!-- 3-Step Timed Action Sequence -->
+			{#if activeTask.executionSteps && activeTask.executionSteps.length > 0}
+				<div class="space-y-2">
+					<div class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+						Step-by-Step Execution Plan ({activeTask.time})
+					</div>
+					<div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+						{#each activeTask.executionSteps as stepInstruction, idx}
+							<div class="p-3 rounded-lg bg-neutral-900 border border-neutral-800 text-xs space-y-1">
+								<div class="flex items-center gap-1.5 font-mono text-[11px] font-bold text-amber-400">
+									<span class="w-4 h-4 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center text-[10px]">
+										{idx + 1}
+									</span>
+									<span>Phase {idx + 1}</span>
+								</div>
+								<p class="text-neutral-300 leading-relaxed text-[11px]">
+									{stepInstruction}
+								</p>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
+
+			<!-- Bottom Criteria & Failure Trap Badges -->
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+				<!-- How to know you are done -->
+				<div class="p-3 rounded-lg bg-emerald-950/20 border border-emerald-900/40 text-xs space-y-1">
+					<div class="flex items-center gap-1.5 font-bold text-emerald-400 text-[11px] font-mono uppercase tracking-wide">
+						<CheckCircle2 class="w-3.5 h-3.5" />
+						<span>Done Condition (Success Criterion)</span>
+					</div>
+					<p class="text-emerald-200/90 text-[11px] leading-relaxed">
+						{activeTask.successCriterion}
+					</p>
+				</div>
+
+				<!-- Common Failure Trap -->
+				<div class="p-3 rounded-lg bg-red-950/20 border border-red-900/40 text-xs space-y-1">
+					<div class="flex items-center gap-1.5 font-bold text-red-400 text-[11px] font-mono uppercase tracking-wide">
+						<AlertCircle class="w-3.5 h-3.5" />
+						<span>Pitfall / Trap to Avoid</span>
+					</div>
+					<p class="text-red-200/90 text-[11px] leading-relaxed">
+						{activeTask.failureTrap}
+					</p>
+				</div>
 			</div>
 		</div>
 
@@ -576,4 +740,16 @@
 		onSelectReading={(r) => selectedReading = r}
 		onSelectModality={onSelectModality}
 	/>
+
+	<!-- Integrated Project Brief & Deliverables Modal -->
+	{#if isProjectModalOpen}
+		<ProjectBriefModal
+			project={currentProject}
+			onClose={() => isProjectModalOpen = false}
+			onLaunchModality={(modId) => {
+				isProjectModalOpen = false;
+				onSelectModality(modId);
+			}}
+		/>
+	{/if}
 </div>
