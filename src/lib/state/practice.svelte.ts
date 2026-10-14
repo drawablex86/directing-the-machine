@@ -27,7 +27,14 @@ export class PracticeEngine {
 	intensityPath = $state<IntensityPath>('full-time-12w');
 	showDeepening = $state<boolean>(false);
 	activePart = $state<number>(0); // 0 = Week 0, 1..6 = Parts I-VI, 7..12 = Months 4-9
-	currentStepIndex = $state<number>(0); // Weekly practice loop step
+	activeWeek = $state<number>(1); // 0 to 18
+	activeDay = $state<number>(1); // 1 (Mon) to 7 (Sun)
+	currentStepIndex = $state<number>(0); // 0..7 within today's daily 8-step routine
+
+	// Guided Learning Pipeline State
+	completedTaskIds = $state<string[]>([]);
+	tomorrowFirstAction = $state<string>('');
+	passedMasteryGates = $state<number[]>([]); // part numbers passed e.g. [0, 1, 2]
 
 	contextualCompetencies = $state({
 		collaboration: false,
@@ -147,6 +154,59 @@ export class PracticeEngine {
 		return 'failure';
 	}
 
+	// Pipeline Operations
+	toggleTask(taskId: string) {
+		if (this.completedTaskIds.includes(taskId)) {
+			this.completedTaskIds = this.completedTaskIds.filter((id) => id !== taskId);
+		} else {
+			this.completedTaskIds.push(taskId);
+		}
+		this.saveToStorage();
+	}
+
+	isTaskCompleted(taskId: string): boolean {
+		return this.completedTaskIds.includes(taskId);
+	}
+
+	setTomorrowAction(action: string) {
+		this.tomorrowFirstAction = action;
+		this.saveToStorage();
+	}
+
+	passMasteryGate(partNumber: number) {
+		if (!this.passedMasteryGates.includes(partNumber)) {
+			this.passedMasteryGates.push(partNumber);
+			this.saveToStorage();
+		}
+	}
+
+	// Two-Axis Evaluation Helper
+	evaluateProjectSession(params: {
+		projectId: string;
+		projectName: string;
+		outcomeQuality: number;
+		decisionQuality: number;
+		intention: string;
+		reflectionNotes: string;
+	}) {
+		const session: PracticeSession = {
+			id: crypto.randomUUID(),
+			date: new Date().toISOString().slice(0, 10),
+			microSkill: `${params.projectName} (${params.projectId})`,
+			successCriterion: params.intention,
+			repsCompleted: 10,
+			successfulReps: Math.round((params.outcomeQuality / 4) * 10),
+			difficultyLevel: Math.min(5, Math.max(1, params.decisionQuality)),
+			errorsObserved: params.outcomeQuality < 3 ? 'Outcome below mastery threshold' : 'None critical',
+			correctionApplied: params.reflectionNotes,
+			resultAfterCorrection: params.outcomeQuality >= 3 ? 'Criterion satisfied' : 'Further iteration required',
+			nextSessionFocus: this.tomorrowFirstAction || 'Continue next project milestone'
+		};
+		this.practiceSessions.unshift(session);
+		this.saveToStorage();
+	}
+
+	// Dynamic Persistence (localStorage)
 	saveToStorage() {
 		if (!isBrowser) return;
 		try {
@@ -154,7 +214,12 @@ export class PracticeEngine {
 				intensityPath: this.intensityPath,
 				showDeepening: this.showDeepening,
 				activePart: this.activePart,
+				activeWeek: this.activeWeek,
+				activeDay: this.activeDay,
 				currentStepIndex: this.currentStepIndex,
+				completedTaskIds: this.completedTaskIds,
+				tomorrowFirstAction: this.tomorrowFirstAction,
+				passedMasteryGates: this.passedMasteryGates,
 				contextualCompetencies: this.contextualCompetencies,
 				baseline: this.baseline,
 				problems: this.problems,
@@ -180,7 +245,12 @@ export class PracticeEngine {
 			if (data.intensityPath) this.intensityPath = data.intensityPath;
 			if (typeof data.showDeepening === 'boolean') this.showDeepening = data.showDeepening;
 			if (typeof data.activePart === 'number') this.activePart = data.activePart;
+			if (typeof data.activeWeek === 'number') this.activeWeek = data.activeWeek;
+			if (typeof data.activeDay === 'number') this.activeDay = data.activeDay;
 			if (typeof data.currentStepIndex === 'number') this.currentStepIndex = data.currentStepIndex;
+			if (Array.isArray(data.completedTaskIds)) this.completedTaskIds = data.completedTaskIds;
+			if (typeof data.tomorrowFirstAction === 'string') this.tomorrowFirstAction = data.tomorrowFirstAction;
+			if (Array.isArray(data.passedMasteryGates)) this.passedMasteryGates = data.passedMasteryGates;
 			if (data.contextualCompetencies) this.contextualCompetencies = data.contextualCompetencies;
 			if (data.baseline) this.baseline = data.baseline;
 			if (data.problems) this.problems = data.problems;
