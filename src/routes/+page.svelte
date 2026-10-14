@@ -16,7 +16,7 @@
 <div class="min-h-screen flex flex-col bg-neutral-950 text-neutral-100 selection:bg-amber-500 selection:text-neutral-950 antialiased font-sans">
 	<HomeNavbar />
 
-	<main class="flex-1">
+	<main id="main-content" class="flex-1">
 		<!-- Hero Section: Ogilvy Arresting Headline & Immediate CTAs -->
 		<OgilvyHero />
 

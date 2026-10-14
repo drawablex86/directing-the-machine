@@ -2,7 +2,7 @@
 
 > *A Deliberate Practice Environment for Creative Authorship, Diagnostic Vision, and Calibrated Direction in an AI-Augmented World.*
 > 
-> **Conceived, written, engineered, and maintained by [Rahul Rajeev](https://github.com/rahulrajeev).**
+> **Conceived, written, engineered, and maintained by [Rahul Rajeev](https://github.com/drawablex86).**
 
 ---
 
@@ -193,7 +193,7 @@ The curriculum spans **12 flagship projects** structured across Parts I–VI and
 #### Installation & Setup
 ```bash
 # Clone the repository
-git clone https://github.com/rahulrajeev/directing-the-machine.git
+git clone https://github.com/drawablex86/directing-the-machine.git
 cd directing-the-machine
 
 # Install dependencies
@@ -431,7 +431,7 @@ The application is built to accommodate diverse neurotypes and learning preferen
 
 Directing the Machine is an original pedagogical and technical work.
 
-- **Conception, Writing & Engineering**: [Rahul Rajeev](https://github.com/rahulrajeev)
+- **Conception, Writing & Engineering**: [Rahul Rajeev](https://github.com/drawablex86)
 - **Year**: 2026
 - **Architecture**: Open deliberate practice studio with local-first, zero-telemetry client architecture.
 

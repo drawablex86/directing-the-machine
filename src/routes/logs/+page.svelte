@@ -47,7 +47,7 @@
 		onOpenStop={() => isStopModalOpen = true}
 	/>
 
-	<main class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6">
+	<main id="main-content" class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6">
 		<!-- Logbook Header with 10-Minute Hard Cap -->
 		<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-5 rounded-2xl bg-neutral-900 border border-neutral-800">
 			<div>

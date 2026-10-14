@@ -125,7 +125,7 @@
 		onOpenShortcuts={() => isShortcutsModalOpen = true}
 	/>
 
-	<main class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6">
+	<main id="main-content" class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6">
 		<!-- Top Bar Back to Marketing Homepage -->
 		<div class="flex items-center justify-between text-xs text-neutral-400 bg-neutral-900/60 border border-neutral-800/80 px-4 py-2.5 rounded-2xl">
 			<div class="flex items-center gap-2">

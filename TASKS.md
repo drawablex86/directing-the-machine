@@ -88,7 +88,15 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Documented core pedagogical mechanics: 3 Mastery Layers, Scaffolding Removal Engine, 8-Step Daily Practice Loop, anti-theatre guardrails, 8 studio modalities (M0–M7), and Projects 1–12.
   - Documented how-to instructions for both learners/practitioners and developers/maintainers.
   - Documented full codebase architecture: SvelteKit 2 + Svelte 5 Runes, Tailwind CSS v4, directory taxonomy, state engine, data layer, component hierarchy, and accessibility features.
-  - Verified 0 TypeScript errors (`svelte-check`) and successful production build (`pnpm run build`).
+- [x] **Task 12: Vercel Hosting Preparation & Production Deployment Readiness**
+  - Configured static pre-rendering in `src/routes/+layout.ts` (`export const prerender = true`) for zero-cold-start Edge CDN delivery.
+  - Added accessibility target anchors (`id="main-content"`) in `/`, `/app`, and `/logs` satisfying crawler prerender integrity.
+  - Extended SvelteKit built-in tsconfig in `tsconfig.json` (`"extends": "$app/tsconfig"`).
+  - Created `vercel.json` with framework definition, OWASP security headers, and static asset caching policies.
+  - Updated GitHub handle in `index.md` to `drawablex86`.
+  - Revamped `README.md` with complete Vercel 1-click and CLI deployment guides.
+  - Verified 0 TypeScript errors with `npm run check` and successful build with `npm run build`.
+
 
 
 
