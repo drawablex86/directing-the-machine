@@ -96,9 +96,11 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Updated GitHub handle in `index.md` to `drawablex86`.
   - Revamped `README.md` with complete Vercel 1-click and CLI deployment guides.
   - Verified 0 TypeScript errors with `npm run check` and successful build with `npm run build`.
-
-
-
-
-
+- [x] **Task 13: Interactive Appendix Reader & Field Manual Direct Linking**
+  - Extracted and bundled full unabridged text and operational protocols for Appendices A through O from `Directing the Machine.md` into type-safe module `src/lib/data/appendices.ts`.
+  - Created `AppendixModal.svelte` featuring clean markdown rendering (tables, callout alerts, code blocks, lists), quick cycle navigation (`←`/`→`), jump strip (A–O), and one-click template/protocol copy to clipboard.
+  - Upgraded `FieldManualView.svelte` with interactive "Read" action cards and support for URL query params (`?tab=manual&appendix=app-x`) and hash anchors.
+  - Enhanced `ReferenceDrawer.svelte` (`⌘K`) with clickable appendix cards that directly open the modal reader.
+  - Linked assigned readings in `DailyPracticeView.svelte` and `CourseSyllabusView.svelte` directly to their respective Appendix protocols.
+  - Verified 0 TypeScript errors with `npm run check` and successful static pre-rendering build with `npm run build`.
 

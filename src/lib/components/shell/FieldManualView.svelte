@@ -4,15 +4,42 @@
 		Search,
 		Download,
 		FileCode,
-		ShieldCheck,
-		ExternalLink,
-		Sliders
+		ArrowRight,
+		ExternalLink
 	} from '@lucide/svelte';
 	import { generateAppendixLMarkdownTree } from '$lib/engine/archive-exporter';
 	import { practiceStore } from '$lib/state/practice.svelte';
+	import { appendicesData, getAppendixById, type Appendix } from '$lib/data/appendices';
+	import AppendixModal from './AppendixModal.svelte';
+	import { onMount } from 'svelte';
+
+	let { initialAppendixId }: { initialAppendixId?: string | null } = $props();
 
 	let searchQuery = $state('');
 	let exportSuccess = $state(false);
+	let selectedAppendix = $state<Appendix | null>(null);
+	let isModalOpen = $state(false);
+
+	onMount(() => {
+		// Handle initial appendix request (via query param e.g. &appendix=app-b or URL hash #app-b)
+		const hash = window.location.hash.replace('#', '').trim();
+		const targetId = initialAppendixId || hash;
+		if (targetId) {
+			const found = getAppendixById(targetId);
+			if (found) {
+				openAppendix(found);
+			}
+		}
+	});
+
+	function openAppendix(app: Appendix) {
+		selectedAppendix = app;
+		isModalOpen = true;
+	}
+
+	function closeAppendix() {
+		isModalOpen = false;
+	}
 
 	function exportAppendixLArchive(format: 'json' | 'markdown') {
 		const archive = generateAppendixLMarkdownTree({
@@ -48,29 +75,11 @@
 		URL.revokeObjectURL(url);
 
 		exportSuccess = true;
-		setTimeout(() => exportSuccess = false, 3000);
+		setTimeout(() => (exportSuccess = false), 3000);
 	}
 
-	const appendices = [
-		{ id: 'app-a', title: 'Appendix A — Tool & Practice Stack', tags: ['tools', 'hardware', 'software', 'backup'], summary: 'Categories persist, tools change. Learn to map new tools into functional categories.' },
-		{ id: 'app-b', title: 'Appendix B — Diagnostic Ladders', tags: ['ladders', 'diagnosis', 'hierarchy'], summary: 'Universal, visual, and writing ladders. Rule: Do not optimize a lower level while a higher level remains unresolved.' },
-		{ id: 'app-c', title: 'Appendix C — Rubrics', tags: ['rubrics', 'scoring', 'mastery', 'two-axis'], summary: 'Universal and contextual rubrics (1-4 scale) and Outcome vs. Decision Quality quadrants.' },
-		{ id: 'app-d', title: 'Appendix D — Project Specifications', tags: ['projects', 'briefs', 'intensive', 'independent'], summary: 'Specs for Projects 1 through 6 (Intensive) and Projects 7 through 12 (Independent).' },
-		{ id: 'app-e', title: 'Appendix E — Anchor Library Protocol', tags: ['anchors', 'curation', 'taste', 'memory'], summary: 'Not a mood board. A record of decisions worth remembering (≥40% human anchors).' },
-		{ id: 'app-f', title: 'Appendix F — Ethical, Technical & Intentional Refusal', tags: ['refusal', 'ethics', 'slop', 'positionality'], summary: '5-mode refusal system: ethical, positional, technical, intentional, and slop refusal.' },
-		{ id: 'app-g', title: 'Appendix G — Transfer Tests', tags: ['transfer', 'independence', 'scaffolding'], summary: 'Exercises that verify if understanding survives when the familiar scaffolding is removed.' },
-		{ id: 'app-h', title: 'Appendix H — Study Protocols for Creative Knowledge', tags: ['craft', 'study', 'tacit'], summary: 'Execution-as-knowledge drills: observational studies, close reading, and transcription.' },
-		{ id: 'app-i', title: 'Appendix I — Deliberate Practice Protocols', tags: ['deliberate practice', 'micro-skills', 'reps'], summary: 'The 70-80% difficulty rule, micro-skill isolation, and immediate feedback loop.' },
-		{ id: 'app-j', title: 'Appendix J — Feedback, Critique & Self-Calibration', tags: ['critique', 'calibration network', 'blind'], summary: 'Blind self-assessment, 9-question critique protocol, and calibration partners.' },
-		{ id: 'app-k', title: 'Appendix K — Safety, Ethics, Access & Sustainability', tags: ['ethics', 'sustainability', 'health'], summary: 'Screen hygiene, physical posture, environmental compute costs, and disclosure.' },
-		{ id: 'app-l', title: 'Appendix L — Operational Templates', tags: ['templates', 'provenance', 'brief', 'logs'], summary: 'Directory structure, version naming (project_v01_date_status_purpose), and logs.' },
-		{ id: 'app-m', title: 'Appendix M — Professional Practice Reference', tags: ['contracts', 'ip', 'pricing', 'clients'], summary: 'Pricing judgment, contract clauses for AI-augmented work, and pipeline-as-IP.' },
-		{ id: 'app-n', title: 'Appendix N — Continuing Practice After Exit', tags: ['continuing practice', 'long-term', 'agency'], summary: 'The annual domain transfer, longitudinal motive audit, and lifetime practice.' },
-		{ id: 'app-o', title: 'Appendix O — Working Across Intensity Levels', tags: ['intensity', 'pacing', 'workload', 'part-time'], summary: 'Adapting to full-time (12w), extended (24w), distributed (48w), or maintenance (4h/w).' }
-	];
-
 	let filtered = $derived(
-		appendices.filter((a) =>
+		appendicesData.filter((a) =>
 			searchQuery.trim() === ''
 				? true
 				: a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -95,7 +104,7 @@
 					Studio Reference Library & Standards
 				</h2>
 				<p class="text-xs md:text-sm text-neutral-400 max-w-2xl">
-					Official specifications, diagnostic ladders, ethical refusal protocols, and Appendix L templates.
+					Official specifications, diagnostic ladders, ethical refusal protocols, and Appendix L templates. Click any appendix to read the complete protocol.
 				</p>
 			</div>
 
@@ -142,15 +151,18 @@
 	<!-- Filtered Appendix List -->
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 		{#each filtered as app}
-			<div class="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 flex flex-col justify-between space-y-3">
+			<div
+				id={app.id}
+				class="p-5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 hover:border-amber-500/40 hover:bg-neutral-900 transition flex flex-col justify-between space-y-3 group"
+			>
 				<div class="space-y-2">
 					<div class="flex items-center justify-between">
 						<span class="text-xs font-mono font-bold text-amber-400">
 							{app.id.toUpperCase()}
 						</span>
-						<BookOpen class="w-4 h-4 text-neutral-500" />
+						<BookOpen class="w-4 h-4 text-neutral-500 group-hover:text-amber-400 transition" />
 					</div>
-					<h3 class="font-bold text-sm text-white">
+					<h3 class="font-bold text-sm text-white group-hover:text-amber-300 transition">
 						{app.title}
 					</h3>
 					<p class="text-xs text-neutral-400 leading-relaxed">
@@ -158,14 +170,34 @@
 					</p>
 				</div>
 
-				<div class="pt-3 border-t border-neutral-800/60 flex flex-wrap gap-1.5">
-					{#each app.tags as tag}
-						<span class="text-[10px] font-mono bg-neutral-950 px-2 py-0.5 rounded text-neutral-400 border border-neutral-800">
-							#{tag}
-						</span>
-					{/each}
+				<div class="pt-3 border-t border-neutral-800/60 flex items-center justify-between gap-2">
+					<div class="flex flex-wrap gap-1.5">
+						{#each app.tags.slice(0, 3) as tag}
+							<span class="text-[10px] font-mono bg-neutral-950 px-2 py-0.5 rounded text-neutral-400 border border-neutral-800">
+								#{tag}
+							</span>
+						{/each}
+					</div>
+
+					<button
+						type="button"
+						onclick={() => openAppendix(app)}
+						class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-neutral-800 hover:bg-amber-500 hover:text-neutral-950 text-neutral-300 transition flex items-center gap-1 cursor-pointer shrink-0"
+						title="Read complete {app.title}"
+					>
+						<span>Read</span>
+						<ArrowRight class="w-3.5 h-3.5" />
+					</button>
 				</div>
 			</div>
 		{/each}
 	</div>
 </div>
+
+<!-- Full Screen Modal Appendix Reader -->
+<AppendixModal
+	appendix={selectedAppendix}
+	isOpen={isModalOpen}
+	onClose={closeAppendix}
+	onSelectAppendix={(app) => (selectedAppendix = app)}
+/>

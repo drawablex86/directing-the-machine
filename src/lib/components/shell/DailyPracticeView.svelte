@@ -155,7 +155,17 @@
 				</div>
 				<h2 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
 					<BookOpen class="w-5 h-5 text-amber-400" />
-					<span>{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}</span>
+					{#if currentDayData.assignedReading.moduleCode.toLowerCase().includes('appendix')}
+						<a
+							href="/app?tab=manual&appendix={currentDayData.assignedReading.moduleCode.toLowerCase().replace(' ', '-')}"
+							class="text-amber-400 hover:text-amber-300 underline underline-offset-4 decoration-amber-500/40 hover:decoration-amber-300 transition"
+							title="Read {currentDayData.assignedReading.moduleCode} in Field Manual"
+						>
+							{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}
+						</a>
+					{:else}
+						<span>{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}</span>
+					{/if}
 				</h2>
 			</div>
 

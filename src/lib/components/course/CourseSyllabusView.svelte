@@ -238,7 +238,18 @@
 									<span class="text-amber-400">{day.focus}</span>
 								</div>
 								<div class="text-xs text-neutral-400">
-									Assigned Reading: <span class="text-neutral-200 font-semibold">{day.assignedReading.moduleCode} — {day.assignedReading.title}</span>
+									Assigned Reading:
+									{#if day.assignedReading.moduleCode.toLowerCase().includes('appendix')}
+										<a
+											href="/app?tab=manual&appendix={day.assignedReading.moduleCode.toLowerCase().replace(' ', '-')}"
+											class="text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-2 decoration-amber-500/40 hover:decoration-amber-300 transition"
+											title="Read {day.assignedReading.moduleCode} in Field Manual"
+										>
+											{day.assignedReading.moduleCode} — {day.assignedReading.title}
+										</a>
+									{:else}
+										<span class="text-neutral-200 font-semibold">{day.assignedReading.moduleCode} — {day.assignedReading.title}</span>
+									{/if}
 								</div>
 							</div>
 

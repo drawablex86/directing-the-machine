@@ -46,11 +46,18 @@
 	type ViewMode = 'today' | 'curriculum' | 'labs' | 'assessment' | 'manual' | 'lab-session';
 	let activeTab = $state<ViewMode>('today');
 	let activeLabId = $state<string | null>(null);
+	let initialAppendix = $state<string | null>(null);
 
 	onMount(() => {
 		const searchParams = page.url.searchParams;
 		const tab = searchParams.get('tab');
 		const lab = searchParams.get('lab');
+		const appParam = searchParams.get('appendix');
+		if (appParam) {
+			initialAppendix = appParam;
+			activeTab = 'manual';
+		}
+
 		if (lab) {
 			openLab(lab);
 		} else if (tab === 'curriculum' || tab === 'labs' || tab === 'assessment' || tab === 'manual' || tab === 'today') {
@@ -241,7 +248,7 @@
 				</div>
 			</div>
 		{:else if activeTab === 'manual'}
-			<FieldManualView />
+			<FieldManualView initialAppendixId={initialAppendix} />
 		{:else if activeTab === 'lab-session'}
 			{#if activeLabId === 'm0'}
 				<M0PracticeContractHub />
