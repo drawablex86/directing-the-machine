@@ -1,9 +1,20 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import { lintObservation } from '$lib/engine/adjective-linter';
-	import { Eye, AlertTriangle, CheckCircle, Sliders, ArrowRight } from '@lucide/svelte';
+	import { Eye, AlertTriangle, CheckCircle, Sliders, ArrowRight, Target } from '@lucide/svelte';
+	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import { getDrillById } from '$lib/data/drills';
 
-	let activeTool = $state<'linter' | 'ladder' | 'canvas' | 'sixQuestions'>('linter');
+	let activeTool = $state<'drill' | 'linter' | 'ladder' | 'canvas' | 'sixQuestions'>('drill');
+
+	// Drill context — key drills for M2
+	const zeroDrill = getDrillById('zero-adjective-linter');
+	const ladderDrill = getDrillById('diagnostic-ladder-sequencer');
+	const massingDrill = getDrillById('massing-sprint');
+
+	// Active drill for Drill Runner tab
+	let activeDrillId = $state<'zero-adjective-linter' | 'diagnostic-ladder-sequencer' | 'massing-sprint'>('zero-adjective-linter');
+	let activeDrill = $derived(getDrillById(activeDrillId));
 
 	// Linter text
 	let observationText = $state('');
@@ -86,7 +97,15 @@
 		</div>
 
 		<!-- Tool Tabs -->
-		<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
+		<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs flex-wrap">
+			<button
+				type="button"
+				onclick={() => activeTool = 'drill'}
+				class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeTool === 'drill' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+			>
+				<Target class="w-3 h-3" />
+				<span>Drill Runner</span>
+			</button>
 			<button
 				type="button"
 				onclick={() => activeTool = 'linter'}
@@ -117,6 +136,42 @@
 			</button>
 		</div>
 	</div>
+
+	<!-- DRILL RUNNER TAB -->
+	{#if activeTool === 'drill'}
+		<div class="space-y-4">
+			<!-- Drill selector -->
+			<div class="flex items-center gap-2 text-xs">
+				<span class="text-neutral-400">Drill:</span>
+				<div class="flex gap-1.5 bg-neutral-950 p-1 rounded-xl border border-neutral-800">
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'zero-adjective-linter'}
+						class="px-3 py-1.5 rounded-lg transition {activeDrillId === 'zero-adjective-linter' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+					>
+						Zero-Adjective
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'diagnostic-ladder-sequencer'}
+						class="px-3 py-1.5 rounded-lg transition {activeDrillId === 'diagnostic-ladder-sequencer' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+					>
+						Diagnostic Ladder
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'massing-sprint'}
+						class="px-3 py-1.5 rounded-lg transition {activeDrillId === 'massing-sprint' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+					>
+						Massing Sprint
+					</button>
+				</div>
+			</div>
+			{#if activeDrill}
+				<DrillRunner drill={activeDrill} />
+			{/if}
+		</div>
+	{/if}
 
 	<!-- TOOL 1: Zero-Adjective Observation Linter -->
 	{#if activeTool === 'linter'}

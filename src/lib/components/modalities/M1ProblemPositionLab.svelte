@@ -1,7 +1,16 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import type { ProblemEntry } from '$lib/schemas/course.schema';
-	import { Compass, ShieldCheck, ShieldAlert, ArrowRight, CheckCircle2, Clock } from '@lucide/svelte';
+	import { Compass, ShieldCheck, ShieldAlert, ArrowRight, CheckCircle2, Clock, Target } from '@lucide/svelte';
+	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import { getDrillById } from '$lib/data/drills';
+
+	type ActiveTab = 'drill' | 'funnel';
+	let activeTab = $state<ActiveTab>('funnel');
+
+	// Drills available in M1
+	let activeDrillId = $state<'five-in-thirty' | 'frame-shift' | 'positionality-check'>('five-in-thirty');
+	let activeDrill = $derived(getDrillById(activeDrillId));
 
 	let step = $state<'notice' | 'collect' | 'frame' | 'test' | 'select' | 'justify'>('notice');
 
@@ -89,23 +98,79 @@
 			</p>
 		</div>
 
-		<!-- 60m Unassigned Beginning Timer -->
-		<div class="flex items-center gap-2 bg-neutral-950 px-3 py-1.5 rounded-xl border border-neutral-800 text-xs">
-			<Clock class="w-3.5 h-3.5 text-amber-400" />
-			<span class="font-mono text-neutral-300">
-				{Math.floor(unassignedTimer / 60)}:{String(unassignedTimer % 60).padStart(2, '0')}
-			</span>
-			<button
-				type="button"
-				onclick={toggleUnassignedTimer}
-				class="text-[11px] font-bold text-amber-400 hover:text-amber-300 ml-1"
-			>
-				{unassignedRunning ? 'Pause' : 'Start 60m Unassigned'}
-			</button>
+		<!-- Header controls: tab switcher + timer -->
+		<div class="flex items-center gap-2 flex-wrap">
+			<!-- Tab switcher -->
+			<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
+				<button
+					type="button"
+					onclick={() => activeTab = 'drill'}
+					class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeTab === 'drill' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+				>
+					<Target class="w-3 h-3" />
+					<span>Drill Runner</span>
+				</button>
+				<button
+					type="button"
+					onclick={() => activeTab = 'funnel'}
+					class="px-3 py-1.5 rounded-lg transition {activeTab === 'funnel' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+				>
+					Problem Funnel
+				</button>
+			</div>
+
+			<!-- 60m Unassigned Beginning Timer -->
+			<div class="flex items-center gap-2 bg-neutral-950 px-3 py-1.5 rounded-xl border border-neutral-800 text-xs">
+				<Clock class="w-3.5 h-3.5 text-amber-400" />
+				<span class="font-mono text-neutral-300">
+					{Math.floor(unassignedTimer / 60)}:{String(unassignedTimer % 60).padStart(2, '0')}
+				</span>
+				<button
+					type="button"
+					onclick={toggleUnassignedTimer}
+					class="text-[11px] font-bold text-amber-400 hover:text-amber-300 ml-1"
+				>
+					{unassignedRunning ? 'Pause' : 'Start 60m'}
+				</button>
+			</div>
 		</div>
 	</div>
 
-	<!-- 6-Step Problem Funnel Nav -->
+	<!-- DRILL RUNNER TAB -->
+	{#if activeTab === 'drill'}
+		<div class="space-y-4">
+			<div class="flex items-center gap-2 text-xs">
+				<span class="text-neutral-400">Drill:</span>
+				<div class="flex gap-1.5 bg-neutral-950 p-1 rounded-xl border border-neutral-800">
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'five-in-thirty'}
+						class="px-3 py-1.5 rounded-lg transition {activeDrillId === 'five-in-thirty' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+					>
+						5-in-30 Funnel
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'frame-shift'}
+						class="px-3 py-1.5 rounded-lg transition {activeDrillId === 'frame-shift' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+					>
+						Frame Shift
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'positionality-check'}
+						class="px-3 py-1.5 rounded-lg transition {activeDrillId === 'positionality-check' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+					>
+						Positionality Check
+					</button>
+				</div>
+			</div>
+			{#if activeDrill}
+				<DrillRunner drill={activeDrill} />
+			{/if}
+		</div>
+	{:else}
+
 	<div class="grid grid-cols-3 sm:grid-cols-6 gap-1 bg-neutral-950 p-1.5 rounded-xl border border-neutral-800 text-xs font-medium">
 		{#each ['notice', 'collect', 'frame', 'test', 'select', 'justify'] as s, idx}
 			<button
@@ -311,5 +376,6 @@
 				{/each}
 			</div>
 		</div>
+	{/if}
 	{/if}
 </div>

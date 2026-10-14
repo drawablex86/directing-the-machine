@@ -12,6 +12,29 @@ import type {
 } from '../schemas/course.schema';
 import { analyzeCalibration } from '../engine/calibration-math';
 
+// Drill session tracking — one entry per completed 60–90m drill block
+export interface DrillSession {
+	id: string;
+	date: string;
+	drillId: string;         // e.g. 'zero-adjective-linter'
+	drillTitle: string;
+	weekNum: number;
+	dayNum: number;
+	totalReps: number;
+	passedReps: number;
+	successRate: number;     // 0.0–1.0
+	discoveryNote: string;   // "What did I discover about the mechanism?"
+	difficultyAdjustment: 'increased' | 'maintained' | 'reduced' | 'none';
+	durationMinutes: number;
+}
+
+// Individual rep result within a drill session
+export interface RepResult {
+	repNumber: number;
+	passed: boolean;
+	failNote: string;        // brief note on what broke
+}
+
 const STORAGE_KEY = 'dtm_practice_store_v1';
 
 export interface ScaffoldingState {
@@ -86,6 +109,7 @@ export class PracticeEngine {
 	problems = $state<ProblemEntry[]>([]);
 	calibrations = $state<CalibrationEntry[]>([]);
 	practiceSessions = $state<PracticeSession[]>([]);
+	drillSessions = $state<DrillSession[]>([]); // NEW: rep-level drill tracking
 	decisions = $state<DecisionEntry[]>([]);
 	briefs = $state<Brief[]>([]);
 
@@ -189,6 +213,25 @@ export class PracticeEngine {
 
 	isTaskCompleted(taskId: string): boolean {
 		return this.completedTaskIds.includes(taskId);
+	}
+
+	// Save a completed drill session (from Drill Runner UI)
+	saveDrillSession(session: Omit<DrillSession, 'id' | 'date'>) {
+		const newSession: DrillSession = {
+			id: crypto.randomUUID(),
+			date: new Date().toISOString().slice(0, 10),
+			...session
+		};
+		this.drillSessions.unshift(newSession);
+		this.saveToStorage();
+		return newSession;
+	}
+
+	// Get recent drill sessions for a specific drill (for progress context)
+	getRecentDrillSessions(drillId: string, limit = 5): DrillSession[] {
+		return this.drillSessions
+			.filter(s => s.drillId === drillId)
+			.slice(0, limit);
 	}
 
 	setTomorrowAction(action: string) {
@@ -328,6 +371,7 @@ export class PracticeEngine {
 				problems: this.problems,
 				calibrations: this.calibrations,
 				practiceSessions: this.practiceSessions,
+				drillSessions: this.drillSessions,
 				decisions: this.decisions,
 				briefs: this.briefs,
 				nonInstrumentalLines: this.nonInstrumentalLines,
@@ -362,6 +406,7 @@ export class PracticeEngine {
 			if (data.problems) this.problems = data.problems;
 			if (data.calibrations) this.calibrations = data.calibrations;
 			if (data.practiceSessions) this.practiceSessions = data.practiceSessions;
+			if (data.drillSessions) this.drillSessions = data.drillSessions;
 			if (data.decisions) this.decisions = data.decisions;
 			if (data.briefs) this.briefs = data.briefs;
 			if (data.nonInstrumentalLines) this.nonInstrumentalLines = data.nonInstrumentalLines;

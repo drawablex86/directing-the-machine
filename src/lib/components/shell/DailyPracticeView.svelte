@@ -23,10 +23,12 @@
 		Brain,
 		HelpCircle,
 		BookMarked,
-		ExternalLink
+		ExternalLink,
+		Target
 	} from '@lucide/svelte';
 	import { getReadingByCode, type CoreReading } from '$lib/data/core-readings';
 	import { getAppendixById } from '$lib/data/appendices';
+	import { DRILLS, getDrillsByModality, type Drill } from '$lib/data/drills';
 	import ReadingModal from './ReadingModal.svelte';
 	import ProjectBriefModal from '../course/ProjectBriefModal.svelte';
 
@@ -72,6 +74,22 @@
 	let completedCount = $derived(
 		currentDayData.tasks.filter((t) => practiceStore.isTaskCompleted(t.id)).length
 	);
+
+	// Matched drill for deliberate practice step
+	let matchedDrill = $derived.by<Drill | undefined>(() => {
+		if (currentStep.id !== 'practise') return undefined;
+		const titleLower = activeTask.title.toLowerCase();
+		const descLower = (activeTask.description || '').toLowerCase();
+		for (const d of DRILLS) {
+			if (titleLower.includes(d.title.toLowerCase()) || titleLower.includes(d.id)) return d;
+			if (descLower.includes(d.title.toLowerCase()) || descLower.includes(d.id)) return d;
+		}
+		const modalityDrills = getDrillsByModality(activeTask.targetModalityId);
+		const weekDrill = modalityDrills.find(d => d.weeks.includes(practiceStore.activeWeek));
+		if (weekDrill) return weekDrill;
+		if (modalityDrills.length > 0) return modalityDrills[0];
+		return DRILLS[0];
+	});
 
 	// Quick 1-line inputs
 	let quickPlay = $state('');
@@ -449,6 +467,147 @@
 				</button>
 			</div>
 		</div>
+
+		<!-- DELIBERATE DRILL EXPLAINER PANEL (PRACTISE STEP) -->
+		{#if currentStep.id === 'practise'}
+			<div class="rounded-2xl bg-amber-950/20 border border-amber-500/30 p-5 space-y-4 shadow-lg shadow-black/20">
+				<!-- Header -->
+				<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-amber-800/40 gap-2">
+					<div class="flex items-center gap-2.5">
+						<div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold">
+							<Target class="w-4 h-4" />
+						</div>
+						<div>
+							<div class="text-[11px] font-mono uppercase tracking-wider text-amber-400 font-bold">
+								Practise Directive • Deliberate Micro-Drill
+							</div>
+							<div class="text-base font-bold text-white">
+								{matchedDrill ? matchedDrill.title : activeTask.title}
+							</div>
+						</div>
+					</div>
+					<div class="flex items-center gap-2">
+						<span class="text-xs font-mono px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-amber-300 font-bold">
+							🎯 Target: {matchedDrill?.repCount || '5–10'} Reps • 70–80% Zone
+						</span>
+					</div>
+				</div>
+
+				<!-- What you're training -->
+				<div class="space-y-1">
+					<div class="text-[11px] font-mono uppercase tracking-wider text-amber-400/80 font-bold">
+						What You're Training
+					</div>
+					<p class="text-xs md:text-sm text-neutral-200 leading-relaxed">
+						{matchedDrill?.targetSkill || activeTask.objective}
+					</p>
+				</div>
+
+				<!-- What 1 Rep Looks Like -->
+				<div class="space-y-2">
+					<div class="flex items-center justify-between">
+						<div class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+							What 1 Rep Looks Like ({matchedDrill?.repDuration || '5–8 min per rep'})
+						</div>
+						<span class="text-[10px] font-mono text-neutral-500">Run 1 rep, self-grade PASS/FAIL, adjust constraint</span>
+					</div>
+					{#if matchedDrill}
+						<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
+							{#each matchedDrill.repProtocol as protoStep}
+								<div class="p-3 rounded-xl bg-neutral-900/90 border border-neutral-800 text-xs space-y-1.5 flex flex-col justify-between">
+									<div class="flex items-center justify-between font-mono text-[10px] text-amber-400 font-bold">
+										<span>Step {protoStep.step}</span>
+										<span class="text-neutral-500 bg-neutral-950 px-1.5 py-0.5 rounded">{protoStep.duration}</span>
+									</div>
+									<div>
+										<div class="font-bold text-neutral-200 text-xs mb-1">{protoStep.label}</div>
+										<p class="text-neutral-400 text-[11px] leading-relaxed">{protoStep.instruction}</p>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+							<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-xs space-y-1">
+								<div class="font-bold text-amber-400">1. Attempt Under Constraint</div>
+								<p class="text-neutral-300 text-[11px]">Execute the micro-action with timer on. Do not seek perfection.</p>
+							</div>
+							<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-xs space-y-1">
+								<div class="font-bold text-amber-400">2. Compare to Benchmark</div>
+								<p class="text-neutral-300 text-[11px]">Evaluate against binary criterion. Did you pass or fail?</p>
+							</div>
+							<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800 text-xs space-y-1">
+								<div class="font-bold text-amber-400">3. Adjust & Repeat</div>
+								<p class="text-neutral-300 text-[11px]">Calibrate difficulty. Tighten or reduce scope immediately.</p>
+							</div>
+						</div>
+					{/if}
+				</div>
+
+				<!-- Where to do it + Difficulty Regulation -->
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+					<!-- Where to do it -->
+					<div class="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 space-y-2.5">
+						<div class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold flex items-center justify-between">
+							<span>Where to Practice</span>
+							<span class="text-[10px] text-amber-400 font-normal">Studio {activeTask.targetModalityId.toUpperCase()}</span>
+						</div>
+						<p class="text-xs text-neutral-300 leading-relaxed">
+							{matchedDrill?.surface || 'Launch the workbench in the Modality Studio or use your physical sketchbook.'}
+						</p>
+						<button
+							type="button"
+							onclick={() => onSelectModality(activeTask.targetModalityId)}
+							class="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center justify-center gap-2 transition cursor-pointer shadow"
+						>
+							<Play class="w-3.5 h-3.5 fill-current" />
+							<span>Launch Drill Runner in Studio ({activeTask.targetModalityId.toUpperCase()})</span>
+							<ArrowRight class="w-3.5 h-3.5" />
+						</button>
+					</div>
+
+					<!-- Difficulty Calibration -->
+					<div class="p-3.5 rounded-xl bg-neutral-900/80 border border-neutral-800 space-y-2.5">
+						<div class="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+							Difficulty Regulation (Stay in the 70–80% Zone)
+						</div>
+						<div class="space-y-2 text-xs">
+							<div class="p-2 rounded-lg bg-emerald-950/30 border border-emerald-900/40 text-[11px] space-y-0.5">
+								<div class="font-bold text-emerald-400">Succeeding 10/10? (Too Easy)</div>
+								<div class="text-neutral-300">{matchedDrill?.difficulty.harder || 'Tighten constraints, cut time limit in half, or pick an unfamiliar domain.'}</div>
+							</div>
+							<div class="p-2 rounded-lg bg-red-950/30 border border-red-900/40 text-[11px] space-y-0.5">
+								<div class="font-bold text-red-400">Failing &gt;4/10? (Too Hard)</div>
+								<div class="text-neutral-300">{matchedDrill?.difficulty.warmup || 'Drop to warmup level: simpler subject, fewer constraints, or longer timer.'}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Worked Pass vs Fail Reference (if available) -->
+				{#if matchedDrill}
+					<div class="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-xs space-y-2">
+						<div class="text-[10px] font-mono uppercase tracking-wider text-neutral-500 font-bold">
+							Benchmark Rep Reference: What Passes vs What Fails
+						</div>
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
+							<div class="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-900/30 space-y-1">
+								<span class="font-bold text-emerald-400 flex items-center gap-1">
+									<CheckCircle2 class="w-3 h-3" /> PASS Example:
+								</span>
+								<p class="text-neutral-300 italic">"{matchedDrill.examplePass}"</p>
+							</div>
+							<div class="p-2.5 rounded-lg bg-red-950/20 border border-red-900/30 space-y-1">
+								<span class="font-bold text-red-400 flex items-center gap-1">
+									<AlertCircle class="w-3 h-3" /> FAIL Example:
+								</span>
+								<p class="text-neutral-400 italic">"{matchedDrill.exampleFail}"</p>
+							</div>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/if}
 
 		<!-- Step Directive Execution Protocol Card -->
 		<div class="rounded-xl bg-neutral-950/70 border border-neutral-800/80 p-4 space-y-4">

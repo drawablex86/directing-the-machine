@@ -248,7 +248,7 @@
 				</div>
 			</div>
 		{:else if activeTab === 'manual'}
-			<FieldManualView initialAppendixId={initialAppendix} />
+			<FieldManualView initialAppendixId={initialAppendix} onSelectModality={openLab} />
 		{:else if activeTab === 'lab-session'}
 			{#if activeLabId === 'm0'}
 				<M0PracticeContractHub
