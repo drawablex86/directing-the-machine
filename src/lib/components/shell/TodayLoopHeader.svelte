@@ -56,8 +56,12 @@
 					<div class="text-[11px] text-neutral-400 flex items-center gap-1.5">
 						<span>{intensityLabels[practiceStore.intensityPath]}</span>
 						<span>•</span>
-						<span class="text-amber-400 font-medium">
-							{practiceStore.activePart === 0 ? 'Week 0 Baseline' : practiceStore.activePart <= 6 ? `Part ${practiceStore.activePart}` : `Month ${practiceStore.activePart - 3}`}
+						<span class="text-amber-400 font-semibold font-mono">
+							Week {practiceStore.activeWeek} · Day {practiceStore.activeDay}
+						</span>
+						<span>•</span>
+						<span class="text-neutral-400 font-medium">
+							{practiceStore.activePart === 0 ? 'Baseline' : practiceStore.activePart <= 6 ? `Part ${practiceStore.activePart}` : `Month ${practiceStore.activePart - 3}`}
 						</span>
 					</div>
 				</div>

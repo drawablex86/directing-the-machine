@@ -17,6 +17,7 @@
 	import M5TasteCurationArena from '$lib/components/modalities/M5TasteCurationArena.svelte';
 	import M6DirectionCollab from '$lib/components/modalities/M6DirectionCollab.svelte';
 	import M7AgencyBlankSheet from '$lib/components/modalities/M7AgencyBlankSheet.svelte';
+	import CourseSyllabusView from '$lib/components/course/CourseSyllabusView.svelte';
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import {
 		Calendar,
@@ -25,7 +26,9 @@
 		BookOpen,
 		ArrowLeft,
 		ChevronRight,
-		SlidersHorizontal
+		SlidersHorizontal,
+		MapPin,
+		Compass
 	} from '@lucide/svelte';
 
 	let isDrawerOpen = $state(false);
@@ -33,7 +36,7 @@
 	let isStopModalOpen = $state(false);
 
 	// Navigation: Primary views or specific active lab
-	type ViewMode = 'today' | 'labs' | 'assessment' | 'manual' | 'lab-session';
+	type ViewMode = 'today' | 'curriculum' | 'labs' | 'assessment' | 'manual' | 'lab-session';
 	let activeTab = $state<ViewMode>('today');
 	let activeLabId = $state<string | null>(null);
 
@@ -82,6 +85,15 @@
 					>
 						<Calendar class="w-4 h-4" />
 						<span>Today's Practice</span>
+					</button>
+
+					<button
+						type="button"
+						onclick={() => activeTab = 'curriculum'}
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer {activeTab === 'curriculum' ? 'bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900'}"
+					>
+						<Compass class="w-4 h-4" />
+						<span>Curriculum & Projects</span>
 					</button>
 
 					<button
@@ -141,6 +153,8 @@
 		<!-- VIEW ROUTING -->
 		{#if activeTab === 'today'}
 			<DailyPracticeView onSelectModality={openLab} />
+		{:else if activeTab === 'curriculum'}
+			<CourseSyllabusView onLaunchModality={openLab} />
 		{:else if activeTab === 'labs'}
 			<LabDirectory onSelectModality={openLab} />
 		{:else if activeTab === 'assessment'}
