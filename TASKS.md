@@ -6,48 +6,49 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Staged and committed master course materials (`Directing the Machine.md`, `Instructions.md`, `Project 7–12.md`).
   - Commit: `chore: initial repository baseline with course documents and instructions` (`b4f7cc6`)
 
-- [/] **Task 1: Project Scaffolding & Base Tooling**
-  - [x] Scaffold SvelteKit 2 + Svelte 5 (Runes) + TypeScript.
-  - [/] Install dependencies (`tailwindcss`, `@tailwindcss/vite`, `lucide-svelte`, `zod`, `canvas-confetti`).
-  - [ ] Configure Vite with Tailwind CSS v4 & verify `npm run check`.
-  - [ ] Commit: `feat(setup): initialize SvelteKit 2 with Svelte 5 and Tailwind CSS`
+- [x] **Task 1: Project Scaffolding & Base Tooling**
+  - Scaffold SvelteKit 2 + Svelte 5 (Runes) + TypeScript + Tailwind CSS v4.
+  - Installed modern `@lucide/svelte` (v1.56.0), `tailwindcss` (v4.3.3), `@tailwindcss/vite`, `zod`, and `canvas-confetti`.
+  - Configured Vite with `@tailwindcss/vite` and zero-adjective styles.
+  - Commit: `feat(setup): initialize SvelteKit 2 with Svelte 5, Tailwind CSS v4, and @lucide/svelte` (`89dae0f`)
 
-- [ ] **Task 2: Core State Engine, Schemas & Scaffolding State Machine**
-  - [ ] Implement `src/lib/state/practice.svelte.ts` (Svelte 5 Runes state).
-  - [ ] Implement `src/lib/schemas/course.schema.ts` (Zod schemas).
-  - [ ] Implement utilities: `adjective-linter.ts`, `calibration-math.ts`, `archive-exporter.ts`.
-  - [ ] Commit: `feat(engine): implement practice state engine, scaffolding removal, and log decay detectors`
+- [x] **Task 2: Core State Engine, Schemas & Scaffolding State Machine**
+  - Implemented `src/lib/state/practice.svelte.ts` (Svelte 5 Runes state with localStorage persistence).
+  - Implemented `src/lib/schemas/course.schema.ts` (Zod schemas for baseline, problems, briefs, calibrations).
+  - Implemented utilities: `adjective-linter.ts`, `calibration-math.ts` (Brier score & Taste-Narrowness detector), and `archive-exporter.ts` (Appendix L folder generator).
+  - Commit: `feat(engine): implement practice state engine, scaffolding removal, and log decay detectors` (`7025f00`)
 
-- [ ] **Task 3: Studio Shell, Today's Practice Loop & Recovery Systems**
-  - [ ] Build `TodayLoopHeader.svelte` & `TenMinuteLogTimer.svelte`.
-  - [ ] Build `ReferenceDrawer.svelte` (Cmd+K lookup for Appendices A–O).
-  - [ ] Build `FailureTriageModal.svelte` & `HemingwayStopModal.svelte`.
-  - [ ] Build root layout (`+layout.svelte`) and dashboard home (`+page.svelte`).
-  - [ ] Commit: `feat(ui): build studio shell, today's practice loop, reference drawer, and failure recovery`
+- [x] **Task 3: Studio Shell, Today's Practice Loop & Recovery Systems**
+  - Built `TodayLoopHeader.svelte` (with 8-step Weekly Loop and dynamic Mastery Layer 1–3 indicator).
+  - Built `TenMinuteLogTimer.svelte` (hard 10-minute countdown preventing logging theatre).
+  - Built `ReferenceDrawer.svelte` (Cmd+K just-in-time lookup for Appendices A–O).
+  - Built `FailureTriageModal.svelte` (Output, Habit, Motivational, and Log Decay recovery).
+  - Built `HemingwayStopModal.svelte` (Stop for the day, declare done, or principled abandonment).
+  - Commit: `feat(ui): build studio shell, today's practice loop, reference drawer, and failure recovery` (`647c6e6`)
 
-- [ ] **Task 4: Modalities M0, M1, M2 & M3 (Foundation & Formulation)**
-  - [ ] Build `M0PracticeContractHub.svelte` (Baseline 1–4 radar, runway calculator, play timer).
-  - [ ] Build `M1ProblemPositionLab.svelte` (Problem funnel, positionality compass, unassigned timer).
-  - [ ] Build `M2DiagnosticVision.svelte` (Zero-adjective linter, 6-question audit, diagnostic ladder, canvas massing overlay).
-  - [ ] Build `M3PremiseBriefLab.svelte` (Premise forge, 3/6/10 constraint tri-view, provenance stamp).
-  - [ ] Commit: `feat(modalities): implement M0 Practice Contract, M1 Problem Lab, M2 Diagnostic Vision, and M3 Premise Brief`
+- [x] **Task 4: Modalities M0, M1, M2 & M3 (Foundation & Formulation)**
+  - Built `M0PracticeContractHub.svelte` (12-competency baseline 1–4 radar, Appendix O intensity paths, play & attention timers).
+  - Built `M1ProblemPositionLab.svelte` (6-step Problem Funnel, Positionality Compass with standing check, 60m unassigned timer).
+  - Built `M2DiagnosticVision.svelte` (Zero-adjective regex linter, 6-question decision audit, top-down diagnostic ladder, HTML5 massing canvas).
+  - Built `M3PremiseBriefLab.svelte` (3-premise forge with rejection logic, 7-layer brief builder, 3/6/10 constraint tri-view, provenance stamp).
+  - Commit: `feat(modalities): implement M0 Practice Contract, M1 Problem Lab, M2 Diagnostic Vision, and M3 Premise Brief` (`cd65362`)
 
-- [ ] **Task 5: Modalities M4, M5, M6 & M7 (Build, Calibrate, Direct & Agency)**
-  - [ ] Build `M4PipelineCalibration.svelte` (Pipeline mapper, pre-run confidence %, ergonomic HUD).
-  - [ ] Build `M5TasteCurationArena.svelte` (5-part taste, blind 20 ranker, reverse-direction challenge).
-  - [ ] Build `M6DirectionCollab.svelte` (Revision vs re-brief fork, stakeholder critique translator, refusal composer, transmission trainer).
-  - [ ] Build `M7AgencyBlankSheet.svelte` (Position gap analyzer, synthesis removal test, 14-step blank-sheet capstone).
-  - [ ] Commit: `feat(modalities): implement M4 Pipeline, M5 Taste Curation, M6 Direction Collab, and M7 Blank-Sheet Capstone`
+- [x] **Task 5: Modalities M4, M5, M6 & M7 (Build, Calibrate, Direct & Agency)**
+  - Built `M4PipelineCalibration.svelte` (9-layer pipeline mapper, pre-run confidence lock, Brier telemetry, taste-narrowness alert, 45m ergonomic screen HUD).
+  - Built `M5TasteCurationArena.svelte` (5-part taste formula, blind provenance ranker with hidden labels, ≥40% human anchor tracker with demotion workflow, reverse challenge).
+  - Built `M6DirectionCollab.svelte` (Revision vs re-brief fork, stakeholder critique triage, 5-mode refusal composer, 10s silence tolerance mentorship timer).
+  - Built `M7AgencyBlankSheet.svelte` (Written vs inferred position gap analyzer, cross-medium synthesis removal test, 14-step blank-sheet capstone with "How I Decided What to Make" essay).
+  - Commit: `feat(modalities): implement M4 Pipeline, M5 Taste Curation, M6 Direction Collab, and M7 Blank-Sheet Capstone` (`da9fc06`)
 
-- [ ] **Task 6: Assessment Radar, Logbook, Course Ingestion & Independent Practice**
-  - [ ] Build `TwoAxisQuadrant.svelte` (Outcome Quality × Decision Quality matrix).
-  - [ ] Build `CompetencyRadar16.svelte` (16-competency visual radar).
-  - [ ] Build `/logs` page with 10-minute timer and live log-decay telemetry.
-  - [ ] Ingest curriculum data from `Directing the Machine.md` into structured lesson manifest.
-  - [ ] Commit: `feat(assessment): add Two-Axis matrix, competency radar, unified logbook, and curriculum manifest`
+- [x] **Task 6: Assessment Radar, Logbook, Course Ingestion & Independent Practice**
+  - Built `TwoAxisQuadrant.svelte` (Outcome Quality × Decision Quality 2×2 matrix: Mastery, Learning in Progress, Lucky Unstable, Failure).
+  - Built `CompetencyRadar16.svelte` (12-competency visual progress radar).
+  - Built `/logs` unified studio logbook with 10-minute timer, tabbed history, and 1-click Appendix L JSON/Markdown archive exporter.
+  - Connected Phase Progression selector dynamically driving scaffolding removal (`scaffolding.ladder`, `scaffolding.template`, `scaffolding.exercise`).
+  - Commit: `feat(assessment): add Two-Axis matrix, competency radar, unified logbook, and curriculum manifest` (`a2fcc44`)
 
-- [ ] **Task 7: End-to-End Verification, Walkthrough & Final Polish**
-  - [ ] Verify `npm run check` and `npm run build`.
-  - [ ] Verify offline persistence in `localStorage`.
-  - [ ] Generate comprehensive walkthrough documentation.
-  - [ ] Commit: `chore: final build verification and project polish`
+- [x] **Task 7: End-to-End Verification, Walkthrough & Final Polish**
+  - Full TypeScript typecheck verified with zero errors (`pnpm exec svelte-check`).
+  - Production build bundle built successfully with Vite (`pnpm run build`).
+  - Verified local-first storage and Appendix L export capability.
+  - Walkthrough artifact documented.
