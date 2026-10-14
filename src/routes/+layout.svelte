@@ -1,8 +1,8 @@
 <script lang="ts">
 	import '../app.css';
-	import type { LayoutProps } from './$types';
+	import type { Snippet } from 'svelte';
 
-	let { children }: LayoutProps = $props();
+	let { children }: { children?: Snippet } = $props();
 </script>
 
 <svelte:head>
@@ -11,5 +11,5 @@
 </svelte:head>
 
 <div class="min-h-screen bg-neutral-950 text-neutral-100 font-sans antialiased">
-	{@render children()}
+	{@render children?.()}
 </div>
