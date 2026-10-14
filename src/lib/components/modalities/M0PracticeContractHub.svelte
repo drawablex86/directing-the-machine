@@ -1,9 +1,29 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import type { IntensityPath } from '$lib/schemas/course.schema';
-	import { Target, Shield, Clock, Award, CheckCircle, CheckCircle2, RotateCcw, Sparkles, Eye } from '@lucide/svelte';
+	import { Target, Shield, Clock, Award, CheckCircle, CheckCircle2, RotateCcw, Sparkles, Eye, Filter, BarChart3 } from '@lucide/svelte';
+	import BaselineCompetencyCard from './BaselineCompetencyCard.svelte';
+	import { COMPETENCY_DETAILS } from '$lib/schemas/competency-details';
 
 	let activeSubTab = $state<'baseline' | 'intensity' | 'play' | 'attention'>('baseline');
+	let baselineLayerFilter = $state<number | 'all'>('all');
+
+	let filteredBaseline = $derived(
+		baselineLayerFilter === 'all'
+			? practiceStore.baseline
+			: practiceStore.baseline.filter((item) => {
+					const detail = COMPETENCY_DETAILS[item.id];
+					return detail && detail.layer === baselineLayerFilter;
+				})
+	);
+
+	let auditedCount = $derived(
+		practiceStore.baseline.filter((b) => b.notes.trim().length > 0 || b.score !== 2).length
+	);
+
+	let avgScore = $derived(
+		(practiceStore.baseline.reduce((sum, b) => sum + b.score, 0) / practiceStore.baseline.length).toFixed(1)
+	);
 
 	// Intensity options from Appendix O
 	const paths: { id: IntensityPath; title: string; hours: string; weeks: string; desc: string }[] = [
@@ -96,39 +116,98 @@
 
 	<!-- TAB 1: Baseline Diagnostic Radar (12 competencies) -->
 	{#if activeSubTab === 'baseline'}
-		<div class="space-y-4">
-			<div class="p-3 bg-neutral-950 rounded-xl border border-neutral-800 text-xs text-neutral-400">
-				<strong class="text-neutral-200">The Baseline Diagnostic (Week 0):</strong> The baseline is not an exam; it is a diagnostic map. Score yourself honestly on the 1–4 scale: <span class="text-amber-400 font-semibold">1 (Not Yet)</span>, <span class="text-neutral-300">2 (Emerging)</span>, <span class="text-neutral-200">3 (Functional)</span>, <span class="text-emerald-400">4 (Transferable)</span>.
+		<div class="space-y-6">
+			<!-- Purpose & Orientation Banner -->
+			<div class="p-5 bg-neutral-950 rounded-2xl border border-neutral-800 space-y-3 shadow-sm">
+				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800/80 pb-3">
+					<div>
+						<h3 class="text-sm font-bold text-white flex items-center gap-2">
+							<Target class="w-4 h-4 text-amber-400" />
+							<span>The Week 0 Baseline Diagnostic Map</span>
+						</h3>
+						<p class="text-xs text-neutral-400 mt-0.5">
+							This is not a test or a grade. It is an honest diagnostic mirror to identify your reflexive defaults and blind spots before training.
+						</p>
+					</div>
+
+					<div class="flex items-center gap-3 shrink-0">
+						<div class="px-3 py-1 rounded-xl bg-neutral-900 border border-neutral-800 text-xs flex items-center gap-1.5 font-mono">
+							<span class="text-neutral-500">Audited:</span>
+							<span class="font-bold text-amber-400">{auditedCount}/12</span>
+						</div>
+						<div class="px-3 py-1 rounded-xl bg-neutral-900 border border-neutral-800 text-xs flex items-center gap-1.5 font-mono">
+							<span class="text-neutral-500">Avg Score:</span>
+							<span class="font-bold text-white">{avgScore} / 4.0</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Scoring Legend -->
+				<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+					<div class="p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center gap-2">
+						<span class="w-5 h-5 rounded-md bg-red-950/60 text-red-400 font-mono font-bold flex items-center justify-center text-xs shrink-0">1</span>
+						<span class="text-neutral-300"><strong>Not Yet</strong> · Waits or defaults</span>
+					</div>
+					<div class="p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center gap-2">
+						<span class="w-5 h-5 rounded-md bg-amber-950/60 text-amber-400 font-mono font-bold flex items-center justify-center text-xs shrink-0">2</span>
+						<span class="text-neutral-300"><strong>Emerging</strong> · Theory over reflex</span>
+					</div>
+					<div class="p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center gap-2">
+						<span class="w-5 h-5 rounded-md bg-blue-950/60 text-blue-400 font-mono font-bold flex items-center justify-center text-xs shrink-0">3</span>
+						<span class="text-neutral-300"><strong>Functional</strong> · Operates reliably</span>
+					</div>
+					<div class="p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center gap-2">
+						<span class="w-5 h-5 rounded-md bg-emerald-950/60 text-emerald-400 font-mono font-bold flex items-center justify-center text-xs shrink-0">4</span>
+						<span class="text-neutral-300"><strong>Transferable</strong> · Autonomous</span>
+					</div>
+				</div>
 			</div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-				{#each practiceStore.baseline as item, idx}
-					<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2">
-						<div class="flex items-center justify-between">
-							<span class="font-bold text-xs text-neutral-200">{item.name}</span>
-							<div class="flex items-center gap-1">
-								{#each [1, 2, 3, 4] as scoreVal}
-									<button
-										type="button"
-										onclick={() => { item.score = scoreVal; practiceStore.saveToStorage(); }}
-										class="w-6 h-6 rounded-md text-xs font-mono font-bold transition {item.score === scoreVal ? 'bg-amber-500 text-neutral-950' : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800'}"
-									>
-										{scoreVal}
-									</button>
-								{/each}
-							</div>
-						</div>
-						<div class="text-[11px] text-neutral-400">
-							{item.exercise}
-						</div>
-						<input
-							type="text"
-							bind:value={item.notes}
-							onblur={() => practiceStore.saveToStorage()}
-							placeholder="Diagnostic notes on gap..."
-							class="w-full bg-neutral-900 border border-neutral-800/80 rounded-lg px-2.5 py-1 text-xs text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
-						/>
-					</div>
+			<!-- Filter Bar by Mastery Layer -->
+			<div class="flex items-center justify-between gap-3 flex-wrap">
+				<div class="flex items-center gap-1.5 text-xs">
+					<span class="text-neutral-500 font-medium flex items-center gap-1 mr-1">
+						<Filter class="w-3.5 h-3.5" />
+						Filter:
+					</span>
+					<button
+						type="button"
+						onclick={() => baselineLayerFilter = 'all'}
+						class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 'all' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+					>
+						All 12 Competencies
+					</button>
+					<button
+						type="button"
+						onclick={() => baselineLayerFilter = 1}
+						class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 1 ? 'bg-emerald-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+					>
+						Layer 1: Foundations (4)
+					</button>
+					<button
+						type="button"
+						onclick={() => baselineLayerFilter = 2}
+						class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 2 ? 'bg-blue-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+					>
+						Layer 2: Systems & Calibration (5)
+					</button>
+					<button
+						type="button"
+						onclick={() => baselineLayerFilter = 3}
+						class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 3 ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+					>
+						Layer 3: Agency & Direction (3)
+					</button>
+				</div>
+			</div>
+
+			<!-- Cards Grid -->
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				{#each filteredBaseline as item}
+					<BaselineCompetencyCard
+						item={item}
+						onUpdate={() => practiceStore.saveToStorage()}
+					/>
 				{/each}
 			</div>
 		</div>
