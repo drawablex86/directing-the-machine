@@ -2,7 +2,9 @@
 	import { COURSE_WEEKS } from '$lib/data/curriculum';
 	import { ALL_PROJECTS, type ProjectSpec } from '$lib/data/projects';
 	import { practiceStore } from '$lib/state/practice.svelte';
+	import { getReadingByCode, type CoreReading } from '$lib/data/core-readings';
 	import ProjectBriefModal from './ProjectBriefModal.svelte';
+	import ReadingModal from '../shell/ReadingModal.svelte';
 	import {
 		BookOpen,
 		Calendar,
@@ -45,6 +47,17 @@
 			practiceStore.activePart = week.partNumber;
 		}
 		practiceStore.saveToStorage();
+	}
+
+	let selectedReading = $state<CoreReading | null>(null);
+	let isReadingModalOpen = $state(false);
+
+	function openReading(code: string) {
+		const r = getReadingByCode(code);
+		if (r) {
+			selectedReading = r;
+			isReadingModalOpen = true;
+		}
 	}
 
 	function openProject(projectId: string) {
@@ -248,7 +261,17 @@
 											{day.assignedReading.moduleCode} — {day.assignedReading.title}
 										</a>
 									{:else}
-										<span class="text-neutral-200 font-semibold">{day.assignedReading.moduleCode} — {day.assignedReading.title}</span>
+										<button
+											type="button"
+											onclick={() => openReading(day.assignedReading.moduleCode)}
+											class="text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-2 decoration-amber-500/40 hover:decoration-amber-300 transition text-left cursor-pointer inline-flex items-center gap-1.5"
+											title="Read {day.assignedReading.moduleCode} in Reading Dialog"
+										>
+											<span>{day.assignedReading.moduleCode} — {day.assignedReading.title}</span>
+											<span class="text-[10px] font-mono font-normal px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+												Read →
+											</span>
+										</button>
 									{/if}
 								</div>
 							</div>
@@ -471,3 +494,12 @@
 		{onLaunchModality}
 	/>
 {/if}
+
+<!-- Core Reading Reader Modal -->
+<ReadingModal
+	reading={selectedReading}
+	isOpen={isReadingModalOpen}
+	onClose={() => isReadingModalOpen = false}
+	onSelectReading={(r) => selectedReading = r}
+	onSelectModality={onLaunchModality}
+/>

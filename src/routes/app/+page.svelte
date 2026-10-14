@@ -278,7 +278,11 @@
 	</main>
 
 	<!-- Global Modals -->
-	<ReferenceDrawer isOpen={isDrawerOpen} onClose={() => isDrawerOpen = false} />
+	<ReferenceDrawer
+		isOpen={isDrawerOpen}
+		onClose={() => isDrawerOpen = false}
+		onSelectModality={openLab}
+	/>
 	<FailureTriageModal isOpen={isFailureModalOpen} onClose={() => isFailureModalOpen = false} />
 	<HemingwayStopModal isOpen={isStopModalOpen} onClose={() => isStopModalOpen = false} />
 	<LearnerPreferencesModal isOpen={isPreferencesModalOpen} onClose={() => isPreferencesModalOpen = false} />

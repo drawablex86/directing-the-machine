@@ -21,8 +21,13 @@
 		Scale,
 		AlertCircle,
 		Brain,
-		HelpCircle
+		HelpCircle,
+		BookMarked,
+		ExternalLink
 	} from '@lucide/svelte';
+	import { getReadingByCode, type CoreReading } from '$lib/data/core-readings';
+	import { getAppendixById } from '$lib/data/appendices';
+	import ReadingModal from './ReadingModal.svelte';
 
 	let { onSelectModality }: { onSelectModality: (modId: string) => void } = $props();
 
@@ -72,6 +77,21 @@
 	let savedPlayNotice = $state(false);
 	let savedAttentionNotice = $state(false);
 	let savedTomorrowNotice = $state(false);
+
+	let selectedReading = $state<CoreReading | null>(null);
+	let isReadingModalOpen = $state(false);
+
+	let currentAssignedCoreReading = $derived(
+		getReadingByCode(currentDayData.assignedReading.moduleCode)
+	);
+
+	function openCurrentReading() {
+		const reading = currentAssignedCoreReading;
+		if (reading) {
+			selectedReading = reading;
+			isReadingModalOpen = true;
+		}
+	}
 
 	function savePlay() {
 		if (!quickPlay.trim()) return;
@@ -163,6 +183,18 @@
 						>
 							{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}
 						</a>
+					{:else if currentAssignedCoreReading}
+						<button
+							type="button"
+							onclick={openCurrentReading}
+							class="text-amber-400 hover:text-amber-300 underline underline-offset-4 decoration-amber-500/40 hover:decoration-amber-300 transition text-left cursor-pointer flex items-center gap-2 group"
+							title="Open full text & theory for {currentDayData.assignedReading.moduleCode}"
+						>
+							<span>{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}</span>
+							<span class="text-xs font-mono font-normal px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 group-hover:bg-amber-500 group-hover:text-neutral-950 transition">
+								Read Theory →
+							</span>
+						</button>
 					{:else}
 						<span>{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}</span>
 					{/if}
@@ -188,14 +220,28 @@
 
 		<!-- Mental Model Callout & Context -->
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-			<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 space-y-1 md:col-span-2">
-				<div class="font-bold text-amber-400 flex items-center gap-1.5">
-					<Sparkles class="w-3.5 h-3.5" />
-					<span>Key Mental Model for Today:</span>
+			<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 space-y-1 md:col-span-2 flex flex-col justify-between">
+				<div class="space-y-1">
+					<div class="font-bold text-amber-400 flex items-center justify-between">
+						<span class="flex items-center gap-1.5">
+							<Sparkles class="w-3.5 h-3.5" />
+							Key Mental Model for Today:
+						</span>
+						{#if currentAssignedCoreReading}
+							<button
+								type="button"
+								onclick={openCurrentReading}
+								class="text-[11px] text-amber-400/90 hover:text-amber-300 underline font-mono cursor-pointer flex items-center gap-1"
+							>
+								<span>Read Full Explanation</span>
+								<ArrowRight class="w-3 h-3" />
+							</button>
+						{/if}
+					</div>
+					<p class="text-neutral-300 leading-relaxed font-serif">
+						{currentDayData.assignedReading.keyMentalModel}
+					</p>
 				</div>
-				<p class="text-neutral-300 leading-relaxed">
-					{currentDayData.assignedReading.keyMentalModel}
-				</p>
 			</div>
 
 			<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 space-y-1">
@@ -251,8 +297,39 @@
 					{/if}
 				</button>
 
-				<!-- Launch Workspace Button -->
-				{#if activeTask.targetModalityId === 'logs'}
+				<!-- Context-Specific Primary Action Buttons -->
+				{#if currentStep.id === 'read'}
+					{#if currentDayData.assignedReading.moduleCode.toLowerCase().includes('appendix')}
+						<a
+							href="/app?tab=manual&appendix={currentDayData.assignedReading.moduleCode.toLowerCase().replace(' ', '-')}"
+							class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+						>
+							<BookOpen class="w-4 h-4" />
+							<span>Read {currentDayData.assignedReading.moduleCode}</span>
+							<ArrowRight class="w-4 h-4" />
+						</a>
+					{:else if currentAssignedCoreReading}
+						<button
+							type="button"
+							onclick={openCurrentReading}
+							class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+						>
+							<BookOpen class="w-4 h-4" />
+							<span>Open Assigned Reading ({currentDayData.assignedReading.moduleCode})</span>
+							<ArrowRight class="w-4 h-4" />
+						</button>
+					{/if}
+
+					<!-- Secondary Studio Button -->
+					<button
+						type="button"
+						onclick={() => onSelectModality(activeTask.targetModalityId)}
+						class="px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700 flex items-center gap-1.5 transition cursor-pointer"
+						title="Open isolation studio workbench"
+					>
+						<span>Studio ({activeTask.targetModalityId.toUpperCase()})</span>
+					</button>
+				{:else if activeTask.targetModalityId === 'logs'}
 					<a
 						href="/logs"
 						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
@@ -490,4 +567,13 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Integrated Core Reading Reader Modal -->
+	<ReadingModal
+		reading={selectedReading}
+		isOpen={isReadingModalOpen}
+		onClose={() => isReadingModalOpen = false}
+		onSelectReading={(r) => selectedReading = r}
+		onSelectModality={onSelectModality}
+	/>
 </div>
