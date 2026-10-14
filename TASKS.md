@@ -83,4 +83,14 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Added accessible Skip to Content navigation link.
   - Built local-first JSON backup exporter and restore-from-file utility.
 
+- [x] **Task 11: Author Master Repository & Architecture Guide (`index.md`)**
+  - Authored comprehensive root guide `index.md` covering repository overview, philosophy, and attribution to Rahul Rajeev.
+  - Documented core pedagogical mechanics: 3 Mastery Layers, Scaffolding Removal Engine, 8-Step Daily Practice Loop, anti-theatre guardrails, 8 studio modalities (M0–M7), and Projects 1–12.
+  - Documented how-to instructions for both learners/practitioners and developers/maintainers.
+  - Documented full codebase architecture: SvelteKit 2 + Svelte 5 Runes, Tailwind CSS v4, directory taxonomy, state engine, data layer, component hierarchy, and accessibility features.
+  - Verified 0 TypeScript errors (`svelte-check`) and successful production build (`pnpm run build`).
+
+
+
+
 
