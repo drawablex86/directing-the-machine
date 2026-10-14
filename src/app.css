@@ -140,7 +140,7 @@ input[type="reset"] {
    DYNAMIC THEME OVERRIDES FOR LIGHT & SEPIA SURFACES
    ========================================================================== */
 
-/* Light Mode Comprehensive Overrides */
+/* Light Mode Comprehensive Editorial Overrides */
 .theme-light {
 	background-color: var(--bg-primary) !important;
 	color: var(--text-primary) !important;
@@ -165,12 +165,56 @@ input[type="reset"] {
 .theme-light .bg-neutral-900\/60,
 .theme-light .bg-neutral-900\/40,
 .theme-light .bg-neutral-950\/60,
+.theme-light .bg-neutral-950\/70,
 .theme-light .bg-neutral-950\/80,
 .theme-light .bg-neutral-800,
 .theme-light .bg-neutral-800\/80,
+.theme-light .bg-neutral-800\/60,
 .theme-light .bg-neutral-800\/40 {
 	background-color: var(--bg-card) !important;
 	color: var(--text-primary) !important;
+}
+
+/* Fix Orientation Guide & Card Gradients */
+.theme-light .welcome-banner-card,
+.theme-light .bg-gradient-to-r.from-neutral-900 {
+	background-image: none !important;
+	background-color: #f7f3ea !important;
+	border-color: #dfd7c5 !important;
+	box-shadow: 0 4px 20px -2px rgba(180, 83, 9, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Secondary Button in Welcome Banner */
+.theme-light .welcome-banner-secondary-btn {
+	background-color: #eae3d5 !important;
+	border-color: #cfc4b0 !important;
+	color: #292524 !important;
+}
+
+.theme-light .welcome-banner-secondary-btn:hover {
+	background-color: #dfd6c4 !important;
+	color: #0c0a09 !important;
+}
+
+/* Studio Tabs and Interactive Controls */
+.theme-light .studio-tab {
+	color: #57534e !important;
+}
+
+.theme-light .studio-tab:hover {
+	background-color: #eae4d8 !important;
+	color: #1c1917 !important;
+}
+
+.theme-light .studio-tab.active-studio-tab,
+.theme-light .bg-amber-500 {
+	background-color: #b45309 !important;
+	color: #ffffff !important;
+}
+
+.theme-light .hover\:bg-amber-400:hover {
+	background-color: #92400e !important;
+	color: #ffffff !important;
 }
 
 .theme-light .text-white,
@@ -189,25 +233,30 @@ input[type="reset"] {
 	color: var(--text-muted) !important;
 }
 
+.theme-light .hover\:text-white:hover,
+.theme-light .hover\:text-neutral-100:hover,
+.theme-light .hover\:text-neutral-200:hover {
+	color: #1c1917 !important;
+}
+
+.theme-light .hover\:bg-neutral-800:hover,
+.theme-light .hover\:bg-neutral-700:hover,
+.theme-light .hover\:bg-neutral-900:hover {
+	background-color: #e2dbcd !important;
+	color: #1c1917 !important;
+}
+
+.theme-light .border-neutral-950,
 .theme-light .border-neutral-900,
 .theme-light .border-neutral-800,
 .theme-light .border-neutral-800\/80,
 .theme-light .border-neutral-800\/70,
 .theme-light .border-neutral-800\/60,
 .theme-light .border-neutral-700,
+.theme-light .border-neutral-700\/80,
 .theme-light .border-neutral-700\/60,
 .theme-light .border-neutral-700\/40 {
 	border-color: var(--border-primary) !important;
-}
-
-.theme-light .bg-amber-500 {
-	background-color: #b45309 !important;
-	color: #ffffff !important;
-}
-
-.theme-light .hover\:bg-amber-400:hover {
-	background-color: #92400e !important;
-	color: #ffffff !important;
 }
 
 .theme-light .text-amber-400,
@@ -217,14 +266,42 @@ input[type="reset"] {
 
 .theme-light .bg-amber-500\/10,
 .theme-light .bg-amber-500\/5 {
-	background-color: rgba(180, 83, 9, 0.1) !important;
+	background-color: rgba(180, 83, 9, 0.08) !important;
 }
 
 .theme-light .border-amber-500\/20,
 .theme-light .border-amber-500\/30,
 .theme-light .border-amber-500\/40,
 .theme-light .border-amber-500\/50 {
-	border-color: rgba(180, 83, 9, 0.3) !important;
+	border-color: rgba(180, 83, 9, 0.35) !important;
+}
+
+/* Markdown Tables in Light Mode */
+.theme-light th {
+	background-color: #ebe4d5 !important;
+	color: #92400e !important;
+	border-color: #ded8cb !important;
+}
+
+.theme-light td {
+	color: #292524 !important;
+	border-color: #eae5d9 !important;
+}
+
+.theme-light tr:hover td {
+	background-color: rgba(180, 83, 9, 0.04) !important;
+}
+
+/* Blockquotes & Callouts in Light Mode */
+.theme-light blockquote {
+	border-left-color: #b45309 !important;
+	color: #44403c !important;
+}
+
+.theme-light kbd {
+	background-color: #eae4d8 !important;
+	color: #44403c !important;
+	border-color: #cfc6b5 !important;
 }
 
 /* Sepia Mode Comprehensive Overrides */
@@ -285,6 +362,47 @@ input[type="reset"] {
 .theme-sepia .border-neutral-700\/60,
 .theme-sepia .border-neutral-700\/40 {
 	border-color: var(--border-primary) !important;
+}
+
+/* Fix Orientation Guide & Card Gradients for Sepia */
+.theme-sepia .welcome-banner-card,
+.theme-sepia .bg-gradient-to-r.from-neutral-900 {
+	background-image: none !important;
+	background-color: #f0e6d2 !important;
+	border-color: #d8c8ad !important;
+	box-shadow: 0 4px 20px -2px rgba(146, 64, 14, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-sepia .welcome-banner-secondary-btn {
+	background-color: #e5d8c0 !important;
+	border-color: #c9b79c !important;
+	color: #3d3020 !important;
+}
+
+.theme-sepia .welcome-banner-secondary-btn:hover {
+	background-color: #d9c9ae !important;
+	color: #1a140d !important;
+}
+
+.theme-sepia .studio-tab {
+	color: #635341 !important;
+}
+
+.theme-sepia .studio-tab:hover {
+	background-color: #e6d9c1 !important;
+	color: #2b2318 !important;
+}
+
+.theme-sepia .studio-tab.active-studio-tab {
+	background-color: #92400e !important;
+	color: #ffffff !important;
+}
+
+.theme-sepia .hover\:bg-neutral-800:hover,
+.theme-sepia .hover\:bg-neutral-700:hover,
+.theme-sepia .hover\:bg-neutral-900:hover {
+	background-color: #ded0b7 !important;
+	color: #2b2318 !important;
 }
 
 .theme-sepia .bg-amber-500 {

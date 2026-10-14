@@ -14,12 +14,12 @@
 </script>
 
 {#if !isDismissed}
-	<div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-900 to-amber-950/20 border border-neutral-800 p-5 md:p-6 shadow-lg">
+	<div class="relative overflow-hidden rounded-2xl border p-5 md:p-6 shadow-md transition-colors bg-gradient-to-r from-neutral-900 via-neutral-900 to-amber-950/20 border-neutral-800 welcome-banner-card">
 		<!-- Close / Dismiss button -->
 		<button
 			type="button"
 			onclick={() => isDismissed = true}
-			class="absolute top-4 right-4 text-neutral-500 hover:text-neutral-300 transition p-1 rounded-lg"
+			class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-100 transition p-1 rounded-lg"
 			aria-label="Dismiss guide"
 			title="Dismiss orientation guide"
 		>
@@ -64,7 +64,7 @@
 				<button
 					type="button"
 					onclick={() => onSelectModality?.('m0')}
-					class="px-4 py-2.5 rounded-xl font-semibold text-xs bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center justify-center gap-2 shadow transition"
+					class="px-4 py-2.5 rounded-xl font-semibold text-xs bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center justify-center gap-2 shadow transition cursor-pointer"
 				>
 					<span>Take Baseline Diagnostic (M0)</span>
 					<ArrowRight class="w-3.5 h-3.5" />
@@ -72,7 +72,7 @@
 				<button
 					type="button"
 					onclick={() => isDismissed = true}
-					class="px-4 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-neutral-200 bg-neutral-800/60 hover:bg-neutral-800 transition text-center"
+					class="px-4 py-2 rounded-xl text-xs font-medium text-neutral-300 hover:text-white bg-neutral-800/80 hover:bg-neutral-800 border border-neutral-700/80 transition text-center cursor-pointer welcome-banner-secondary-btn"
 				>
 					I know the workflow, take me to Today's Practice
 				</button>

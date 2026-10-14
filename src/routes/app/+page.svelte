@@ -158,7 +158,7 @@
 					<button
 						type="button"
 						onclick={() => activeTab = 'today'}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer {activeTab === 'today' ? 'bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900'}"
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'today' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Calendar class="w-4 h-4" />
 						<span>Today's Practice</span>
@@ -167,7 +167,7 @@
 					<button
 						type="button"
 						onclick={() => activeTab = 'curriculum'}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer {activeTab === 'curriculum' ? 'bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900'}"
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'curriculum' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Compass class="w-4 h-4" />
 						<span>Curriculum & Projects</span>
@@ -176,7 +176,7 @@
 					<button
 						type="button"
 						onclick={() => activeTab = 'labs'}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer {activeTab === 'labs' ? 'bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900'}"
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'labs' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Layers class="w-4 h-4" />
 						<span>Studios & Labs</span>
@@ -185,7 +185,7 @@
 					<button
 						type="button"
 						onclick={() => activeTab = 'assessment'}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer {activeTab === 'assessment' ? 'bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900'}"
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'assessment' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Activity class="w-4 h-4" />
 						<span>Progress & Radar</span>
@@ -194,7 +194,7 @@
 					<button
 						type="button"
 						onclick={() => activeTab = 'manual'}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer {activeTab === 'manual' ? 'bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900'}"
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'manual' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<BookOpen class="w-4 h-4" />
 						<span>Field Manual</span>
@@ -251,7 +251,14 @@
 			<FieldManualView initialAppendixId={initialAppendix} />
 		{:else if activeTab === 'lab-session'}
 			{#if activeLabId === 'm0'}
-				<M0PracticeContractHub />
+				<M0PracticeContractHub
+					onNavigateTab={(tab) => {
+						activeLabId = null;
+						activeTab = tab;
+						window.scrollTo({ top: 0, behavior: 'smooth' });
+					}}
+					onSelectModality={openLab}
+				/>
 			{:else if activeLabId === 'm1'}
 				<M1ProblemPositionLab />
 			{:else if activeLabId === 'm2'}

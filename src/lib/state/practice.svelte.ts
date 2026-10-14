@@ -203,6 +203,85 @@ export class PracticeEngine {
 		}
 	}
 
+	// Baseline Diagnostic Synthesis & Continuity Analysis
+	getBaselineSynthesis() {
+		const total = this.baseline.length;
+		const sum = this.baseline.reduce((acc, b) => acc + b.score, 0);
+		const avgScore = total > 0 ? Number((sum / total).toFixed(1)) : 0;
+		const auditedCount = this.baseline.filter((b) => b.notes.trim().length > 0 || b.score !== 2).length;
+
+		// Group by Layer
+		// Layer 1: prob, pos, obs, prem (Foundations & Observation)
+		// Layer 2: spec, diag, cur, sys, pred (Systems & Calibration)
+		// Layer 3: dir, auth, trans (Agency & Direction)
+		const layer1Ids = ['prob', 'pos', 'obs', 'prem'];
+		const layer2Ids = ['spec', 'diag', 'cur', 'sys', 'pred'];
+		const layer3Ids = ['dir', 'auth', 'trans'];
+
+		const layer1Items = this.baseline.filter((b) => layer1Ids.includes(b.id));
+		const layer2Items = this.baseline.filter((b) => layer2Ids.includes(b.id));
+		const layer3Items = this.baseline.filter((b) => layer3Ids.includes(b.id));
+
+		const avgLayer1 = layer1Items.length > 0
+			? Number((layer1Items.reduce((acc, b) => acc + b.score, 0) / layer1Items.length).toFixed(1))
+			: 0;
+		const avgLayer2 = layer2Items.length > 0
+			? Number((layer2Items.reduce((acc, b) => acc + b.score, 0) / layer2Items.length).toFixed(1))
+			: 0;
+		const avgLayer3 = layer3Items.length > 0
+			? Number((layer3Items.reduce((acc, b) => acc + b.score, 0) / layer3Items.length).toFixed(1))
+			: 0;
+
+		// Vulnerabilities (Scores 1 & 2) and Strengths (Scores 3 & 4)
+		const vulnerabilities = [...this.baseline]
+			.filter((b) => b.score <= 2)
+			.sort((a, b) => a.score - b.score);
+
+		const strengths = [...this.baseline]
+			.filter((b) => b.score >= 3)
+			.sort((a, b) => b.score - a.score);
+
+		// Primary bottleneck: lowest scored competency in Layer 1 or overall
+		const primaryBottleneck = vulnerabilities[0] || this.baseline[0];
+
+		// Readiness assessment summary
+		let readinessLevel: 'emerging' | 'developing' | 'grounded' = 'emerging';
+		if (avgScore >= 3.0 && avgLayer1 >= 2.8) {
+			readinessLevel = 'grounded';
+		} else if (avgScore >= 2.2) {
+			readinessLevel = 'developing';
+		}
+
+		return {
+			avgScore,
+			auditedCount,
+			total,
+			avgLayer1,
+			avgLayer2,
+			avgLayer3,
+			vulnerabilities,
+			strengths,
+			primaryBottleneck,
+			readinessLevel,
+			isBaselineLocked: this.passedMasteryGates.includes(0)
+		};
+	}
+
+	// Lock Baseline & Continuity Bridge to Week 1
+	completeBaselineAndStartWeek1() {
+		this.passMasteryGate(0); // Mark Week 0 baseline passed
+		this.activeWeek = 1;
+		this.activePart = 1;
+		this.currentStepIndex = 0; // Read step for Monday
+
+		// If no opening hook is set, generate an intentional one from their biggest diagnostic gap
+		const synthesis = this.getBaselineSynthesis();
+		if (!this.tomorrowFirstAction.trim()) {
+			this.tomorrowFirstAction = `Part I Day 1 Focus: Address ${synthesis.primaryBottleneck.name} (Baseline: ${synthesis.primaryBottleneck.score}/4) with the Zero-Adjective Observation Linter in M2.`;
+		}
+		this.saveToStorage();
+	}
+
 	// Two-Axis Evaluation Helper
 	evaluateProjectSession(params: {
 		projectId: string;
