@@ -60,3 +60,15 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Built `CourseSyllabusView.svelte` and `ProjectBriefModal.svelte` with interactive roadmap, week selector, and project dossiers.
   - Revamped `DailyPracticeView.svelte` with "Day Begins" reading/concept, actionable step-by-step task checklist, mark-complete state transitions, and Hemingway Stop closing hook.
   - Commit: progressive commits (`44ece01`, `c1b92e7`, `a5cf35b`).
+
+- [x] **Task 9: Flagship Ogilvy Homepage, Deep SEO Architecture & Discovery Hub**
+  - Relocated deliberate practice studio to `/app` with full preservation of local-first state, modal workflows, daily practice pipeline, and syllabus explorer.
+  - Built Ogilvy-styled editorial marketing hero confronting the collapse of execution costs in favor of sensibility, intent, and diagnostic taste.
+  - Built `ThesesSection.svelte` with 5 long-form mental models of machine authorship in expandable editorial cards.
+  - Built `CurriculumProjectsExplorer.svelte` linking live data from `curriculum.ts` and `projects.ts` (18-week roadmap, 12 project dossiers, concrete mastery gates).
+  - Built `SensibilityDiagnostic.svelte` interactive 2-minute diagnostic exercise contrasting amateur prompt slop with structural intent.
+  - Built `LabsShowcase.svelte` with deep links to all 8 studio labs (M0–M7).
+  - Built `FaqSection.svelte` and `HomeFooter.svelte` with prominent attribution: **"Directing the Machine was conceived, written, engineered, and is built and maintained by Rahul Rajeev"**.
+  - Built `SeoHead.svelte` with Google-recognized JSON-LD for `Course`, `EducationalOrganization`, and `FAQPage`, alongside OpenGraph and Twitter cards.
+  - Verified 0 TypeScript errors (`pnpm exec svelte-check`) and production build (`pnpm run build`).
+
