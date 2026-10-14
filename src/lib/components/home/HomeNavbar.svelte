@@ -1,5 +1,22 @@
 <script lang="ts">
-	import { ArrowRight, Compass, Sparkles, BookOpen, Terminal } from '@lucide/svelte';
+	import { ArrowRight, Compass, Sparkles, BookOpen, Terminal, Palette, Sun, Moon, Coffee, Shield } from '@lucide/svelte';
+	import { practiceStore } from '$lib/state/practice.svelte';
+
+	const themes = [
+		{ id: 'dark', label: 'Obsidian', icon: Moon },
+		{ id: 'light', label: 'Light', icon: Sun },
+		{ id: 'sepia', label: 'Sepia', icon: Coffee },
+		{ id: 'midnight', label: 'Midnight', icon: Compass },
+		{ id: 'high-contrast', label: 'AAA', icon: Shield }
+	] as const;
+
+	function cycleTheme() {
+		const current = practiceStore.learnerPreferences.theme;
+		const order: Array<typeof current> = ['dark', 'light', 'sepia', 'midnight', 'high-contrast'];
+		const nextIndex = (order.indexOf(current) + 1) % order.length;
+		practiceStore.learnerPreferences.theme = order[nextIndex];
+		practiceStore.saveToStorage();
+	}
 </script>
 
 <header class="sticky top-0 z-40 bg-neutral-950/85 backdrop-blur-md border-b border-neutral-800/80 transition">
@@ -29,7 +46,19 @@
 		</nav>
 
 		<!-- CTAs -->
-		<div class="flex items-center gap-3">
+		<div class="flex items-center gap-2.5">
+			<!-- Accessible Theme Quick Switcher Pill -->
+			<button
+				type="button"
+				onclick={cycleTheme}
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium text-neutral-300 hover:text-white bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 transition cursor-pointer"
+				aria-label="Cycle visual colorway palette (currently {practiceStore.learnerPreferences.theme})"
+				title="Cycle Color Palette: {practiceStore.learnerPreferences.theme.toUpperCase()}"
+			>
+				<Palette class="w-3.5 h-3.5 text-amber-400" />
+				<span class="capitalize hidden sm:inline">{practiceStore.learnerPreferences.theme}</span>
+			</button>
+
 			<a
 				href="/logs"
 				class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium text-neutral-400 hover:text-white bg-neutral-900/60 border border-neutral-800 hover:border-neutral-700 transition"

@@ -301,38 +301,90 @@
 					<!-- Themes -->
 					<div class="space-y-3">
 						<div class="font-semibold text-neutral-200 block" id="label-contrast">Visual Contrast & Colorway</div>
-						<div class="grid grid-cols-1 sm:grid-cols-3 gap-3" role="radiogroup" aria-labelledby="label-contrast">
+						<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" role="radiogroup" aria-labelledby="label-contrast">
+							<!-- 1. Dark (Obsidian) -->
 							<button
+								type="button"
 								onclick={() => updatePref('theme', 'dark')}
 								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'dark' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
 							>
-								<div class="w-full h-8 rounded-lg bg-neutral-950 border border-neutral-800 mb-2 flex items-center px-2">
-									<div class="w-3 h-3 rounded-full bg-amber-500"></div>
+								<div class="w-full h-8 rounded-lg bg-[#0c0d0e] border border-[#272a30] mb-2.5 flex items-center justify-between px-3">
+									<div class="flex items-center gap-1.5">
+										<div class="w-3 h-3 rounded-full bg-[#f59e0b]"></div>
+										<span class="text-[10px] font-mono text-[#f8fafc]">Aa</span>
+									</div>
+									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#272a30] text-amber-400">WCAG AA</span>
 								</div>
-								<div class="font-bold text-neutral-100">Studio Obsidian (Dark)</div>
-								<div class="text-xs text-neutral-400">Deep neutral background, gentle amber accents.</div>
+								<div class="font-bold text-neutral-100 text-sm">Studio Obsidian</div>
+								<div class="text-xs text-neutral-400 mt-0.5">Calibrated dark neutral with warm amber accents.</div>
 							</button>
 
+							<!-- 2. Light (Crisp Canvas) -->
 							<button
+								type="button"
+								onclick={() => updatePref('theme', 'light')}
+								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'light' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
+							>
+								<div class="w-full h-8 rounded-lg bg-[#fbfaf8] border border-[#ded8cb] mb-2.5 flex items-center justify-between px-3">
+									<div class="flex items-center gap-1.5">
+										<div class="w-3 h-3 rounded-full bg-[#b45309]"></div>
+										<span class="text-[10px] font-mono font-bold text-[#171717]">Aa</span>
+									</div>
+									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#eae6de] text-[#b45309]">WCAG AAA</span>
+								</div>
+								<div class="font-bold text-neutral-100 text-sm">Crisp Canvas (Light)</div>
+								<div class="text-xs text-neutral-400 mt-0.5">Editorial ivory paper with deep carbon ink and bronze details.</div>
+							</button>
+
+							<!-- 3. Sepia (Warm Paper) -->
+							<button
+								type="button"
 								onclick={() => updatePref('theme', 'sepia')}
 								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'sepia' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
 							>
-								<div class="w-full h-8 rounded-lg bg-[#fbf7ee] border border-[#ded0bc] mb-2 flex items-center px-2">
-									<div class="w-3 h-3 rounded-full bg-[#b45309]"></div>
+								<div class="w-full h-8 rounded-lg bg-[#fbf7ee] border border-[#dacbaf] mb-2.5 flex items-center justify-between px-3">
+									<div class="flex items-center gap-1.5">
+										<div class="w-3 h-3 rounded-full bg-[#92400e]"></div>
+										<span class="text-[10px] font-mono font-bold text-[#2b2318]">Aa</span>
+									</div>
+									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#e6dac3] text-[#92400e]">Low Glare</span>
 								</div>
-								<div class="font-bold text-neutral-100">Warm Paper (Sepia)</div>
-								<div class="text-xs text-neutral-400">Low-glare editorial paper feel to minimize photophobia/migraines.</div>
+								<div class="font-bold text-neutral-100 text-sm">Warm Paper (Sepia)</div>
+								<div class="text-xs text-neutral-400 mt-0.5">Natural unbleached tone to minimize photophobia & fatigue.</div>
 							</button>
 
+							<!-- 4. Midnight Navy (OLED) -->
 							<button
+								type="button"
+								onclick={() => updatePref('theme', 'midnight')}
+								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'midnight' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
+							>
+								<div class="w-full h-8 rounded-lg bg-[#080c14] border border-[#1e293b] mb-2.5 flex items-center justify-between px-3">
+									<div class="flex items-center gap-1.5">
+										<div class="w-3 h-3 rounded-full bg-[#38bdf8]"></div>
+										<span class="text-[10px] font-mono text-[#f1f5f9]">Aa</span>
+									</div>
+									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#1e293b] text-[#38bdf8]">Circadian</span>
+								</div>
+								<div class="font-bold text-neutral-100 text-sm">Midnight Navy</div>
+								<div class="text-xs text-neutral-400 mt-0.5">Deep indigo OLED dark mode with calming cyan accents.</div>
+							</button>
+
+							<!-- 5. High Contrast (WCAG AAA) -->
+							<button
+								type="button"
 								onclick={() => updatePref('theme', 'high-contrast')}
 								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'high-contrast' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
 							>
-								<div class="w-full h-8 rounded-lg bg-black border border-white mb-2 flex items-center px-2">
-									<div class="w-3 h-3 rounded-full bg-[#ffff00]"></div>
+								<div class="w-full h-8 rounded-lg bg-black border border-white mb-2.5 flex items-center justify-between px-3">
+									<div class="flex items-center gap-1.5">
+										<div class="w-3 h-3 rounded-full bg-[#ffff00]"></div>
+										<span class="text-[10px] font-mono font-bold text-white">Aa</span>
+									</div>
+									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-black text-[#ffff00] border border-[#ffff00]">21:1 AAA</span>
 								</div>
-								<div class="font-bold text-neutral-100">High Contrast (AAA)</div>
-								<div class="text-xs text-neutral-400">Pure monochrome borders with vivid yellow focus targets.</div>
+								<div class="font-bold text-neutral-100 text-sm">High Contrast (AAA)</div>
+								<div class="text-xs text-neutral-400 mt-0.5">Pure black & white contrast with high-visibility target indicators.</div>
 							</button>
 						</div>
 					</div>

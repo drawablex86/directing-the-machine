@@ -11,7 +11,8 @@
 		SlidersHorizontal,
 		Keyboard,
 		Brain,
-		Sliders
+		Sliders,
+		Palette
 	} from '@lucide/svelte';
 
 	let { onOpenDrawer, onOpenFailure, onOpenStop, onOpenPreferences, onOpenShortcuts }: {
@@ -23,6 +24,14 @@
 	} = $props();
 
 	let showFullLoop = $state(false);
+
+	function cycleTheme() {
+		const current = practiceStore.learnerPreferences.theme;
+		const order: Array<typeof current> = ['dark', 'light', 'sepia', 'midnight', 'high-contrast'];
+		const nextIndex = (order.indexOf(current) + 1) % order.length;
+		practiceStore.learnerPreferences.theme = order[nextIndex];
+		practiceStore.saveToStorage();
+	}
 
 	const loopSteps = [
 		{ name: 'Read', time: '20m' },
@@ -135,6 +144,18 @@
 				<BookOpen class="w-3.5 h-3.5 text-neutral-400" />
 				<span class="hidden sm:inline">Ref</span>
 				<kbd class="text-[10px] font-mono text-neutral-500 bg-neutral-950 px-1.5 py-0.5 rounded border border-neutral-800">⌘K</kbd>
+			</button>
+
+			<!-- Quick Theme Switcher Pill -->
+			<button
+				type="button"
+				onclick={cycleTheme}
+				class="px-2.5 py-1.5 rounded-xl text-xs bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-300 hover:text-white flex items-center gap-1.5 transition cursor-pointer"
+				title="Cycle Color Palette: {practiceStore.learnerPreferences.theme.toUpperCase()}"
+				aria-label="Cycle visual palette (currently {practiceStore.learnerPreferences.theme})"
+			>
+				<Palette class="w-3.5 h-3.5 text-amber-400" />
+				<span class="capitalize hidden lg:inline text-[11px] font-mono">{practiceStore.learnerPreferences.theme}</span>
 			</button>
 
 			<!-- Preferences & Inclusivity Dialog Trigger -->

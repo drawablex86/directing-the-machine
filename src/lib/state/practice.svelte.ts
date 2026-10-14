@@ -25,7 +25,7 @@ export interface ScaffoldingState {
 export interface LearnerPreferences {
 	fontFamily: 'sans' | 'dyslexic' | 'mono';
 	fontSize: 'sm' | 'base' | 'lg' | 'xl';
-	theme: 'dark' | 'sepia' | 'high-contrast';
+	theme: 'dark' | 'light' | 'sepia' | 'midnight' | 'high-contrast';
 	reducedMotion: boolean;
 	focusMode: boolean; // Single-Task Horizon (ADHD / focus mode)
 	plainLanguageHelp: boolean;
