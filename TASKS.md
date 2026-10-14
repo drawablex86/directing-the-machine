@@ -52,3 +52,11 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Production build bundle built successfully with Vite (`pnpm run build`).
   - Verified local-first storage and Appendix L export capability.
   - Walkthrough artifact documented.
+
+- [x] **Task 8: Course-Level Flow Architecture, Daily Action Pipeline & Projects 1–12 Integration**
+  - Built full curriculum and syllabus data layer (`src/lib/data/curriculum.ts`) encoding Weeks 0–12 (Parts I–VI) and Months 4–9 (Independent Practice).
+  - Built comprehensive project specifications (`src/lib/data/projects.ts`) for Projects 1 through 12 with deliverables, duration, rubrics, and studio modality links.
+  - Enhanced `PracticeEngine` reactive store with task completion tracking, active week/day states, and project evaluation loops.
+  - Built `CourseSyllabusView.svelte` and `ProjectBriefModal.svelte` with interactive roadmap, week selector, and project dossiers.
+  - Revamped `DailyPracticeView.svelte` with "Day Begins" reading/concept, actionable step-by-step task checklist, mark-complete state transitions, and Hemingway Stop closing hook.
+  - Commit: progressive commits (`44ece01`, `c1b92e7`, `a5cf35b`).
