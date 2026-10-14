@@ -3,6 +3,8 @@
 	import ReferenceDrawer from '$lib/components/shell/ReferenceDrawer.svelte';
 	import FailureTriageModal from '$lib/components/shell/FailureTriageModal.svelte';
 	import HemingwayStopModal from '$lib/components/shell/HemingwayStopModal.svelte';
+	import LearnerPreferencesModal from '$lib/components/shell/LearnerPreferencesModal.svelte';
+	import KeyboardShortcutsModal from '$lib/components/shell/KeyboardShortcutsModal.svelte';
 	import WelcomeBanner from '$lib/components/shell/WelcomeBanner.svelte';
 	import DailyPracticeView from '$lib/components/shell/DailyPracticeView.svelte';
 	import LabDirectory from '$lib/components/shell/LabDirectory.svelte';
@@ -37,6 +39,8 @@
 	let isDrawerOpen = $state(false);
 	let isFailureModalOpen = $state(false);
 	let isStopModalOpen = $state(false);
+	let isPreferencesModalOpen = $state(false);
+	let isShortcutsModalOpen = $state(false);
 
 	// Navigation: Primary views or specific active lab
 	type ViewMode = 'today' | 'curriculum' | 'labs' | 'assessment' | 'manual' | 'lab-session';
@@ -52,6 +56,36 @@
 		} else if (tab === 'curriculum' || tab === 'labs' || tab === 'assessment' || tab === 'manual' || tab === 'today') {
 			activeTab = tab;
 		}
+
+		// Global accessibility hotkeys
+		function handleKeyDown(e: KeyboardEvent) {
+			const target = e.target as HTMLElement;
+			// Ignore typing inside inputs/textareas
+			if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+				return;
+			}
+
+			if (e.key === '?') {
+				e.preventDefault();
+				isShortcutsModalOpen = !isShortcutsModalOpen;
+			} else if (e.key === 'p' || e.key === 'P') {
+				e.preventDefault();
+				isPreferencesModalOpen = !isPreferencesModalOpen;
+			} else if (e.key === 'f' || e.key === 'F') {
+				e.preventDefault();
+				practiceStore.learnerPreferences.focusMode = !practiceStore.learnerPreferences.focusMode;
+				practiceStore.saveToStorage();
+			} else if (e.key === 'Escape') {
+				isDrawerOpen = false;
+				isFailureModalOpen = false;
+				isStopModalOpen = false;
+				isPreferencesModalOpen = false;
+				isShortcutsModalOpen = false;
+			}
+		}
+
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
 	});
 
 	function openLab(modId: string) {
@@ -87,6 +121,8 @@
 		onOpenDrawer={() => isDrawerOpen = true}
 		onOpenFailure={() => isFailureModalOpen = true}
 		onOpenStop={() => isStopModalOpen = true}
+		onOpenPreferences={() => isPreferencesModalOpen = true}
+		onOpenShortcuts={() => isShortcutsModalOpen = true}
 	/>
 
 	<main class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6">
@@ -231,4 +267,6 @@
 	<ReferenceDrawer isOpen={isDrawerOpen} onClose={() => isDrawerOpen = false} />
 	<FailureTriageModal isOpen={isFailureModalOpen} onClose={() => isFailureModalOpen = false} />
 	<HemingwayStopModal isOpen={isStopModalOpen} onClose={() => isStopModalOpen = false} />
+	<LearnerPreferencesModal isOpen={isPreferencesModalOpen} onClose={() => isPreferencesModalOpen = false} />
+	<KeyboardShortcutsModal isOpen={isShortcutsModalOpen} onClose={() => isShortcutsModalOpen = false} />
 </div>

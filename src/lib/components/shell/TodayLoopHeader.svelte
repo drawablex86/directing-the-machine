@@ -8,13 +8,18 @@
 		PauseCircle,
 		ChevronRight,
 		ChevronDown,
-		SlidersHorizontal
+		SlidersHorizontal,
+		Keyboard,
+		Brain,
+		Sliders
 	} from '@lucide/svelte';
 
-	let { onOpenDrawer, onOpenFailure, onOpenStop }: {
+	let { onOpenDrawer, onOpenFailure, onOpenStop, onOpenPreferences, onOpenShortcuts }: {
 		onOpenDrawer?: () => void;
 		onOpenFailure?: () => void;
 		onOpenStop?: () => void;
+		onOpenPreferences?: () => void;
+		onOpenShortcuts?: () => void;
 	} = $props();
 
 	let showFullLoop = $state(false);
@@ -86,7 +91,21 @@
 		</div>
 
 		<!-- Right: Quick actions -->
-		<div class="flex items-center gap-2 self-end md:self-auto">
+		<div class="flex items-center gap-1.5 self-end md:self-auto">
+			<!-- Single-Task Horizon (ADHD Focus) Quick Switcher -->
+			<button
+				type="button"
+				onclick={() => {
+					practiceStore.learnerPreferences.focusMode = !practiceStore.learnerPreferences.focusMode;
+					practiceStore.saveToStorage();
+				}}
+				class="px-2.5 py-1.5 rounded-xl text-xs border transition flex items-center gap-1.5 {practiceStore.learnerPreferences.focusMode ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 font-semibold' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+				title="Toggle Single-Task Horizon (Focus Mode)"
+			>
+				<Brain class="w-3.5 h-3.5 {practiceStore.learnerPreferences.focusMode ? 'text-amber-400' : 'text-neutral-500'}" />
+				<span class="hidden sm:inline">Focus Horizon</span>
+			</button>
+
 			<button
 				type="button"
 				onclick={onOpenFailure}
@@ -116,6 +135,28 @@
 				<BookOpen class="w-3.5 h-3.5 text-neutral-400" />
 				<span class="hidden sm:inline">Ref</span>
 				<kbd class="text-[10px] font-mono text-neutral-500 bg-neutral-950 px-1.5 py-0.5 rounded border border-neutral-800">⌘K</kbd>
+			</button>
+
+			<!-- Preferences & Inclusivity Dialog Trigger -->
+			<button
+				type="button"
+				onclick={onOpenPreferences}
+				class="p-1.5 rounded-xl text-xs bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-300 hover:text-amber-400 transition"
+				title="Learner Preferences & Accessibility (Fonts, Themes, Focus)"
+				aria-label="Open Learner Preferences"
+			>
+				<Sliders class="w-4 h-4 text-neutral-400 hover:text-amber-400" />
+			</button>
+
+			<!-- Keyboard Shortcuts Trigger -->
+			<button
+				type="button"
+				onclick={onOpenShortcuts}
+				class="p-1.5 rounded-xl text-xs bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-400 hover:text-amber-400 transition hidden sm:flex items-center justify-center"
+				title="Keyboard Navigation Shortcuts (?)"
+				aria-label="Open Keyboard Shortcuts"
+			>
+				<Keyboard class="w-4 h-4" />
 			</button>
 		</div>
 	</div>

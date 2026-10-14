@@ -2,6 +2,7 @@
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import { COURSE_WEEKS } from '$lib/data/curriculum';
 	import { ALL_PROJECTS } from '$lib/data/projects';
+	import { soundSystem } from '$lib/engine/sound-system';
 	import {
 		Play,
 		ChevronRight,
@@ -18,7 +19,9 @@
 		Calendar,
 		Moon,
 		Scale,
-		AlertCircle
+		AlertCircle,
+		Brain,
+		HelpCircle
 	} from '@lucide/svelte';
 
 	let { onSelectModality }: { onSelectModality: (modId: string) => void } = $props();
@@ -102,6 +105,14 @@
 		tomorrowInput = '';
 		savedTomorrowNotice = true;
 		setTimeout(() => savedTomorrowNotice = false, 2500);
+	}
+
+	function toggleTaskWithSound(taskId: string) {
+		const isNowCompleting = !practiceStore.isTaskCompleted(taskId);
+		practiceStore.toggleTask(taskId);
+		if (isNowCompleting) {
+			soundSystem.playCompletion(practiceStore.learnerPreferences.soundEnabled);
+		}
 	}
 
 	function advanceToNextStep() {
@@ -218,7 +229,7 @@
 				<!-- Toggle Task Done Button -->
 				<button
 					type="button"
-					onclick={() => practiceStore.toggleTask(activeTask.id)}
+					onclick={() => toggleTaskWithSound(activeTask.id)}
 					class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer {isActiveTaskDone ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md' : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700'}"
 				>
 					{#if isActiveTaskDone}
@@ -262,42 +273,74 @@
 			</div>
 		</div>
 
-		<!-- Step Sequence Navigator with Checkmarks -->
-		<div class="space-y-2">
-			<div class="flex items-center justify-between text-xs text-neutral-400">
-				<span class="font-medium text-neutral-300">Daily 8-Step Routine Sequence</span>
-				<span class="font-mono text-[11px]">Click any step to set your focus</span>
+		<!-- Plain Language Scaffolding Tip (If Plain Language Preference Enabled) -->
+		{#if practiceStore.learnerPreferences.plainLanguageHelp}
+			<div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs flex items-start gap-2.5">
+				<HelpCircle class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+				<div class="space-y-1">
+					<div class="font-bold text-amber-300">Plain Language Guide: What are you doing right now?</div>
+					<p class="text-neutral-300 leading-relaxed">
+						You are currently doing <strong>{activeTask.title}</strong> ({loopSteps[practiceStore.currentStepIndex].name}). This step develops concrete machine directing taste. Focus only on this single task before moving forward.
+					</p>
+				</div>
 			</div>
+		{/if}
 
-			<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-				{#each loopSteps as step, i}
-					{@const taskForStep = currentDayData.tasks.find((t) => t.stepId === step.id)}
-					{@const done = taskForStep ? practiceStore.isTaskCompleted(taskForStep.id) : false}
-					<button
-						type="button"
-						onclick={() => {
-							practiceStore.currentStepIndex = i;
-							practiceStore.saveToStorage();
-						}}
-						class="p-2.5 rounded-xl border text-left transition flex flex-col justify-between cursor-pointer {practiceStore.currentStepIndex === i ? 'bg-amber-500/10 border-amber-500 text-white shadow-sm' : 'bg-neutral-950/40 border-neutral-800/80 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'}"
-					>
-						<div class="flex items-center justify-between text-[11px] font-mono">
-							<span class="font-bold {practiceStore.currentStepIndex === i ? 'text-amber-400' : 'text-neutral-500'}">
-								0{i + 1}
-							</span>
-							{#if done}
-								<CheckCircle2 class="w-3.5 h-3.5 text-emerald-400" />
-							{:else}
-								<span class="text-[10px] opacity-75">{step.time}</span>
-							{/if}
-						</div>
-						<div class="font-semibold text-xs mt-1 truncate">
-							{step.name}
-						</div>
-					</button>
-				{/each}
+		<!-- Step Sequence Navigator with Checkmarks (or Single-Task Horizon message) -->
+		{#if !practiceStore.learnerPreferences.focusMode}
+			<div class="space-y-2">
+				<div class="flex items-center justify-between text-xs text-neutral-400">
+					<span class="font-medium text-neutral-300">Daily 8-Step Routine Sequence</span>
+					<span class="font-mono text-[11px]">Click any step to set your focus</span>
+				</div>
+
+				<div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+					{#each loopSteps as step, i}
+						{@const taskForStep = currentDayData.tasks.find((t) => t.stepId === step.id)}
+						{@const done = taskForStep ? practiceStore.isTaskCompleted(taskForStep.id) : false}
+						<button
+							type="button"
+							onclick={() => {
+								practiceStore.currentStepIndex = i;
+								practiceStore.saveToStorage();
+							}}
+							class="p-2.5 rounded-xl border text-left transition flex flex-col justify-between cursor-pointer {practiceStore.currentStepIndex === i ? 'bg-amber-500/10 border-amber-500 text-white shadow-sm' : 'bg-neutral-950/40 border-neutral-800/80 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'}"
+						>
+							<div class="flex items-center justify-between text-[11px] font-mono">
+								<span class="font-bold {practiceStore.currentStepIndex === i ? 'text-amber-400' : 'text-neutral-500'}">
+									0{i + 1}
+								</span>
+								{#if done}
+									<CheckCircle2 class="w-3.5 h-3.5 text-emerald-400" />
+								{:else}
+									<span class="text-[10px] opacity-75">{step.time}</span>
+								{/if}
+							</div>
+							<div class="font-semibold text-xs mt-1 truncate">
+								{step.name}
+							</div>
+						</button>
+					{/each}
+				</div>
 			</div>
-		</div>
+		{:else}
+			<div class="flex items-center justify-between p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-xs">
+				<div class="flex items-center gap-2 text-neutral-300">
+					<Brain class="w-4 h-4 text-amber-400" />
+					<span><strong>Single-Task Horizon Active:</strong> Surrounding steps are hidden to minimize cognitive distraction.</span>
+				</div>
+				<button
+					type="button"
+					onclick={() => {
+						practiceStore.learnerPreferences.focusMode = false;
+						practiceStore.saveToStorage();
+					}}
+					class="text-amber-400 hover:text-amber-300 underline font-medium cursor-pointer"
+				>
+					Show all 8 steps
+				</button>
+			</div>
+		{/if}
 	</div>
 
 	<!-- Two Column Layout: Scaffolding Status & Hemingway Stop -->

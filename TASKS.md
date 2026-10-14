@@ -72,3 +72,15 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Built `SeoHead.svelte` with Google-recognized JSON-LD for `Course`, `EducationalOrganization`, and `FAQPage`, alongside OpenGraph and Twitter cards.
   - Verified 0 TypeScript errors (`pnpm exec svelte-check`) and production build (`pnpm run build`).
 
+- [x] **Task 10: Multi-Modal UX Inclusivity & Diverse Learner Adaptability**
+  - Implemented `learnerPreferences` state engine with localStorage persistence for typography, colorways, focus mode, and audio cues.
+  - Built accessible `LearnerPreferencesModal.svelte` with 1-click archetypes: ADHD Focus, Dyslexia / Low Glare, High Contrast (WCAG AAA), and Default Studio.
+  - Integrated OpenDyslexic / Lexend font options, variable text sizing (Compact to Extra), and line leading (Normal, Relaxed, Loose).
+  - Integrated Studio Obsidian (Dark), Warm Paper (Sepia), and High Contrast (AAA) color schemes.
+  - Built Single-Task Horizon (ADHD focus mode) in `DailyPracticeView.svelte` to isolate the active rep and eliminate cognitive clutter.
+  - Built accessible Web Audio sound cues in `sound-system.ts` for drill completion and timer bell rings.
+  - Built `KeyboardShortcutsModal.svelte` and global hotkey listener (`?`, `P`, `F`, `Esc`).
+  - Added accessible Skip to Content navigation link.
+  - Built local-first JSON backup exporter and restore-from-file utility.
+
+

@@ -1,1 +1,180 @@
 @import "tailwindcss";
+
+/* Accessibility & Dyslexia-Friendly Typefaces */
+@font-face {
+	font-family: 'OpenDyslexic';
+	src: local('OpenDyslexic'), local('OpenDyslexic-Regular'), url('https://cdn.jsdelivr.net/npm/open-dyslexic@0.1.1/woffs/OpenDyslexic-Regular.woff') format('woff');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	--font-app-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+	--font-app-dyslexic: 'OpenDyslexic', 'Lexend', sans-serif;
+	--font-app-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Base Themes */
+.theme-dark {
+	--bg-primary: #0a0a0a;
+	--bg-surface: #171717;
+	--bg-card: #262626;
+	--text-primary: #f5f5f5;
+	--text-secondary: #a3a3a3;
+	--text-muted: #737373;
+	--border-primary: #262626;
+	--border-highlight: #404040;
+	--accent-gold: #f59e0b;
+}
+
+.theme-sepia {
+	--bg-primary: #fbf7ee;
+	--bg-surface: #f4ecdc;
+	--bg-card: #eadecc;
+	--text-primary: #2b2318;
+	--text-secondary: #5f5242;
+	--text-muted: #8c7c68;
+	--border-primary: #ded0bc;
+	--border-highlight: #c7b69f;
+	--accent-gold: #b45309;
+}
+
+.theme-high-contrast {
+	--bg-primary: #000000;
+	--bg-surface: #0a0a0a;
+	--bg-card: #121212;
+	--text-primary: #ffffff;
+	--text-secondary: #e5e5e5;
+	--text-muted: #cccccc;
+	--border-primary: #ffffff;
+	--border-highlight: #ffff00;
+	--accent-gold: #ffff00;
+}
+
+/* Typography Overrides */
+.font-mode-sans {
+	font-family: var(--font-app-sans) !important;
+}
+
+.font-mode-dyslexic {
+	font-family: var(--font-app-dyslexic) !important;
+	letter-spacing: 0.02em;
+}
+
+.font-mode-mono {
+	font-family: var(--font-app-mono) !important;
+}
+
+/* Line Spacing Overrides */
+.spacing-normal {
+	line-height: 1.5;
+}
+
+.spacing-relaxed {
+	line-height: 1.75;
+}
+
+.spacing-loose {
+	line-height: 2.1;
+	word-spacing: 0.05em;
+}
+
+/* Font Sizing Overrides */
+.size-sm {
+	font-size: 0.925rem;
+}
+
+.size-base {
+	font-size: 1rem;
+}
+
+.size-lg {
+	font-size: 1.125rem;
+}
+
+.size-xl {
+	font-size: 1.25rem;
+}
+
+/* Reduced Motion Mode */
+.reduce-motion * {
+	animation-duration: 0.001ms !important;
+	animation-iteration-count: 1 !important;
+	transition-duration: 0.001ms !important;
+	scroll-behavior: auto !important;
+}
+
+/* High Contrast Adjustments */
+.theme-high-contrast button,
+.theme-high-contrast a,
+.theme-high-contrast input,
+.theme-high-contrast textarea,
+.theme-high-contrast select {
+	border-color: #ffffff !important;
+}
+
+.theme-high-contrast button:focus-visible,
+.theme-high-contrast a:focus-visible,
+.theme-high-contrast input:focus-visible {
+	outline: 3px solid #ffff00 !important;
+	outline-offset: 2px !important;
+}
+
+/* Sepia Mode Global Overrides */
+.theme-sepia .bg-neutral-950,
+.theme-sepia .bg-neutral-900,
+.theme-sepia .bg-neutral-900\/50,
+.theme-sepia .bg-neutral-900\/80,
+.theme-sepia .bg-black {
+	background-color: var(--bg-surface) !important;
+	color: var(--text-primary) !important;
+}
+
+.theme-sepia .bg-neutral-900\/60,
+.theme-sepia .bg-neutral-900\/40,
+.theme-sepia .bg-neutral-950\/80 {
+	background-color: var(--bg-card) !important;
+}
+
+.theme-sepia .text-neutral-100,
+.theme-sepia .text-neutral-200,
+.theme-sepia .text-white {
+	color: var(--text-primary) !important;
+}
+
+.theme-sepia .text-neutral-300,
+.theme-sepia .text-neutral-400 {
+	color: var(--text-secondary) !important;
+}
+
+.theme-sepia .text-neutral-500,
+.theme-sepia .text-neutral-600 {
+	color: var(--text-muted) !important;
+}
+
+.theme-sepia .border-neutral-800,
+.theme-sepia .border-neutral-800\/80,
+.theme-sepia .border-neutral-700,
+.theme-sepia .border-neutral-800\/60 {
+	border-color: var(--border-primary) !important;
+}
+
+/* Accessible Skip Link */
+.skip-to-content {
+	position: absolute;
+	top: -9999px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: #f59e0b;
+	color: #0a0a0a;
+	padding: 0.75rem 1.5rem;
+	font-weight: 600;
+	border-radius: 0 0 0.5rem 0.5rem;
+	z-index: 9999;
+	text-decoration: none;
+}
+
+.skip-to-content:focus {
+	top: 0;
+}

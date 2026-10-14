@@ -22,7 +22,30 @@ export interface ScaffoldingState {
 	situation: boolean;
 }
 
+export interface LearnerPreferences {
+	fontFamily: 'sans' | 'dyslexic' | 'mono';
+	fontSize: 'sm' | 'base' | 'lg' | 'xl';
+	theme: 'dark' | 'sepia' | 'high-contrast';
+	reducedMotion: boolean;
+	focusMode: boolean; // Single-Task Horizon (ADHD / focus mode)
+	plainLanguageHelp: boolean;
+	soundEnabled: boolean;
+	lineSpacing: 'normal' | 'relaxed' | 'loose';
+}
+
 export class PracticeEngine {
+	// Learner Adaptability & Inclusivity Preferences
+	learnerPreferences = $state<LearnerPreferences>({
+		fontFamily: 'sans',
+		fontSize: 'base',
+		theme: 'dark',
+		reducedMotion: false,
+		focusMode: false,
+		plainLanguageHelp: false,
+		soundEnabled: false,
+		lineSpacing: 'normal'
+	});
+
 	// Pacing & Onboarding (Appendix O)
 	intensityPath = $state<IntensityPath>('full-time-12w');
 	showDeepening = $state<boolean>(false);
@@ -211,6 +234,7 @@ export class PracticeEngine {
 		if (!isBrowser) return;
 		try {
 			const payload = {
+				learnerPreferences: this.learnerPreferences,
 				intensityPath: this.intensityPath,
 				showDeepening: this.showDeepening,
 				activePart: this.activePart,
@@ -242,6 +266,9 @@ export class PracticeEngine {
 			const raw = localStorage.getItem(STORAGE_KEY);
 			if (!raw) return;
 			const data = JSON.parse(raw);
+			if (data.learnerPreferences) {
+				this.learnerPreferences = { ...this.learnerPreferences, ...data.learnerPreferences };
+			}
 			if (data.intensityPath) this.intensityPath = data.intensityPath;
 			if (typeof data.showDeepening === 'boolean') this.showDeepening = data.showDeepening;
 			if (typeof data.activePart === 'number') this.activePart = data.activePart;
