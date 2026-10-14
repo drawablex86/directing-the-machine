@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import type { IntensityPath } from '$lib/schemas/course.schema';
-	import { Target, Shield, Clock, Award, CheckCircle, CheckCircle2, RotateCcw, Sparkles, Eye, Filter, BarChart3 } from '@lucide/svelte';
+	import { Target, Shield, Clock, Award, CheckCircle, CheckCircle2, RotateCcw, Sparkles, Eye, Filter, BarChart3, ArrowLeft, ArrowRight, Check, ListChecks, LayoutGrid, HelpCircle } from '@lucide/svelte';
 	import BaselineCompetencyCard from './BaselineCompetencyCard.svelte';
 	import { COMPETENCY_DETAILS } from '$lib/schemas/competency-details';
 
 	let activeSubTab = $state<'baseline' | 'intensity' | 'play' | 'attention'>('baseline');
+	let baselineViewMode = $state<'step' | 'grid'>('step');
+	let currentStepIndex = $state(0);
 	let baselineLayerFilter = $state<number | 'all'>('all');
 
 	let filteredBaseline = $derived(
@@ -24,6 +26,27 @@
 	let avgScore = $derived(
 		(practiceStore.baseline.reduce((sum, b) => sum + b.score, 0) / practiceStore.baseline.length).toFixed(1)
 	);
+
+	let currentCompetency = $derived(practiceStore.baseline[currentStepIndex] || practiceStore.baseline[0]);
+	let currentDetail = $derived(COMPETENCY_DETAILS[currentCompetency.id]);
+
+	function nextStep() {
+		if (currentStepIndex < practiceStore.baseline.length - 1) {
+			currentStepIndex += 1;
+		}
+	}
+
+	function prevStep() {
+		if (currentStepIndex > 0) {
+			currentStepIndex -= 1;
+		}
+	}
+
+	function goToStep(index: number) {
+		currentStepIndex = index;
+		baselineViewMode = 'step';
+	}
+
 
 	// Intensity options from Appendix O
 	const paths: { id: IntensityPath; title: string; hours: string; weeks: string; desc: string }[] = [
@@ -163,53 +186,186 @@
 				</div>
 			</div>
 
-			<!-- Filter Bar by Mastery Layer -->
-			<div class="flex items-center justify-between gap-3 flex-wrap">
-				<div class="flex items-center gap-1.5 text-xs">
-					<span class="text-neutral-500 font-medium flex items-center gap-1 mr-1">
-						<Filter class="w-3.5 h-3.5" />
-						Filter:
-					</span>
+			<!-- View Mode & Navigation Controls -->
+			<div class="flex items-center justify-between gap-3 flex-wrap border-b border-neutral-800 pb-3">
+				<!-- Stepper Tabs / View Mode Switcher -->
+				<div class="flex items-center gap-1.5 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
 					<button
 						type="button"
-						onclick={() => baselineLayerFilter = 'all'}
-						class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 'all' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+						onclick={() => baselineViewMode = 'step'}
+						class="px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition {baselineViewMode === 'step' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 					>
-						All 12 Competencies
+						<ListChecks class="w-3.5 h-3.5" />
+						<span>Step-by-Step Diagnostic</span>
 					</button>
 					<button
 						type="button"
-						onclick={() => baselineLayerFilter = 1}
-						class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 1 ? 'bg-emerald-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+						onclick={() => baselineViewMode = 'grid'}
+						class="px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition {baselineViewMode === 'grid' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 					>
-						Layer 1: Foundations (4)
+						<LayoutGrid class="w-3.5 h-3.5" />
+						<span>Overview & Review Grid</span>
 					</button>
-					<button
-						type="button"
-						onclick={() => baselineLayerFilter = 2}
-						class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 2 ? 'bg-blue-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
-					>
-						Layer 2: Systems & Calibration (5)
-					</button>
-					<button
-						type="button"
-						onclick={() => baselineLayerFilter = 3}
-						class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 3 ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
-					>
-						Layer 3: Agency & Direction (3)
-					</button>
+				</div>
+
+				<div class="flex items-center gap-2 text-xs">
+					<div class="px-2.5 py-1 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-400 text-[11px] flex items-center gap-1.5">
+						<HelpCircle class="w-3.5 h-3.5 text-amber-400" />
+						<span>Evaluated in Week 0 & re-audited at Phase Gates (Weeks 4, 8, 12)</span>
+					</div>
 				</div>
 			</div>
 
-			<!-- Cards Grid -->
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				{#each filteredBaseline as item}
-					<BaselineCompetencyCard
-						item={item}
-						onUpdate={() => practiceStore.saveToStorage()}
-					/>
-				{/each}
-			</div>
+			<!-- MODE 1: STEP-BY-STEP DIAGNOSTIC WIZARD (One competency at a time) -->
+			{#if baselineViewMode === 'step'}
+				<div class="space-y-5">
+					<!-- Step Progress Bar & Quick Jump Navigation -->
+					<div class="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
+						<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+							<div class="flex items-center gap-2">
+								<span class="font-mono font-bold text-amber-400">Step {currentStepIndex + 1} of 12</span>
+								<span class="text-neutral-500">•</span>
+								<span class="text-neutral-300 font-semibold">{currentDetail?.name}</span>
+								<span class="text-[10px] font-mono px-2 py-0.5 rounded {currentDetail?.layer === 1 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : currentDetail?.layer === 2 ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
+									Layer {currentDetail?.layer}: {currentDetail?.layerName}
+								</span>
+							</div>
+
+							<div class="flex items-center gap-1 text-[11px] text-neutral-400 font-mono">
+								<span>{auditedCount} of 12 Audited</span>
+							</div>
+						</div>
+
+						<!-- Visual Step Indicator Pills -->
+						<div class="grid grid-cols-12 gap-1.5">
+							{#each practiceStore.baseline as comp, idx}
+								{@const isAudited = comp.notes.trim().length > 0 || comp.score !== 2}
+								{@const isCurrent = idx === currentStepIndex}
+								<button
+									type="button"
+									onclick={() => goToStep(idx)}
+									title="{idx + 1}. {comp.name} (Score: {comp.score})"
+									class="h-2 rounded-full transition cursor-pointer relative group {isCurrent ? 'bg-amber-500 ring-2 ring-amber-500/40' : isAudited ? 'bg-emerald-500/70 hover:bg-emerald-400' : 'bg-neutral-800 hover:bg-neutral-700'}"
+								>
+									<span class="sr-only">Step {idx + 1}: {comp.name}</span>
+								</button>
+							{/each}
+						</div>
+
+						<!-- Mastery Layer Grouping Labels -->
+						<div class="flex items-center justify-between text-[10px] font-mono text-neutral-500 pt-1">
+							<span class="text-emerald-400/80">Foundations (1–4)</span>
+							<span class="text-blue-400/80">Systems & Calibration (5–9)</span>
+							<span class="text-amber-400/80">Agency & Direction (10–12)</span>
+						</div>
+					</div>
+
+					<!-- Active Competency Card in Guided Mode -->
+					<div class="w-full">
+						<BaselineCompetencyCard
+							item={currentCompetency}
+							onUpdate={() => practiceStore.saveToStorage()}
+							isStepMode={true}
+						/>
+					</div>
+
+					<!-- Step Navigation Toolbar -->
+					<div class="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 flex items-center justify-between gap-3">
+						<button
+							type="button"
+							onclick={prevStep}
+							disabled={currentStepIndex === 0}
+							class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border border-neutral-800 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-900 text-neutral-300"
+						>
+							<ArrowLeft class="w-3.5 h-3.5" />
+							<span>Previous Competency</span>
+						</button>
+
+						<div class="flex items-center gap-2">
+							{#if currentStepIndex < 11}
+								<button
+									type="button"
+									onclick={nextStep}
+									class="px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 transition cursor-pointer shadow-md"
+								>
+									<span>Next Competency</span>
+									<ArrowRight class="w-3.5 h-3.5" />
+								</button>
+							{:else}
+								<button
+									type="button"
+									onclick={() => baselineViewMode = 'grid'}
+									class="px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 transition cursor-pointer shadow-md"
+								>
+									<Check class="w-3.5 h-3.5" />
+									<span>Finish & Review 12-Map Summary</span>
+								</button>
+							{/if}
+						</div>
+					</div>
+				</div>
+
+			<!-- MODE 2: OVERVIEW & REVIEW GRID (All 12 cards side-by-side) -->
+			{:else}
+				<div class="space-y-6">
+					<!-- Filter Bar by Mastery Layer -->
+					<div class="flex items-center justify-between gap-3 flex-wrap">
+						<div class="flex items-center gap-1.5 text-xs">
+							<span class="text-neutral-500 font-medium flex items-center gap-1 mr-1">
+								<Filter class="w-3.5 h-3.5" />
+								Filter:
+							</span>
+							<button
+								type="button"
+								onclick={() => baselineLayerFilter = 'all'}
+								class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 'all' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+							>
+								All 12 Competencies
+							</button>
+							<button
+								type="button"
+								onclick={() => baselineLayerFilter = 1}
+								class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 1 ? 'bg-emerald-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+							>
+								Layer 1: Foundations (4)
+							</button>
+							<button
+								type="button"
+								onclick={() => baselineLayerFilter = 2}
+								class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 2 ? 'bg-blue-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+							>
+								Layer 2: Systems & Calibration (5)
+							</button>
+							<button
+								type="button"
+								onclick={() => baselineLayerFilter = 3}
+								class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 3 ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+							>
+								Layer 3: Agency & Direction (3)
+							</button>
+						</div>
+
+						<button
+							type="button"
+							onclick={() => baselineViewMode = 'step'}
+							class="text-xs text-amber-400 hover:text-amber-300 font-medium transition"
+						>
+							← Return to Step-by-Step View
+						</button>
+					</div>
+
+					<!-- Cards Grid -->
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						{#each filteredBaseline as item}
+							<BaselineCompetencyCard
+								item={item}
+								onUpdate={() => practiceStore.saveToStorage()}
+								isStepMode={false}
+							/>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</div>
 
 	<!-- TAB 2: Intensity Path Selector (Appendix O) -->

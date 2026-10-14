@@ -14,13 +14,17 @@
 
 	let {
 		item,
-		onUpdate
+		onUpdate,
+		isStepMode = false
 	}: {
 		item: BaselineCompetency;
 		onUpdate: () => void;
+		isStepMode?: boolean;
 	} = $props();
 
-	let isExpanded = $state(false);
+	let userExpanded = $state<boolean | null>(null);
+	let isExpanded = $derived(userExpanded !== null ? userExpanded : isStepMode);
+
 
 	const details: CompetencyDetail = $derived(
 		COMPETENCY_DETAILS[item.id] || {
@@ -145,9 +149,10 @@
 	<div class="border-t border-neutral-800 bg-neutral-900/40">
 		<button
 			type="button"
-			onclick={() => isExpanded = !isExpanded}
+			onclick={() => userExpanded = !isExpanded}
 			class="w-full px-5 py-2.5 flex items-center justify-between text-xs text-neutral-400 hover:text-neutral-200 transition cursor-pointer"
 		>
+
 			<span class="font-medium flex items-center gap-1.5">
 				<HelpCircle class="w-3.5 h-3.5 text-amber-400" />
 				{isExpanded ? 'Hide Step-by-Step Exercise & Complete Rubric' : 'How to Test Yourself · Step-by-Step Exercise & Rubrics'}
