@@ -213,6 +213,7 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Integrated universal global accessibility: mounted `<HelpModal />` in `+layout.svelte`, wired hotkey listeners (`?` / `H`), added desktop/mobile triggers in `HomeNavbar.svelte`, quick action button in `TodayLoopHeader.svelte`, footer link in `HomeFooter.svelte`, and shortcut entry in `KeyboardShortcutsModal.svelte`.
   - Added URL query parameter support (`?help=<term-id>`) enabling direct 1-click external linking and bookmarking.
   - Verified 0 TypeScript errors (`pnpm run check`) and verified successful static pre-rendering of all 9 routes with `pnpm run build`.
+  - Commit: `feat(help): add comprehensive course & studio help modal with loose search (Task 29)` (`afb7849`)
 
 
 
