@@ -46,8 +46,13 @@ The failure mode of the current generation of practitioners is **amateur prompt 
 - **Blank-Sheet Artistic Agency**: Finding problems in the world, taking an ethical and authorial position, and building original work from an unassigned beginning.
 
 ### Key Documents in the Repository
+- [`AGENT.md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/AGENT.md): Operational manual for autonomous AI agents and mandatory documentation synchronization protocol.
+- [`docs/ARCHITECTURE.md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/docs/ARCHITECTURE.md): Full technical architecture blueprint, reactive state engine, and subsystem guide.
+- [`docs/DESIGN_SYSTEM.md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/docs/DESIGN_SYSTEM.md): Kepano Stone & Paper design system, color tokens, and WCAG AAA contrast specifications.
+- [`README.md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/README.md): High-level feature overview, quickstart commands, and Vercel hosting deployment.
 - [`Directing the Machine.md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/Directing%20the%20Machine.md): The full master textbook and curriculum reference (19 modules, 15 appendices A–O).
 - [`Instructions.md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/Instructions.md): Complete UI/UX specification, anti-overbuilding rules, and implementation protocols.
+- [`SEO_STRATEGY.md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/SEO_STRATEGY.md): Comprehensive search engine optimization strategy and discovery architecture.
 - [`Project 7 — Visual Campaign (Month 4).md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/Project%207%20%E2%80%94%20Visual%20Campaign%20(Month%204).md) through [`Project 12 — Capstone (Month 9).md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/Project%2012%20%E2%80%94%20Capstone%20(Month%209).md): Detailed independent capstone dossiers for Months 4 through 9.
 - [`TASKS.md`](file:///Users/rahulrajeev/Downloads/directing-the-machine/TASKS.md): Step-by-step engineering roadmap and implementation log.
 
@@ -276,49 +281,76 @@ flowchart TD
 
 ```
 directing-the-machine/
-├── Directing the Machine.md       # Master course textbook & curriculum reference
-├── Instructions.md                # UI/UX paradigm and engineering specification
-├── Project 7–12.md                # Capstone specifications for Months 4–9
-├── TASKS.md                       # Comprehensive implementation task log
-├── package.json                   # Dependencies, scripts, and package metadata
-├── pnpm-lock.yaml                 # Lockfile for pnpm
-├── tsconfig.json                  # TypeScript compiler configuration
-├── vite.config.ts                 # Vite bundler configuration (SvelteKit + Tailwind v4)
-├── static/                        # Static assets (fonts, icons)
-│   └── favicon.svg                # Minimalist aperture SVG brandmark
+├── docs/                               # Dedicated architecture and design system documentation
+│   ├── ARCHITECTURE.md                 # Technical architecture blueprint & data flow
+│   └── DESIGN_SYSTEM.md                # Kepano Stone & Paper design system & tokens
+├── Directing the Machine.md            # Master course textbook & curriculum reference
+├── Instructions.md                     # UI/UX paradigm and engineering specification
+├── Project 7–12.md                     # Capstone specifications for Months 4–9
+├── SEO_STRATEGY.md                     # Comprehensive search engine optimization strategy
+├── TASKS.md                            # Comprehensive implementation task log
+├── AGENT.md                            # AI Agent Operating Manual & Documentation Sync Protocol
+├── README.md                           # Modern repository overview, quickstart & hosting guide
+├── package.json                        # Dependencies, scripts, and package metadata
+├── pnpm-lock.yaml                      # Lockfile for pnpm
+├── tsconfig.json                       # TypeScript compiler configuration
+├── vite.config.ts                      # Vite bundler configuration (SvelteKit + Tailwind v4)
+├── static/                             # Static assets (fonts, icons, robots.txt)
+│   ├── favicon.svg                     # Minimalist aperture SVG brandmark
+│   └── robots.txt                      # Crawler directives pointing to sitemap.xml
 └── src/
-    ├── app.html                   # HTML document root with accessible fallback styling
-    ├── app.css                    # Tailwind CSS v4 root stylesheet
-    ├── app.d.ts                   # SvelteKit TypeScript declarations
+    ├── app.html                        # HTML document root with accessible fallback styling
+    ├── app.css                         # Tailwind CSS v4 root stylesheet & theme tokens
+    ├── app.d.ts                        # SvelteKit TypeScript declarations
     ├── routes/
-    │   ├── +layout.svelte         # Global layout (preferences, sound listeners, shortcuts)
-    │   ├── +page.svelte           # Flagship editorial landing page
+    │   ├── +layout.svelte              # Global layout (preferences, sound listeners, shortcuts)
+    │   ├── +layout.ts                  # Static prerender flag (export const prerender = true)
+    │   ├── +page.svelte                # Flagship editorial landing page
     │   ├── app/
-    │   │   └── +page.svelte       # Deliberate Practice Studio workspace
-    │   └── logs/
-    │       └── +page.svelte       # Unified studio logbook and archive exporter
+    │   │   └── +page.svelte            # Deliberate Practice Studio workspace
+    │   ├── logs/
+    │   │   └── +page.svelte            # Unified studio logbook and archive exporter
+    │   ├── blog/
+    │   │   ├── +page.svelte            # Field Essays catalog with filters & search
+    │   │   ├── rss.xml/+server.ts      # Prerendered RSS 2.0 feed generator
+    │   │   └── [slug]/
+    │   │       ├── +page.svelte        # Long-form essay reader with reading progress & TOC
+    │   │       └── +page.ts            # Dynamic slug loader and SEO schema generator
+    │   └── sitemap.xml/
+    │       └── +server.ts              # Prerendered XML sitemap generator
     └── lib/
-        ├── index.ts               # Core barrel exports
+        ├── index.ts                    # Core barrel exports
+        ├── config/
+        │   └── site.ts                 # Centralized canonical site configuration
+        ├── types/
+        │   └── inference.ts            # Type definitions for BYOK inference engine
         ├── state/
-        │   └── practice.svelte.ts # Svelte 5 reactive store with localStorage persistence
+        │   └── practice.svelte.ts      # Svelte 5 reactive store with localStorage persistence
         ├── schemas/
-        │   ├── course.schema.ts   # Zod data schemas for logs, briefs, baseline, contracts
-        │   └── competency-details.ts # Metadata for the 12 deliberate practice competencies
+        │   ├── course.schema.ts        # Zod data schemas for logs, briefs, baseline, contracts
+        │   └── competency-details.ts   # Metadata for the 12 deliberate practice competencies
         ├── engine/
-        │   ├── adjective-linter.ts   # Zero-adjective regex validator
-        │   ├── calibration-math.ts   # Brier score and taste-narrowness calculation
-        │   ├── archive-exporter.ts   # Markdown/JSON packaging for Appendix L
-        │   └── sound-system.ts       # Synthesized Web Audio cues
+        │   ├── adjective-linter.ts     # Zero-adjective regex validator
+        │   ├── calibration-math.ts     # Brier score and taste-narrowness calculation
+        │   ├── archive-exporter.ts     # Markdown/JSON packaging for Appendix L
+        │   ├── inference.ts            # Client-side multi-provider LLM inference engine
+        │   ├── sound-system.ts         # Synthesized Web Audio cues
+        │   └── markdown-renderer.ts    # Lightweight markdown formatter
         ├── data/
-        │   ├── curriculum.ts         # Complete 19-week syllabus and 133 daily task plans
-        │   └── projects.ts           # Complete project specifications for Projects 1–12
+        │   ├── curriculum.ts           # Complete 19-week syllabus and 133 daily task plans
+        │   ├── projects.ts             # Complete project specifications for Projects 1–12
+        │   ├── appendices.ts           # Full unabridged text and protocols for Appendices A–O
+        │   └── blog/
+        │       └── posts.ts            # Long-form editorial essays with rich markdown
         └── components/
-            ├── home/              # Landing page editorial sections (OgilvyHero, Theses, FAQ)
-            ├── shell/             # Studio shell components (DailyPractice, ReferenceDrawer, Header)
-            ├── modalities/        # M0 through M7 interactive practice laboratories
-            ├── assessment/        # CompetencyRadar16 and TwoAxisQuadrant visualizers
-            ├── course/            # CourseSyllabusView and ProjectBriefModal
-            └── seo/               # Search engine optimization and JSON-LD structured data
+            ├── home/                   # Landing page editorial sections (OgilvyHero, Theses, FAQ)
+            ├── shell/                  # Studio shell components (DailyPractice, ReferenceDrawer, Header)
+            ├── modalities/             # M0 through M7 interactive practice laboratories
+            ├── assessment/             # CompetencyRadar16 and TwoAxisQuadrant visualizers
+            ├── course/                 # CourseSyllabusView and ProjectBriefModal
+            ├── settings/               # ByokSettingsTab and API provider configuration
+            ├── blog/                   # BlogHeader, BlogCard, BlogStudioCallout
+            └── seo/                    # Search engine optimization and JSON-LD structured data
 ```
 
 ---

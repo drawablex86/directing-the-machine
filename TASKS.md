@@ -132,4 +132,12 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Added status dot and updated tooltip in `TodayLoopHeader.svelte` and keyboard shortcut (`P` / `S`) in `KeyboardShortcutsModal.svelte`.
   - Verified 0 TypeScript errors with `pnpm run check` and successful static prerender build with `pnpm run build`.
 
+- [x] **Task 17: Documentation, Architecture & Design System Refresh and Agent Operating Manual**
+  - Created root `AGENT.md` establishing operating guidelines for AI coding agents, non-negotiable Svelte 5 Runes standards, pure CSS Tailwind v4 rules, and the mandatory Documentation Synchronization Protocol.
+  - Created standalone `docs/ARCHITECTURE.md` documenting high-level topology, local-first reactive persistence, Svelte 5 Runes state model, domain engines (Brier score math, zero-adjective linter, sound system, BYOK inference), directory taxonomy, and extension guides.
+  - Created standalone `docs/DESIGN_SYSTEM.md` detailing the Kepano Stone & Paper aesthetic, color token dictionary for Stone (Dark) and Paper (Light) modes, WCAG AAA contrast normalization rules, typography hierarchy, and UI component primitives.
+  - Overhauled root `README.md` to comprehensively showcase the state of the repository: philosophy, Ogilvy homepage, 8 studio modalities (M0–M7), 19-week curriculum, 12 project dossiers, BYOK client inference, blog engine, quickstart commands, and Vercel hosting instructions.
+  - Updated `index.md` with links to `AGENT.md`, `docs/ARCHITECTURE.md`, `docs/DESIGN_SYSTEM.md`, and an updated directory tree.
+  - Verified 0 TypeScript errors with `pnpm run check` and successful static pre-rendering of all 9 routes with `pnpm run build`.
+
 
