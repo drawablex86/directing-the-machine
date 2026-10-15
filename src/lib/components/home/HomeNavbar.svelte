@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { ArrowRight, Compass, Sparkles, BookOpen, Terminal, Palette, Sun, Moon, Coffee, Shield } from '@lucide/svelte';
+	import { ArrowRight, Compass, Sparkles, BookOpen, Terminal, Palette, Sun, Moon, Coffee, Shield, Menu, X, Eye } from '@lucide/svelte';
 	import { practiceStore } from '$lib/state/practice.svelte';
+
+	let mobileMenuOpen = $state(false);
 
 	const themes = [
 		{ id: 'dark', label: 'Obsidian', icon: Moon },
@@ -16,6 +18,10 @@
 		const nextIndex = (order.indexOf(current) + 1) % order.length;
 		practiceStore.learnerPreferences.theme = order[nextIndex];
 		practiceStore.saveToStorage();
+	}
+
+	function closeMobileMenu() {
+		mobileMenuOpen = false;
 	}
 </script>
 
@@ -37,15 +43,17 @@
 		</a>
 
 		<!-- Navigation Links -->
-		<nav class="hidden md:flex items-center gap-7 text-xs font-medium text-neutral-300">
+		<nav class="hidden lg:flex items-center gap-6 text-xs font-medium text-neutral-300">
+			<a href="#contrast" class="hover:text-amber-400 transition">Prompt vs. Direct</a>
+			<a href="#linter" class="hover:text-amber-400 transition">Live Linter</a>
 			<a href="#theses" class="hover:text-amber-400 transition">The 5 Theses</a>
-			<a href="#syllabus" class="hover:text-amber-400 transition">18-Week Syllabus</a>
-			<a href="#projects" class="hover:text-amber-400 transition">Projects 1–12</a>
-			<a href="#diagnostic" class="hover:text-amber-400 transition">Sensibility Test</a>
-			<a href="#faq" class="hover:text-amber-400 transition">Dispatches & FAQ</a>
+			<a href="#studios" class="hover:text-amber-400 transition">8 Studios</a>
+			<a href="#syllabus" class="hover:text-amber-400 transition">Syllabus & Projects</a>
+			<a href="#diagnostic" class="hover:text-amber-400 transition">Diagnostic Test</a>
+			<a href="#faq" class="hover:text-amber-400 transition">FAQ</a>
 		</nav>
 
-		<!-- CTAs -->
+		<!-- Right Side CTAs -->
 		<div class="flex items-center gap-2.5">
 			<!-- Accessible Theme Quick Switcher Pill -->
 			<button
@@ -68,12 +76,42 @@
 			</a>
 
 			<a
-				href="/app"
-				class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/10 hover:shadow-amber-500/25 transition cursor-pointer"
+				href="/app?tab=today"
+				class="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow-md shadow-amber-500/10 hover:shadow-amber-500/25 transition cursor-pointer"
 			>
-				<span>Launch Studio App</span>
+				<span>Studio App</span>
 				<ArrowRight class="w-3.5 h-3.5" />
 			</a>
+
+			<!-- Mobile menu toggle -->
+			<button
+				type="button"
+				onclick={() => { mobileMenuOpen = !mobileMenuOpen; }}
+				class="lg:hidden p-2 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white transition"
+				aria-label="Toggle navigation menu"
+			>
+				{#if mobileMenuOpen}
+					<X class="w-4 h-4 text-amber-400" />
+				{:else}
+					<Menu class="w-4 h-4" />
+				{/if}
+			</button>
 		</div>
 	</div>
+
+	<!-- Mobile Drawer -->
+	{#if mobileMenuOpen}
+		<div class="lg:hidden px-4 pt-3 pb-6 border-t border-neutral-800 bg-neutral-950/95 space-y-3">
+			<nav class="flex flex-col space-y-2 text-sm font-medium text-neutral-300">
+				<a href="#contrast" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Prompt vs. Direct</a>
+				<a href="#linter" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Live Zero-Adjective Linter</a>
+				<a href="#theses" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">The 5 Theses</a>
+				<a href="#studios" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">8 Studio Modalities</a>
+				<a href="#syllabus" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">18-Week Syllabus & Projects</a>
+				<a href="#diagnostic" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Sensibility Diagnostic Test</a>
+				<a href="#faq" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Dispatches & FAQ</a>
+				<a href="/logs" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 text-amber-400 transition font-mono text-xs">Open Studio Logbook</a>
+			</nav>
+		</div>
+	{/if}
 </header>
