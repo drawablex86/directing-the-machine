@@ -250,29 +250,25 @@
 									<span>{day.dayName} Focus:</span>
 									<span class="text-amber-400">{day.focus}</span>
 								</div>
-								<div class="text-xs text-neutral-400">
-									Assigned Reading:
-									{#if day.assignedReading.moduleCode.toLowerCase().includes('appendix')}
-										<a
-											href="/app?tab=manual&appendix={day.assignedReading.moduleCode.toLowerCase().replace(' ', '-')}"
-											class="text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-2 decoration-amber-500/40 hover:decoration-amber-300 transition"
-											title="Read {day.assignedReading.moduleCode} in Field Manual"
-										>
-											{day.assignedReading.moduleCode} — {day.assignedReading.title}
-										</a>
-									{:else}
-										<button
-											type="button"
-											onclick={() => openReading(day.assignedReading.moduleCode)}
-											class="text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-2 decoration-amber-500/40 hover:decoration-amber-300 transition text-left cursor-pointer inline-flex items-center gap-1.5"
-											title="Read {day.assignedReading.moduleCode} in Reading Dialog"
-										>
-											<span>{day.assignedReading.moduleCode} — {day.assignedReading.title}</span>
-											<span class="text-[10px] font-mono font-normal px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
-												Read →
+								<div class="text-xs text-neutral-400 flex items-center gap-2 flex-wrap">
+									<span>Assigned Reading:</span>
+									<button
+										type="button"
+										onclick={() => openReading(day.assignedReading.moduleCode)}
+										class="text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-2 decoration-amber-500/40 hover:decoration-amber-300 transition text-left cursor-pointer inline-flex items-center gap-2"
+										title="Read {day.assignedReading.moduleCode} in Course Reader"
+									>
+										<span>{day.assignedReading.moduleCode} — {day.assignedReading.title}</span>
+										{#if practiceStore.isReadingCompleted(day.assignedReading.moduleCode)}
+											<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold inline-flex items-center gap-1">
+												<CheckCircle2 class="w-3 h-3" /> Read
 											</span>
-										</button>
-									{/if}
+										{:else}
+											<span class="text-[10px] font-mono px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500 hover:text-neutral-950 transition">
+												Read Theory →
+											</span>
+										{/if}
+									</button>
 								</div>
 							</div>
 

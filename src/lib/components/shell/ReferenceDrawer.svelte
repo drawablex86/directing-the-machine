@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { X, Search, BookOpen, ArrowRight, Layers, FileText } from '@lucide/svelte';
+	import { X, Search, BookOpen, ArrowRight, Layers, FileText, CheckCircle2 } from '@lucide/svelte';
 	import { appendicesData, type Appendix } from '$lib/data/appendices';
 	import { CORE_READINGS, type CoreReading } from '$lib/data/core-readings';
+	import { practiceStore } from '$lib/state/practice.svelte';
 	import AppendixModal from './AppendixModal.svelte';
 	import ReadingModal from './ReadingModal.svelte';
 
@@ -116,10 +117,17 @@
 													{r.title}
 												</h3>
 											</div>
-											<span class="text-xs text-neutral-500 group-hover:text-amber-400 flex items-center gap-0.5 shrink-0 transition">
-												<span>Read Theory</span>
-												<ArrowRight class="w-3.5 h-3.5" />
-											</span>
+											<div class="flex items-center gap-2 shrink-0">
+												{#if practiceStore.isReadingCompleted(r.code)}
+													<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold flex items-center gap-1">
+														<CheckCircle2 class="w-3 h-3" /> Read
+													</span>
+												{/if}
+												<span class="text-xs text-neutral-500 group-hover:text-amber-400 flex items-center gap-0.5 transition">
+													<span>Read</span>
+													<ArrowRight class="w-3.5 h-3.5" />
+												</span>
+											</div>
 										</div>
 										<p class="text-xs text-neutral-400 mt-1.5 leading-relaxed font-serif line-clamp-2">
 											{r.summary}

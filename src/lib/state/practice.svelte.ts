@@ -83,6 +83,7 @@ export class PracticeEngine {
 
 	// Guided Learning Pipeline State
 	completedTaskIds = $state<string[]>([]);
+	completedReadingCodes = $state<string[]>([]);
 	tomorrowFirstAction = $state<string>('');
 	passedMasteryGates = $state<number[]>([]); // part numbers passed e.g. [0, 1, 2]
 
@@ -218,6 +219,28 @@ export class PracticeEngine {
 
 	isTaskCompleted(taskId: string): boolean {
 		return this.completedTaskIds.includes(taskId);
+	}
+
+	toggleReadingCompleted(code: string): boolean {
+		if (!code) return false;
+		const clean = code.trim().toLowerCase();
+		const idx = this.completedReadingCodes.findIndex((c) => c.toLowerCase() === clean);
+		let isNowComplete = false;
+		if (idx >= 0) {
+			this.completedReadingCodes.splice(idx, 1);
+			isNowComplete = false;
+		} else {
+			this.completedReadingCodes.push(code.trim());
+			isNowComplete = true;
+		}
+		this.saveToStorage();
+		return isNowComplete;
+	}
+
+	isReadingCompleted(code: string): boolean {
+		if (!code) return false;
+		const clean = code.trim().toLowerCase();
+		return this.completedReadingCodes.some((c) => c.toLowerCase() === clean);
 	}
 
 	// Save a completed drill session (from Drill Runner UI)
@@ -445,6 +468,7 @@ export class PracticeEngine {
 				activeDay: this.activeDay,
 				currentStepIndex: this.currentStepIndex,
 				completedTaskIds: this.completedTaskIds,
+				completedReadingCodes: this.completedReadingCodes,
 				tomorrowFirstAction: this.tomorrowFirstAction,
 				passedMasteryGates: this.passedMasteryGates,
 				contextualCompetencies: this.contextualCompetencies,
@@ -481,6 +505,7 @@ export class PracticeEngine {
 			if (typeof data.activeDay === 'number') this.activeDay = data.activeDay;
 			if (typeof data.currentStepIndex === 'number') this.currentStepIndex = data.currentStepIndex;
 			if (Array.isArray(data.completedTaskIds)) this.completedTaskIds = data.completedTaskIds;
+			if (Array.isArray(data.completedReadingCodes)) this.completedReadingCodes = data.completedReadingCodes;
 			if (typeof data.tomorrowFirstAction === 'string') this.tomorrowFirstAction = data.tomorrowFirstAction;
 			if (Array.isArray(data.passedMasteryGates)) this.passedMasteryGates = data.passedMasteryGates;
 			if (data.contextualCompetencies) this.contextualCompetencies = data.contextualCompetencies;

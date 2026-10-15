@@ -580,3 +580,56 @@ input[type="reset"] {
 	outline: 3px solid #ffffff !important;
 	outline-offset: 2px !important;
 }
+
+/* ==========================================================================
+   EDITORIAL COURSE READER TYPOGRAPHY & THEMES
+   ========================================================================== */
+.reader-font-sans {
+	font-family: var(--font-app-sans);
+}
+
+.reader-font-serif {
+	font-family: 'Newsreader', 'Georgia', 'Charter', 'Palatino Linotype', 'Book Antiqua', serif;
+}
+
+.reader-font-mono {
+	font-family: var(--font-app-mono);
+}
+
+.reader-font-dyslexic {
+	font-family: var(--font-app-dyslexic);
+}
+
+.reader-prose h2,
+.reader-prose h3,
+.reader-prose h4 {
+	scroll-margin-top: 5rem;
+}
+
+.reader-prose a.reading-anchor-link {
+	color: #f59e0b;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	transition: color 0.15s ease;
+}
+
+.reader-prose a.reading-anchor-link:hover {
+	color: #fbbf24;
+}
+
+/* Custom Scrollbar for Course Reader Outline & Body */
+.reader-scrollbar::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+.reader-scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+.reader-scrollbar::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 9999px;
+}
+.reader-scrollbar::-webkit-scrollbar-thumb:hover {
+	background: rgba(245, 158, 11, 0.4);
+}
+

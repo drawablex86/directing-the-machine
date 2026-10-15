@@ -8,10 +8,26 @@
 		BookOpen,
 		ArrowRight,
 		Layers,
-		Compass
+		Compass,
+		Clock,
+		Sparkles,
+		CheckCircle2,
+		Circle,
+		Maximize2,
+		Minimize2,
+		Type,
+		ListOrdered,
+		SlidersHorizontal,
+		Share2,
+		Send,
+		ExternalLink
 	} from '@lucide/svelte';
+	import confetti from 'canvas-confetti';
 	import type { CoreReading } from '$lib/data/core-readings';
 	import { CORE_READINGS } from '$lib/data/core-readings';
+	import { renderMarkdownReading, type TocItem } from '$lib/engine/markdown-renderer';
+	import { practiceStore } from '$lib/state/practice.svelte';
+	import { soundSystem } from '$lib/engine/sound-system';
 
 	let {
 		reading,
@@ -27,7 +43,87 @@
 		onSelectModality?: (modId: string) => void;
 	} = $props();
 
+	// Local UI states
 	let copied = $state(false);
+	let isFullscreen = $state(false);
+	let showOutline = $state(true);
+	let showAppearanceControls = $state(false);
+	let scrollProgress = $state(0);
+	let activeSectionId = $state<string | null>(null);
+
+	// Reader typography & appearance preferences
+	let readerFont = $state<'sans' | 'serif' | 'mono' | 'dyslexic'>('sans');
+	let readerSize = $state<'sm' | 'base' | 'lg' | 'xl'>('base');
+	let readerWidth = $state<'compact' | 'comfortable' | 'full'>('comfortable');
+	let readerTheme = $state<'dark' | 'sepia' | 'light' | 'midnight' | 'contrast'>('dark');
+
+	// Reflection hook input
+	let reflectionInput = $state('');
+	let reflectionSaved = $state(false);
+
+	let scrollContainerRef: HTMLDivElement | null = $state(null);
+
+	// Parse markdown into rich AST HTML and Table of Contents
+	let parsedReading = $derived.by(() => {
+		if (!reading) return null;
+		return renderMarkdownReading(reading.content);
+	});
+
+	let isCompleted = $derived.by(() => {
+		if (!reading) return false;
+		return practiceStore.isReadingCompleted(reading.code);
+	});
+
+	function handleScroll() {
+		if (!scrollContainerRef) return;
+		const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef;
+		const maxScroll = scrollHeight - clientHeight;
+		scrollProgress = maxScroll > 0 ? Math.min(100, Math.max(0, (scrollTop / maxScroll) * 100)) : 0;
+
+		// Track active heading
+		if (parsedReading?.toc && parsedReading.toc.length > 0) {
+			const headings = parsedReading.toc
+				.map((item) => {
+					const el = scrollContainerRef?.querySelector(`#${item.id}`);
+					return el ? { id: item.id, top: el.getBoundingClientRect().top } : null;
+				})
+				.filter(Boolean);
+
+			// Find heading closest to top but above middle
+			const current = headings.reverse().find((h) => h && h.top <= 200);
+			if (current) {
+				activeSectionId = current.id;
+			} else if (headings.length > 0 && headings[0]) {
+				activeSectionId = headings[headings.length - 1]?.id || null;
+			}
+		}
+	}
+
+	function scrollToSection(id: string) {
+		if (!scrollContainerRef) return;
+		const el = scrollContainerRef.querySelector(`#${id}`);
+		if (el) {
+			el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			activeSectionId = id;
+		}
+	}
+
+	function toggleReadingStatus() {
+		if (!reading) return;
+		const nowCompleted = practiceStore.toggleReadingCompleted(reading.code);
+		if (nowCompleted) {
+			soundSystem.playCompletion(practiceStore.learnerPreferences.soundEnabled);
+			// Trigger a joyful confetti burst
+			try {
+				confetti({
+					particleCount: 40,
+					spread: 60,
+					origin: { y: 0.7 },
+					colors: ['#f59e0b', '#fbbf24', '#10b981', '#3b82f6']
+				});
+			} catch (_) {}
+		}
+	}
 
 	function copyFullContent() {
 		if (!reading) return;
@@ -35,6 +131,19 @@
 		navigator.clipboard.writeText(fullText);
 		copied = true;
 		setTimeout(() => (copied = false), 2500);
+	}
+
+	function saveReflection() {
+		if (!reading || !reflectionInput.trim()) return;
+		practiceStore.playLines.unshift({
+			id: crypto.randomUUID(),
+			date: new Date().toISOString().slice(0, 10),
+			line: `[${reading.code} Reflection] ${reflectionInput.trim()}`
+		});
+		practiceStore.saveToStorage();
+		reflectionInput = '';
+		reflectionSaved = true;
+		setTimeout(() => (reflectionSaved = false), 2500);
 	}
 
 	function goToPrev() {
@@ -45,6 +154,7 @@
 		} else {
 			onSelectReading(CORE_READINGS[CORE_READINGS.length - 1]);
 		}
+		if (scrollContainerRef) scrollContainerRef.scrollTop = 0;
 	}
 
 	function goToNext() {
@@ -55,208 +165,303 @@
 		} else {
 			onSelectReading(CORE_READINGS[0]);
 		}
+		if (scrollContainerRef) scrollContainerRef.scrollTop = 0;
 	}
 
 	function handleKeyDown(e: KeyboardEvent) {
 		if (!isOpen) return;
-		if (e.key === 'Escape') {
+		if (e.key === 'Escape' && !showAppearanceControls) {
 			onClose();
-		} else if (e.key === 'ArrowLeft') {
+		} else if (e.key === 'ArrowLeft' && !e.target?.toString().includes('Input')) {
 			goToPrev();
-		} else if (e.key === 'ArrowRight') {
+		} else if (e.key === 'ArrowRight' && !e.target?.toString().includes('Input')) {
 			goToNext();
+		} else if ((e.key === 'f' || e.key === 'F') && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			isFullscreen = !isFullscreen;
 		}
 	}
 
-	// Lightweight, safe markdown formatter for local studio display
-	function formatMarkdown(content: string): string {
-		if (!content) return '';
+	// Font family CSS mapping
+	let fontClass = $derived.by(() => {
+		switch (readerFont) {
+			case 'serif':
+				return 'reader-font-serif';
+			case 'mono':
+				return 'reader-font-mono';
+			case 'dyslexic':
+				return 'reader-font-dyslexic';
+			default:
+				return 'reader-font-sans';
+		}
+	});
 
-		// 1. Strip TOC links
-		let text = content.replace(/\[\[#Table of Contents\|↑ Back to TOC\]\]/g, '');
+	// Font size CSS mapping
+	let sizeClass = $derived.by(() => {
+		switch (readerSize) {
+			case 'sm':
+				return 'text-xs md:text-sm';
+			case 'lg':
+				return 'text-base md:text-lg';
+			case 'xl':
+				return 'text-lg md:text-xl';
+			default:
+				return 'text-sm md:text-base';
+		}
+	});
 
-		// 2. Obsidian internal links [[#Target|Label]] -> highlight label
-		text = text.replace(/\[\[#[^\]|]+\|([^\]]+)\]\]/g, '<span class="text-amber-400 font-semibold">$1</span>');
-		text = text.replace(/\[\[#([^\]]+)\]\]/g, '<span class="text-amber-400 font-semibold">$1</span>');
+	// Column width CSS mapping
+	let widthClass = $derived.by(() => {
+		switch (readerWidth) {
+			case 'compact':
+				return 'max-w-2xl';
+			case 'full':
+				return 'max-w-none';
+			default:
+				return 'max-w-4xl';
+		}
+	});
 
-		// 3. Fenced code blocks
-		text = text.replace(/```([a-z0-9_-]*)\n([\s\S]*?)```/gm, (_match, _lang, code) => {
-			const escaped = code
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;');
-			return `<pre class="my-4 p-4 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-200 font-mono text-xs overflow-x-auto leading-relaxed"><code>${escaped}</code></pre>`;
-		});
+	// Color theme CSS mapping
+	let themeContainerClass = $derived.by(() => {
+		switch (readerTheme) {
+			case 'sepia':
+				return 'bg-[#fbf7ee] text-[#2b2318] border-[#dacbaf]';
+			case 'light':
+				return 'bg-[#fbfaf8] text-[#171717] border-[#ded8cb]';
+			case 'midnight':
+				return 'bg-[#080c14] text-[#f1f5f9] border-[#1e293b]';
+			case 'contrast':
+				return 'bg-black text-white border-white';
+			default:
+				return 'bg-neutral-900 text-neutral-100 border-neutral-800';
+		}
+	});
 
-		// 4. GitHub style blockquote alerts: > [!NOTE], > [!TIP], > [!WARNING], > [!IMPORTANT], > [!EXAMPLE]
-		text = text.replace(
-			/>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION|EXAMPLE)\]\s*([^\n]*)\n((?:>[^\n]*\n?)*)/gi,
-			(_m, type, title, body) => {
-				const alertType = type.toLowerCase();
-				const borderCol =
-					alertType === 'warning' || alertType === 'caution'
-						? 'border-red-500/40 bg-red-950/20 text-red-200'
-						: alertType === 'tip'
-						? 'border-emerald-500/40 bg-emerald-950/20 text-emerald-200'
-						: alertType === 'example'
-						? 'border-sky-500/40 bg-sky-950/20 text-sky-200'
-						: 'border-amber-500/40 bg-amber-950/20 text-amber-200';
-
-				const cleanedBody = body
-					.replace(/^>\s?/gm, '')
-					.split('\n\n')
-					.map((p: string) => `<p class="mt-1">${p.trim()}</p>`)
-					.join('');
-
-				const headerTitle = title.trim() || type.toUpperCase();
-
-				return `<div class="my-4 p-4 rounded-xl border ${borderCol} space-y-1">
-					<div class="font-bold text-xs uppercase tracking-wider">${headerTitle}</div>
-					<div class="text-xs leading-relaxed opacity-90">${cleanedBody}</div>
-				</div>`;
-			}
-		);
-
-		// 5. Standard blockquotes
-		text = text.replace(/^>\s+(.+)$/gm, '<blockquote class="border-l-2 border-amber-500/60 pl-3.5 my-3 text-neutral-300 italic text-xs leading-relaxed">$1</blockquote>');
-
-		// 6. Markdown Tables
-		text = text.replace(
-			/((?:\|[^\n]+\|\r?\n)+)/g,
-			(tableBlock) => {
-				const lines = tableBlock.trim().split('\n').filter((l) => l.trim().length > 0);
-				if (lines.length < 2) return tableBlock;
-
-				const headerCells = lines[0]
-					.split('|')
-					.slice(1, -1)
-					.map((c) => `<th class="p-2.5 text-left font-bold text-xs text-amber-400 bg-neutral-950 border-b border-neutral-800">${c.trim()}</th>`)
-					.join('');
-
-				const bodyRows = lines.slice(2).map((row) => {
-					const cells = row
-						.split('|')
-						.slice(1, -1)
-						.map((c) => `<td class="p-2.5 text-xs text-neutral-300 border-b border-neutral-900">${c.trim()}</td>`)
-						.join('');
-					return `<tr class="hover:bg-neutral-900/40">${cells}</tr>`;
-				}).join('');
-
-				return `<div class="my-4 overflow-x-auto rounded-xl border border-neutral-800 bg-neutral-950/60">
-					<table class="w-full text-left border-collapse">
-						<thead><tr>${headerCells}</tr></thead>
-						<tbody>${bodyRows}</tbody>
-					</table>
-				</div>`;
-			}
-		);
-
-		// 7. Headings
-		text = text.replace(/^#### (.*$)/gim, '<h5 class="text-xs font-bold text-neutral-300 uppercase tracking-wider mt-5 mb-2">$1</h5>');
-		text = text.replace(/^### (.*$)/gim, '<h4 class="text-sm font-bold text-neutral-100 mt-6 mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>$1</h4>');
-		text = text.replace(/^## (.*$)/gim, '<h3 class="text-base font-bold text-amber-400 mt-8 mb-3 border-b border-neutral-800/80 pb-1.5">$1</h3>');
-
-		// 8. Bold, Italics, Code
-		text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-neutral-100 font-semibold">$1</strong>');
-		text = text.replace(/\*(.*?)\*/g, '<em class="text-neutral-300 italic">$1</em>');
-		text = text.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-neutral-950 text-amber-300 font-mono text-[11px] border border-neutral-800">$1</code>');
-
-		// 9. Bullet lists
-		text = text.replace(/^- (.*$)/gim, '<li class="text-xs text-neutral-300 leading-relaxed ml-4 list-disc">$1</li>');
-
-		// 10. Horizontal rules
-		text = text.replace(/^---$/gm, '<hr class="my-6 border-neutral-800/80" />');
-
-		// 11. Paragraph line breaks
-		const paragraphs = text
-			.split(/\n\s*\n/)
-			.map((chunk) => {
-				const trimmed = chunk.trim();
-				if (!trimmed) return '';
-				if (
-					trimmed.startsWith('<h') ||
-					trimmed.startsWith('<div') ||
-					trimmed.startsWith('<pre') ||
-					trimmed.startsWith('<blockquote') ||
-					trimmed.startsWith('<li') ||
-					trimmed.startsWith('<hr')
-				) {
-					return trimmed;
-				}
-				return `<p class="text-xs md:text-sm text-neutral-300 leading-relaxed mb-3">${trimmed}</p>`;
-			})
-			.join('\n');
-
-		return paragraphs;
-	}
+	let themeHeaderClass = $derived.by(() => {
+		switch (readerTheme) {
+			case 'sepia':
+				return 'bg-[#f3ebd9] border-[#dacbaf] text-[#2b2318]';
+			case 'light':
+				return 'bg-[#f4f2ee] border-[#ded8cb] text-[#171717]';
+			case 'midnight':
+				return 'bg-[#0f172a] border-[#1e293b] text-[#f1f5f9]';
+			case 'contrast':
+				return 'bg-black border-white text-white';
+			default:
+				return 'bg-neutral-950/90 border-neutral-800 text-neutral-100';
+		}
+	});
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
 
-{#if isOpen && reading}
+{#if isOpen && reading && parsedReading}
 	<div
-		class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 md:p-6"
+		class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center {isFullscreen ? 'p-0' : 'p-2 md:p-5'}"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="reading-title"
 		tabindex="-1"
 	>
-		<div class="bg-neutral-900 border border-neutral-800 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-			<!-- Top Action Bar -->
-			<div class="p-4 md:px-6 md:py-4 border-b border-neutral-800 bg-neutral-950/80 flex items-center justify-between gap-3 shrink-0">
-				<div class="flex items-center gap-3 overflow-hidden">
-					<div class="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono font-bold text-xs shrink-0">
+		<div
+			class="{themeContainerClass} border rounded-3xl w-full {isFullscreen ? 'h-screen rounded-none border-0' : 'max-w-6xl max-h-[94vh] rounded-3xl'} flex flex-col shadow-2xl overflow-hidden transition-all duration-200 animate-in fade-in zoom-in-95"
+		>
+			<!-- Ambient Top Reading Scroll Progress Bar -->
+			<div class="h-1 bg-neutral-800/50 w-full overflow-hidden shrink-0 relative z-30">
+				<div
+					class="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 transition-all duration-75"
+					style="width: {scrollProgress}%;"
+				></div>
+			</div>
+
+			<!-- Top Editorial Toolbar -->
+			<div class="{themeHeaderClass} px-4 py-3 md:px-6 md:py-3.5 border-b flex items-center justify-between gap-3 shrink-0 relative z-20">
+				<!-- Title & Metadata -->
+				<div class="flex items-center gap-3 overflow-hidden min-w-0">
+					<span class="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-mono font-bold text-xs shrink-0">
 						{reading.code}
-					</div>
+					</span>
+
 					<div class="truncate">
-						<span class="text-[10px] font-mono uppercase tracking-wider text-neutral-400">
-							Layer {reading.layer}: {reading.layerName} • Part {reading.partNumber}
-						</span>
-						<h2 id="reading-title" class="text-sm md:text-base font-bold text-white truncate">
+						<div class="flex items-center gap-2 text-[10px] font-mono uppercase tracking-wider text-neutral-400 truncate">
+							<span>Layer {reading.layer}: {reading.layerName}</span>
+							<span>•</span>
+							<span>Part {reading.partNumber}</span>
+							<span class="hidden sm:inline">•</span>
+							<span class="hidden sm:inline text-amber-400/90">⏱ {parsedReading.readingTimeMinutes} min read ({parsedReading.wordCount.toLocaleString()} words)</span>
+						</div>
+						<h2 id="reading-title" class="text-sm md:text-base font-bold truncate">
 							{reading.title}
 						</h2>
 					</div>
 				</div>
 
-				<!-- Navigation and Action Buttons -->
+				<!-- Action Controls Toolbar -->
 				<div class="flex items-center gap-1.5 shrink-0">
-					<!-- Prev / Next Reading Buttons -->
-					<div class="flex items-center bg-neutral-900 border border-neutral-800 rounded-xl p-0.5 mr-1">
-						<button
-							type="button"
-							onclick={goToPrev}
-							class="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition cursor-pointer"
-							title="Previous Reading (←)"
-						>
-							<ChevronLeft class="w-4 h-4" />
-						</button>
-						<button
-							type="button"
-							onclick={goToNext}
-							class="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition cursor-pointer"
-							title="Next Reading (→)"
-						>
-							<ChevronRight class="w-4 h-4" />
-						</button>
-					</div>
-
-					<!-- Copy Full Module Text -->
+					<!-- Mark as Read / Completed Button -->
 					<button
 						type="button"
-						onclick={copyFullContent}
-						class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 flex items-center gap-1.5 transition cursor-pointer"
-						title="Copy module text & theory to clipboard"
+						onclick={toggleReadingStatus}
+						class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer {isCompleted ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow' : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700'}"
+						title={isCompleted ? 'Mark as unread' : 'Mark module reading as complete'}
 					>
-						{#if copied}
-							<Check class="w-3.5 h-3.5 text-emerald-400" />
-							<span class="text-emerald-400 font-bold">Copied!</span>
+						{#if isCompleted}
+							<CheckCircle2 class="w-4 h-4 text-white" />
+							<span class="hidden sm:inline">Completed</span>
 						{:else}
-							<Copy class="w-3.5 h-3.5 text-amber-400" />
-							<span class="hidden sm:inline">Copy Text</span>
+							<Circle class="w-4 h-4 text-neutral-400" />
+							<span class="hidden sm:inline">Mark as Read</span>
 						{/if}
 					</button>
 
-					<!-- Close Dialog -->
+					<!-- Toggle Outline / TOC Button -->
+					<button
+						type="button"
+						onclick={() => showOutline = !showOutline}
+						class="p-2 rounded-xl text-xs font-semibold transition cursor-pointer {showOutline ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'}"
+						title="{showOutline ? 'Hide' : 'Show'} Table of Contents"
+					>
+						<ListOrdered class="w-4 h-4" />
+					</button>
+
+					<!-- Reader Display Preferences Button -->
+					<div class="relative">
+						<button
+							type="button"
+							onclick={() => showAppearanceControls = !showAppearanceControls}
+							class="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition cursor-pointer"
+							title="Customize Reader Typography & Themes"
+						>
+							<SlidersHorizontal class="w-4 h-4" />
+						</button>
+
+						<!-- Appearance Dropdown Menu -->
+						{#if showAppearanceControls}
+							<div class="absolute right-0 top-11 z-50 w-72 p-4 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-2xl space-y-4 text-xs text-neutral-200 animate-in fade-in zoom-in-95">
+								<div class="flex items-center justify-between pb-2 border-b border-neutral-800 font-bold text-amber-400">
+									<span>Reader Preferences</span>
+									<button type="button" onclick={() => showAppearanceControls = false} class="text-neutral-500 hover:text-white cursor-pointer">
+										<X class="w-4 h-4" />
+									</button>
+								</div>
+
+								<!-- Font Selector -->
+								<div class="space-y-1.5">
+									<div class="text-[10px] font-mono uppercase text-neutral-400">Typeface</div>
+									<div class="grid grid-cols-2 gap-1.5">
+										{#each [
+											{ id: 'sans', name: 'Clean Sans' },
+											{ id: 'serif', name: 'Editorial Serif' },
+											{ id: 'mono', name: 'Technical Mono' },
+											{ id: 'dyslexic', name: 'Dyslexia Friendly' }
+										] as f}
+											<button
+												type="button"
+												onclick={() => readerFont = f.id as any}
+												class="p-1.5 rounded-lg border text-center transition cursor-pointer {readerFont === f.id ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:text-white'}"
+											>
+												{f.name}
+											</button>
+										{/each}
+									</div>
+								</div>
+
+								<!-- Size Selector -->
+								<div class="space-y-1.5">
+									<div class="text-[10px] font-mono uppercase text-neutral-400">Font Size</div>
+									<div class="grid grid-cols-4 gap-1.5 font-mono text-center">
+										{#each [
+											{ id: 'sm', label: 'Small' },
+											{ id: 'base', label: 'Medium' },
+											{ id: 'lg', label: 'Large' },
+											{ id: 'xl', label: 'XL' }
+										] as s}
+											<button
+												type="button"
+												onclick={() => readerSize = s.id as any}
+												class="p-1.5 rounded-lg border transition cursor-pointer {readerSize === s.id ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-950 border-neutral-800 text-neutral-300'}"
+											>
+												{s.label}
+											</button>
+										{/each}
+									</div>
+								</div>
+
+								<!-- Column Width -->
+								<div class="space-y-1.5">
+									<div class="text-[10px] font-mono uppercase text-neutral-400">Reading Width</div>
+									<div class="grid grid-cols-3 gap-1.5 text-center">
+										{#each [
+											{ id: 'compact', label: 'Compact' },
+											{ id: 'comfortable', label: 'Standard' },
+											{ id: 'full', label: 'Full Width' }
+										] as w}
+											<button
+												type="button"
+												onclick={() => readerWidth = w.id as any}
+												class="p-1.5 rounded-lg border transition cursor-pointer {readerWidth === w.id ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-950 border-neutral-800 text-neutral-300'}"
+											>
+												{w.label}
+											</button>
+										{/each}
+									</div>
+								</div>
+
+								<!-- Theme Switcher -->
+								<div class="space-y-1.5">
+									<div class="text-[10px] font-mono uppercase text-neutral-400">Color Surface</div>
+									<div class="grid grid-cols-3 gap-1.5 text-center">
+										{#each [
+											{ id: 'dark', label: 'Obsidian' },
+											{ id: 'sepia', label: 'Sepia' },
+											{ id: 'light', label: 'Light' },
+											{ id: 'midnight', label: 'Midnight' },
+											{ id: 'contrast', label: 'Contrast' }
+										] as t}
+											<button
+												type="button"
+												onclick={() => readerTheme = t.id as any}
+												class="p-1.5 rounded-lg border transition cursor-pointer {readerTheme === t.id ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-950 border-neutral-800 text-neutral-300'}"
+											>
+												{t.label}
+											</button>
+										{/each}
+									</div>
+								</div>
+							</div>
+						{/if}
+					</div>
+
+					<!-- Copy Full Module Text Button -->
+					<button
+						type="button"
+						onclick={copyFullContent}
+						class="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition cursor-pointer"
+						title="Copy entire module markdown"
+					>
+						{#if copied}
+							<Check class="w-4 h-4 text-emerald-400" />
+						{:else}
+							<Copy class="w-4 h-4 text-amber-400" />
+						{/if}
+					</button>
+
+					<!-- Fullscreen Toggle Button -->
+					<button
+						type="button"
+						onclick={() => isFullscreen = !isFullscreen}
+						class="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition cursor-pointer hidden md:flex"
+						title="{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen (Cmd+F)'}"
+					>
+						{#if isFullscreen}
+							<Minimize2 class="w-4 h-4" />
+						{:else}
+							<Maximize2 class="w-4 h-4" />
+						{/if}
+					</button>
+
+					<!-- Close Button -->
 					<button
 						type="button"
 						onclick={onClose}
@@ -268,57 +473,229 @@
 				</div>
 			</div>
 
-			<!-- Core Mental Model Ribbon -->
-			<div class="px-6 py-3.5 bg-neutral-950/60 border-b border-neutral-800/80 flex flex-col md:flex-row md:items-center justify-between gap-2 shrink-0">
-				<div class="space-y-0.5">
-					<div class="text-[10px] font-mono uppercase font-bold text-amber-400">Key Mental Model:</div>
-					<p class="text-xs text-neutral-200 leading-relaxed font-serif">
-						{reading.keyMentalModel}
-					</p>
+			<!-- Main 2-Column Body: Table of Contents + Reading Canvas -->
+			<div class="flex-1 flex overflow-hidden relative">
+				<!-- Collapsible Table of Contents Sidebar -->
+				{#if showOutline && parsedReading.toc.length > 0}
+					<aside class="w-64 lg:w-72 border-r border-neutral-800/80 bg-neutral-950/60 p-4 overflow-y-auto reader-scrollbar shrink-0 hidden md:flex flex-col justify-between animate-in fade-in duration-150">
+						<div class="space-y-3">
+							<div class="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold pb-2 border-b border-neutral-800/80">
+								<span>Table of Contents</span>
+								<span class="text-amber-400">{parsedReading.toc.length} sections</span>
+							</div>
+
+							<nav class="space-y-1">
+								{#each parsedReading.toc as item}
+									{@const isActive = activeSectionId === item.id}
+									<button
+										type="button"
+										onclick={() => scrollToSection(item.id)}
+										class="w-full text-left py-1.5 px-2.5 rounded-xl transition flex items-center gap-2 cursor-pointer {item.level === 3 ? 'pl-5 text-xs' : item.level === 4 ? 'pl-8 text-[11px]' : 'text-xs font-semibold'} {isActive ? 'bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30' : 'text-neutral-400 hover:text-white hover:bg-neutral-900/60'}"
+									>
+										{#if isActive}
+											<span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+										{:else}
+											<span class="w-1.5 h-1.5 rounded-full bg-neutral-700 shrink-0"></span>
+										{/if}
+										<span class="truncate">{item.title}</span>
+									</button>
+								{/each}
+							</nav>
+						</div>
+
+						<!-- Sidebar Footer: Studio Direct Shortcut -->
+						{#if onSelectModality}
+							<div class="pt-4 border-t border-neutral-800/80">
+								<button
+									type="button"
+									onclick={() => {
+										onClose();
+										onSelectModality(reading.targetModalityId);
+									}}
+									class="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md"
+								>
+									<span>Open Studio ({reading.targetModalityId.toUpperCase()})</span>
+									<ArrowRight class="w-3.5 h-3.5" />
+								</button>
+							</div>
+						{/if}
+					</aside>
+				{/if}
+
+				<!-- Scrollable Reader Viewport -->
+				<div
+					bind:this={scrollContainerRef}
+					onscroll={handleScroll}
+					class="flex-1 overflow-y-auto reader-scrollbar p-6 md:p-10 selection:bg-amber-500 selection:text-neutral-950 relative scroll-smooth"
+				>
+					<div class="mx-auto {widthClass} space-y-8 {fontClass} {sizeClass}">
+						<!-- Core Mental Model Hero Ribbon -->
+						<div class="p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 via-neutral-900 to-neutral-950 border border-amber-500/30 shadow-xl space-y-4">
+							<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+								<div class="flex items-center gap-2">
+									<Sparkles class="w-4 h-4 text-amber-400" />
+									<span class="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
+										Governing Mental Model
+									</span>
+								</div>
+
+								{#if onSelectModality}
+									<button
+										type="button"
+										onclick={() => {
+											onClose();
+											onSelectModality(reading.targetModalityId);
+										}}
+										class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-1.5 transition cursor-pointer shadow shrink-0"
+									>
+										<span>Launch Studio {reading.targetModalityId.toUpperCase()}</span>
+										<ArrowRight class="w-3.5 h-3.5" />
+									</button>
+								{/if}
+							</div>
+
+							<blockquote class="text-sm md:text-base font-serif italic text-neutral-100 leading-relaxed border-l-2 border-amber-500 pl-4">
+								"{reading.keyMentalModel}"
+							</blockquote>
+
+							<div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-neutral-800/80 text-xs text-neutral-400">
+								<p class="font-sans line-clamp-2 max-w-xl">
+									{reading.summary}
+								</p>
+								<div class="flex flex-wrap gap-1.5 shrink-0">
+									{#each reading.tags.slice(0, 4) as tag}
+										<span class="text-[10px] font-mono px-2 py-0.5 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-400">
+											#{tag}
+										</span>
+									{/each}
+								</div>
+							</div>
+						</div>
+
+						<!-- Formatted Markdown Content -->
+						<article class="reader-prose space-y-4">
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							{@html parsedReading.html}
+						</article>
+
+						<!-- End of Reading Reflection & Action Card -->
+						<div class="my-10 p-6 rounded-3xl bg-neutral-950 border border-neutral-800 shadow-xl space-y-5">
+							<div class="flex items-center justify-between border-b border-neutral-800 pb-4">
+								<div class="flex items-center gap-3">
+									<div class="w-9 h-9 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+										<BookOpen class="w-5 h-5" />
+									</div>
+									<div>
+										<h3 class="text-sm md:text-base font-bold text-white">Finished Reading {reading.code}?</h3>
+										<p class="text-xs text-neutral-400">Cement the mental model into your studio practice.</p>
+									</div>
+								</div>
+
+								<button
+									type="button"
+									onclick={toggleReadingStatus}
+									class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer {isCompleted ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow' : 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow'}"
+								>
+									{#if isCompleted}
+										<CheckCircle2 class="w-4 h-4" />
+										<span>Module Completed!</span>
+									{:else}
+										<Circle class="w-4 h-4" />
+										<span>Sign Off & Complete Module</span>
+									{/if}
+								</button>
+							</div>
+
+							<!-- 1-Line Reflection Hook -->
+							<div class="space-y-2">
+								<label for="reading-reflection" class="block text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">
+									Studio Application Hook: What one directorial decision or refusal will you test today?
+								</label>
+								<div class="flex items-center gap-2">
+									<input
+										id="reading-reflection"
+										type="text"
+										bind:value={reflectionInput}
+										placeholder="e.g. In today's visual rep, I will audit the 3 major value masses before evaluating lighting details..."
+										class="flex-1 bg-neutral-900 border border-neutral-800 px-3.5 py-2.5 rounded-xl text-xs text-neutral-100 placeholder:text-neutral-500 focus:outline-none focus:border-amber-500 transition"
+										onkeydown={(e) => { if (e.key === 'Enter') saveReflection(); }}
+									/>
+									<button
+										type="button"
+										onclick={saveReflection}
+										class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 transition flex items-center gap-1.5 cursor-pointer shrink-0"
+									>
+										<Send class="w-3.5 h-3.5 text-amber-400" />
+										<span>Save Hook</span>
+									</button>
+								</div>
+								{#if reflectionSaved}
+									<p class="text-[11px] text-emerald-400 font-bold">
+										✓ Reflection saved to your studio practice record!
+									</p>
+								{/if}
+							</div>
+						</div>
+
+						<!-- Next / Previous Module Navigation Cards -->
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-neutral-800">
+							<button
+								type="button"
+								onclick={goToPrev}
+								class="p-4 rounded-2xl bg-neutral-950/80 border border-neutral-800 hover:border-amber-500/40 transition text-left space-y-1 cursor-pointer group"
+							>
+								<div class="flex items-center gap-1.5 text-[11px] font-mono text-neutral-500 group-hover:text-amber-400 transition">
+									<ChevronLeft class="w-3.5 h-3.5" />
+									<span>Previous Module</span>
+								</div>
+								<div class="font-bold text-xs md:text-sm text-neutral-200 group-hover:text-white truncate">
+									Cycle Backward (←)
+								</div>
+							</button>
+
+							<button
+								type="button"
+								onclick={goToNext}
+								class="p-4 rounded-2xl bg-neutral-950/80 border border-neutral-800 hover:border-amber-500/40 transition text-right space-y-1 cursor-pointer group"
+							>
+								<div class="flex items-center justify-end gap-1.5 text-[11px] font-mono text-neutral-500 group-hover:text-amber-400 transition">
+									<span>Next Module</span>
+									<ChevronRight class="w-3.5 h-3.5" />
+								</div>
+								<div class="font-bold text-xs md:text-sm text-neutral-200 group-hover:text-white truncate">
+									Cycle Forward (→)
+								</div>
+							</button>
+						</div>
+					</div>
 				</div>
-				<div class="flex items-center gap-2 shrink-0">
-					{#if onSelectModality}
+			</div>
+
+			<!-- Footer Quick Module Switcher Ribbon -->
+			<div class="{themeHeaderClass} px-4 py-2.5 border-t flex items-center justify-between text-xs text-neutral-500 shrink-0">
+				<div class="flex items-center gap-1 overflow-x-auto py-0.5">
+					<span class="text-[10px] font-mono uppercase text-neutral-500 mr-1 hidden sm:inline">Jump:</span>
+					{#each CORE_READINGS as mod}
+						{@const isModDone = practiceStore.isReadingCompleted(mod.code)}
 						<button
 							type="button"
 							onclick={() => {
-								onClose();
-								onSelectModality(reading.targetModalityId);
+								onSelectReading(mod);
+								if (scrollContainerRef) scrollContainerRef.scrollTop = 0;
 							}}
-							class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-1.5 transition cursor-pointer shadow-md"
-						>
-							<span>Open Studio ({reading.targetModalityId.toUpperCase()})</span>
-							<ArrowRight class="w-3.5 h-3.5" />
-						</button>
-					{/if}
-				</div>
-			</div>
-
-			<!-- Scrollable Document Reader Body -->
-			<div class="p-6 md:p-8 overflow-y-auto space-y-4 flex-1 font-sans selection:bg-amber-500 selection:text-neutral-950 text-neutral-200">
-				<div class="appendix-prose">
-					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-					{@html formatMarkdown(reading.content)}
-				</div>
-			</div>
-
-			<!-- Footer Module Switcher -->
-			<div class="p-3 bg-neutral-950 border-t border-neutral-800 flex items-center justify-between text-xs text-neutral-500 shrink-0">
-				<div class="flex items-center gap-1 overflow-x-auto py-1">
-					<span class="text-[10px] font-mono uppercase text-neutral-600 mr-1 hidden sm:inline">Jump:</span>
-					{#each CORE_READINGS as mod}
-						<button
-							type="button"
-							onclick={() => onSelectReading(mod)}
-							class="px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold transition flex items-center justify-center cursor-pointer {mod.code === reading.code ? 'bg-amber-500 text-neutral-950 shadow' : 'bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800'}"
+							class="px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold transition flex items-center gap-1 cursor-pointer {mod.code === reading.code ? 'bg-amber-500 text-neutral-950 shadow' : 'bg-neutral-900/80 text-neutral-400 hover:text-white hover:bg-neutral-800'}"
 							title="{mod.code} — {mod.title}"
 						>
-							{mod.code}
+							{#if isModDone}
+								<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+							{/if}
+							<span>{mod.code}</span>
 						</button>
 					{/each}
 				</div>
 
-				<div class="text-[11px] text-neutral-400 hidden md:block">
-					Use <kbd class="px-1 py-0.5 bg-neutral-900 rounded border border-neutral-800 text-[10px]">←</kbd> <kbd class="px-1 py-0.5 bg-neutral-900 rounded border border-neutral-800 text-[10px]">→</kbd> to cycle • <kbd class="px-1 py-0.5 bg-neutral-900 rounded border border-neutral-800 text-[10px]">ESC</kbd> to exit
+				<div class="text-[11px] text-neutral-400 hidden lg:block shrink-0 pl-3">
+					<kbd class="px-1 py-0.5 bg-neutral-900 rounded border border-neutral-800 text-[10px]">←</kbd> <kbd class="px-1 py-0.5 bg-neutral-900 rounded border border-neutral-800 text-[10px]">→</kbd> cycle • <kbd class="px-1 py-0.5 bg-neutral-900 rounded border border-neutral-800 text-[10px]">ESC</kbd> exit
 				</div>
 			</div>
 		</div>

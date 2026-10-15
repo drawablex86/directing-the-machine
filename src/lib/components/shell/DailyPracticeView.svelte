@@ -112,6 +112,21 @@
 		getReadingByCode(currentDayData.assignedReading.moduleCode)
 	);
 
+	let isTodayReadingDone = $derived.by(() => {
+		if (!currentAssignedCoreReading) return false;
+		return practiceStore.isReadingCompleted(currentAssignedCoreReading.code);
+	});
+
+	$effect(() => {
+		// When today's reading is completed, automatically mark Step 1 ("read") task as done
+		if (isTodayReadingDone) {
+			const readTask = currentDayData.tasks.find((t) => t.stepId === 'read');
+			if (readTask && !practiceStore.isTaskCompleted(readTask.id)) {
+				practiceStore.toggleTask(readTask.id);
+			}
+		}
+	});
+
 	function openCurrentReading() {
 		const reading = currentAssignedCoreReading;
 		if (reading) {
@@ -223,32 +238,33 @@
 					<span class="text-neutral-500">•</span>
 					<span class="text-neutral-400">Assigned Reading & Concept</span>
 				</div>
-				<h2 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-					<BookOpen class="w-5 h-5 text-amber-400" />
-					{#if currentDayData.assignedReading.moduleCode.toLowerCase().includes('appendix')}
-						<a
-							href="/app?tab=manual&appendix={currentDayData.assignedReading.moduleCode.toLowerCase().replace(' ', '-')}"
-							class="text-amber-400 hover:text-amber-300 underline underline-offset-4 decoration-amber-500/40 hover:decoration-amber-300 transition"
-							title="Read {currentDayData.assignedReading.moduleCode} in Field Manual"
-						>
-							{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}
-						</a>
-					{:else if currentAssignedCoreReading}
-						<button
-							type="button"
-							onclick={openCurrentReading}
-							class="text-amber-400 hover:text-amber-300 underline underline-offset-4 decoration-amber-500/40 hover:decoration-amber-300 transition text-left cursor-pointer flex items-center gap-2 group"
-							title="Open full text & theory for {currentDayData.assignedReading.moduleCode}"
-						>
+				<div class="flex items-center gap-2 flex-wrap">
+					<h2 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+						<BookOpen class="w-5 h-5 text-amber-400" />
+						{#if currentAssignedCoreReading}
+							<button
+								type="button"
+								onclick={openCurrentReading}
+								class="text-amber-400 hover:text-amber-300 underline underline-offset-4 decoration-amber-500/40 hover:decoration-amber-300 transition text-left cursor-pointer flex items-center gap-2 group"
+								title="Open full text & theory for {currentDayData.assignedReading.moduleCode}"
+							>
+								<span>{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}</span>
+								<span class="text-xs font-mono font-normal px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 group-hover:bg-amber-500 group-hover:text-neutral-950 transition">
+									Read Theory →
+								</span>
+							</button>
+						{:else}
 							<span>{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}</span>
-							<span class="text-xs font-mono font-normal px-2 py-0.5 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/30 group-hover:bg-amber-500 group-hover:text-neutral-950 transition">
-								Read Theory →
-							</span>
-						</button>
-					{:else}
-						<span>{currentDayData.assignedReading.moduleCode} — {currentDayData.assignedReading.title}</span>
+						{/if}
+					</h2>
+
+					{#if isTodayReadingDone}
+						<span class="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-bold flex items-center gap-1">
+							<CheckCircle2 class="w-3.5 h-3.5" />
+							<span>Completed</span>
+						</span>
 					{/if}
-				</h2>
+				</div>
 			</div>
 
 			<!-- Quick Day Switcher -->
@@ -349,23 +365,14 @@
 
 				<!-- Context-Specific Primary Action Buttons -->
 				{#if currentStep.id === 'read'}
-					{#if currentDayData.assignedReading.moduleCode.toLowerCase().includes('appendix')}
-						<a
-							href="/app?tab=manual&appendix={currentDayData.assignedReading.moduleCode.toLowerCase().replace(' ', '-')}"
-							class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
-						>
-							<BookOpen class="w-4 h-4" />
-							<span>Read {currentDayData.assignedReading.moduleCode}</span>
-							<ArrowRight class="w-4 h-4" />
-						</a>
-					{:else if currentAssignedCoreReading}
+					{#if currentAssignedCoreReading}
 						<button
 							type="button"
 							onclick={openCurrentReading}
 							class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
 						>
 							<BookOpen class="w-4 h-4" />
-							<span>Open Assigned Reading ({currentDayData.assignedReading.moduleCode})</span>
+							<span>{isTodayReadingDone ? 'Review Reading' : 'Start Reading'} ({currentDayData.assignedReading.moduleCode})</span>
 							<ArrowRight class="w-4 h-4" />
 						</button>
 					{/if}
