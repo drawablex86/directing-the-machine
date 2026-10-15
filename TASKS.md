@@ -215,11 +215,13 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Implement Dual-Removal Test report verifying cross-medium non-redundancy (text vs image).
   - Implement 14-step unassisted blank-sheet capstone milestone reviewer.
 
-- [ ] **Task 26: Daily Practice Loop Guidance & Deliberate Practice Drill Coach**
-  - Integrate Socratic reading comprehension check in `DailyPracticeView.svelte` (Step 1: Read).
-  - Integrate real-time rep failure diagnostic in `DrillRunner.svelte` with 70–80% learning zone difficulty adaptation.
-  - Integrate Hemingway Stop validation in `HemingwayStopModal.svelte` verifying atomic 5-minute action criteria.
-  - Integrate non-instrumental attention purity check (Step 8: Play/Attention).
+- [x] **Task 26: Daily Practice Loop Guidance & Deliberate Practice Drill Coach**
+  - Integrated Socratic Reading Comprehension Check (`daily-reading-friction`) in `DailyPracticeView.svelte` (Step 1: Read) with `[READING_FRICTION]` parsing, edge-case probing questions, diagnostic traps, and directorial rules of thumb. Added 1-click **"Mark Step 1 (Read) Completed"** and **"Mark Core Reading Completed"** in-place actions.
+  - Integrated Master Drill Coach (`drill-rep-diagnostic`) in `DrillRunner.svelte` Phase 2 (Rep Card / Running) with `[DRILL_DIAGNOSTIC]` parsing, failure type classification, root mechanism diagnosis, 1-click **"Append Adjustment to Discovery Note"**, and dynamic difficulty zone adaptation targeting the 70–80% deliberate practice pocket.
+  - Integrated Hemingway Stop Validation (`hemingway-action-check`) across both `DailyPracticeView.svelte` (Day Ends card) and `HemingwayStopModal.svelte` (Tab "Stop for the Day") with `[HEMINGWAY_AUDIT]` parsing, duration estimation, obstacle detection, and 1-click **"Adopt Decomposed 5-Min Action"** replacement.
+  - Integrated Attention Sentinel (`daily-attention-purity`) in `DailyPracticeView.svelte` (Day Ends card) auditing protected daily logs with `[ATTENTION_PURITY]` parsing, detecting covert instrumental utility contamination, and offering 1-click **"Adopt Purified Observation"**.
+  - Built comprehensive unit testing script verifying all 4 prompt parsers with 100% test assertions passing.
+  - Verified 0 TypeScript errors (`pnpm run check`) and verified successful static pre-rendering of all 9 routes with `pnpm run build`.
 
 - [ ] **Task 27: Flagship Projects 1–12 & Two-Axis Assessment Cross-Examiner**
   - Integrate project deliverable rubric auditing across Projects 1–12 in `ProjectWorkspace.svelte`.

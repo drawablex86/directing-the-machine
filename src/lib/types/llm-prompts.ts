@@ -29,6 +29,7 @@ export type PromptTemplateId =
 	| 'daily-reading-friction'
 	| 'drill-rep-diagnostic'
 	| 'hemingway-action-check'
+	| 'daily-attention-purity'
 	// Flagship Projects & Assessment
 	| 'project-rubric-audit'
 	| 'two-axis-cross-examination'
@@ -148,6 +149,35 @@ export interface RebriefArbitration {
 	nextDirectorialAction?: string;
 }
 
+export interface ReadingFriction {
+	coreDistinction: string;
+	frictionQuestion1: string;
+	frictionQuestion2: string;
+	diagnosticTrap?: string;
+	suggestedSynthesis?: string;
+}
+
+export interface DrillDiagnostic {
+	failureType: 'PERCEPTUAL' | 'PROCEDURAL' | 'CONSTRAINT_TOO_HIGH' | 'UNKNOWN';
+	mechanismDiagnosis: string;
+	microAdjustment: string;
+	zoneRecommendation: 'MAINTAIN' | 'TIGHTEN_CONSTRAINT' | 'EASE_CONSTRAINT';
+}
+
+export interface HemingwayAudit {
+	verdict: 'ATOMIC' | 'DISGUISED_PROJECT' | 'VAGUE_INTENTION';
+	estimatedMinutes: number;
+	decomposedAction: string;
+	obstacleWarning?: string;
+}
+
+export interface AttentionPurity {
+	verdict: 'PURE_NON_INSTRUMENTAL' | 'COVERT_INSTRUMENTAL_UTILITY' | 'VAGUE_ABSTRACTION';
+	contaminationAnalysis?: string;
+	purifiedObservation?: string;
+	prescribedAttentiveMove?: string;
+}
+
 export interface CritiqueResult {
 	id: string;
 	timestamp: string;
@@ -178,6 +208,10 @@ export interface CritiqueResult {
 	triageEvaluation?: TriageEvaluation;
 	refusalAudit?: RefusalAudit;
 	rebriefArbitration?: RebriefArbitration;
+	readingFriction?: ReadingFriction;
+	drillDiagnostic?: DrillDiagnostic;
+	hemingwayAudit?: HemingwayAudit;
+	attentionPurity?: AttentionPurity;
 }
 
 export interface LlmAction {

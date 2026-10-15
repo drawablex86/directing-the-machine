@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { X, PauseCircle, CheckCircle, Ban, ArrowRight } from '@lucide/svelte';
 	import { practiceStore } from '$lib/state/practice.svelte';
+	import { executePrompt } from '$lib/engine/prompt-registry';
+	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
+	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
+	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
 
 	let { isOpen, onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
@@ -8,6 +12,47 @@
 	let tomorrowAction = $state('');
 	let abandonReason = $state('');
 	let feedbackMessage = $state('');
+
+	// LLM State: Hemingway Stop 5-Minute Action Check
+	let modalHemingwayCritique = $state<CritiqueResult | null>(null);
+	let isCheckingModalHemingway = $state(false);
+	let modalHemingwayError = $state<string | null>(null);
+
+	async function runModalHemingwayCheck() {
+		if (!tomorrowAction.trim()) return;
+		isCheckingModalHemingway = true;
+		modalHemingwayError = null;
+		try {
+			const result = await executePrompt('hemingway-action-check', {
+				actionText: tomorrowAction.trim(),
+				contextProject: 'Current Studio Session'
+			});
+			modalHemingwayCritique = result;
+		} catch (err: any) {
+			modalHemingwayError = err?.message || 'Failed to validate 5-minute action.';
+		} finally {
+			isCheckingModalHemingway = false;
+		}
+	}
+
+	let modalHemingwayActions = $derived.by<LlmAction[]>(() => {
+		if (!modalHemingwayCritique?.hemingwayAudit) return [];
+		const ha = modalHemingwayCritique.hemingwayAudit;
+		const actions: LlmAction[] = [];
+
+		if (ha.decomposedAction && ha.decomposedAction !== tomorrowAction) {
+			actions.push({
+				label: 'Adopt Decomposed 5-Min Action',
+				primary: true,
+				variant: 'primary',
+				onClick: () => {
+					tomorrowAction = ha.decomposedAction;
+				}
+			});
+		}
+
+		return actions;
+	});
 
 	function recordHemingwayStop() {
 		if (!tomorrowAction.trim()) return;
@@ -27,6 +72,7 @@
 		setTimeout(() => {
 			feedbackMessage = '';
 			tomorrowAction = '';
+			modalHemingwayCritique = null;
 			onClose();
 		}, 1500);
 	}
@@ -120,9 +166,18 @@
 							<strong class="text-neutral-200">The Hemingway Rule:</strong> Stop while you still know what happens next. Do not stop when you are lost; stop when the next step is crystal clear.
 						</div>
 						<div>
-							<label for="tomorrow-action" class="block text-xs font-medium text-neutral-300 mb-1.5">
-								Tomorrow's First 5-Minute Action:
-							</label>
+							<div class="flex items-center justify-between mb-1.5">
+								<label for="tomorrow-action" class="block text-xs font-medium text-neutral-300">
+									Tomorrow's First 5-Minute Action:
+								</label>
+								<LlmTriggerButton
+									label="Validate 5-Min Action"
+									onclick={runModalHemingwayCheck}
+									loading={isCheckingModalHemingway}
+									disabled={!tomorrowAction.trim()}
+									title="Audit whether this action is atomic, concrete, and doable in <= 5 minutes"
+								/>
+							</div>
 							<input
 								id="tomorrow-action"
 								type="text"
@@ -131,6 +186,47 @@
 								class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
 							/>
 						</div>
+
+						{#if modalHemingwayCritique || isCheckingModalHemingway || modalHemingwayError}
+							<div class="pt-1">
+								<LlmCritiqueCard
+									result={modalHemingwayCritique}
+									loading={isCheckingModalHemingway}
+									error={modalHemingwayError}
+									title="Anti-Procrastination Architect: Action Audit"
+									actions={modalHemingwayActions}
+									onDismiss={() => (modalHemingwayCritique = null)}
+									onRetry={runModalHemingwayCheck}
+								/>
+
+								{#if modalHemingwayCritique?.hemingwayAudit}
+									{@const ha = modalHemingwayCritique.hemingwayAudit}
+									<div class="mt-2 p-3 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
+										<div class="flex items-center justify-between">
+											<span class="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded {ha.verdict === 'ATOMIC' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
+												Verdict: {ha.verdict}
+											</span>
+											<span class="font-mono text-neutral-400 text-[11px]">
+												Est: <strong class="text-amber-400">{ha.estimatedMinutes} min</strong>
+											</span>
+										</div>
+
+										{#if ha.decomposedAction}
+											<div class="p-2 rounded-lg bg-neutral-900 border border-neutral-800">
+												<div class="text-[10px] font-mono text-neutral-400 uppercase">Atomic 5-Minute Alternative:</div>
+												<div class="text-neutral-200 mt-0.5 font-medium">{ha.decomposedAction}</div>
+											</div>
+										{/if}
+
+										{#if ha.obstacleWarning}
+											<div class="text-[11px] text-amber-300/90 leading-tight">
+												<strong class="text-amber-400 font-mono text-[10px] uppercase">Obstacle:</strong> {ha.obstacleWarning}
+											</div>
+										{/if}
+									</div>
+								{/if}
+							</div>
+						{/if}
 						<button
 							type="button"
 							onclick={recordHemingwayStop}

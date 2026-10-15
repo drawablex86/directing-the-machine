@@ -18,6 +18,11 @@
 		Info
 	} from '@lucide/svelte';
 
+	import { executePrompt } from '$lib/engine/prompt-registry';
+	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
+	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
+	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
+
 	let { drill, onComplete }: { drill: Drill; onComplete?: () => void } = $props();
 
 	// Session state
@@ -31,6 +36,72 @@
 	let showProtocolStep = $state(0); // which protocol step we're highlighting
 	let expandedFailures = $state(false);
 	let repInputText = $state(''); // for linter-integrated drills
+
+	// LLM State: Deliberate Practice Drill Coach & Rep Failure Diagnostic
+	let drillCritique = $state<CritiqueResult | null>(null);
+	let isCheckingDrill = $state(false);
+	let drillError = $state<string | null>(null);
+
+	async function runDrillDiagnostic() {
+		isCheckingDrill = true;
+		drillError = null;
+		try {
+			const failedReps = reps.filter(r => !r.passed);
+			const recentFailures = failedReps.map(r => r.failNote).filter(Boolean).join('; ');
+			const result = await executePrompt('drill-rep-diagnostic', {
+				drillTitle: drill.title,
+				drillTargetSkill: drill.targetSkill,
+				repOutcome: currentRepNote.trim() || (failedReps.length > 0 ? 'Multiple rep failures' : 'Struggling with rep criteria'),
+				failureNote: currentRepNote.trim() || recentFailures || 'Rep failed success criteria',
+				repProtocolStep: currentProtocolStep ? `${currentProtocolStep.step}. ${currentProtocolStep.label} - ${currentProtocolStep.instruction}` : '',
+				currentSuccessRate: totalReps > 0 ? `${Math.round(successRate * 100)}%` : '0%'
+			});
+			drillCritique = result;
+		} catch (err: any) {
+			drillError = err?.message || 'Failed to diagnose drill rep.';
+		} finally {
+			isCheckingDrill = false;
+		}
+	}
+
+	let drillActions = $derived.by<LlmAction[]>(() => {
+		if (!drillCritique?.drillDiagnostic) return [];
+		const dd = drillCritique.drillDiagnostic;
+		const actions: LlmAction[] = [];
+
+		if (dd.microAdjustment) {
+			actions.push({
+				label: 'Append Adjustment to Discovery Note',
+				primary: true,
+				variant: 'primary',
+				onClick: () => {
+					if (discoveryNote.trim()) {
+						discoveryNote = `${discoveryNote.trim()}\n• [Coach Adjustment]: ${dd.microAdjustment}`;
+					} else {
+						discoveryNote = `• [Coach Adjustment]: ${dd.microAdjustment}`;
+					}
+				}
+			});
+		}
+
+		if (dd.zoneRecommendation) {
+			actions.push({
+				label: `Adopt Zone: ${dd.zoneRecommendation.replace(/_/g, ' ')}`,
+				variant: 'secondary',
+				onClick: () => {
+					if (dd.zoneRecommendation.includes('WARMUP') || dd.zoneRecommendation.includes('REDUCE') || dd.zoneRecommendation.includes('EASE')) {
+						difficultyAdjustment = 'reduced';
+					} else if (dd.zoneRecommendation.includes('HARDER') || dd.zoneRecommendation.includes('PUSH') || dd.zoneRecommendation.includes('INCREASE')) {
+						difficultyAdjustment = 'increased';
+					} else {
+						difficultyAdjustment = 'maintained';
+					}
+				}
+			});
+		}
+
+		return actions;
+	});
 
 	// Recent sessions for context
 	let recentSessions = $derived(practiceStore.getRecentDrillSessions(drill.id));
@@ -389,9 +460,18 @@
 
 				<!-- Fail note input (optional) -->
 				<div class="space-y-1.5">
-					<label for="fail-note" class="text-xs text-neutral-400">
-						Optional: If this rep fails, note what broke (1–5 words):
-					</label>
+					<div class="flex items-center justify-between">
+						<label for="fail-note" class="text-xs text-neutral-400">
+							Optional: If this rep fails, note what broke (1–5 words):
+						</label>
+						<LlmTriggerButton
+							label="Diagnose Rep & Calibrate"
+							onclick={runDrillDiagnostic}
+							loading={isCheckingDrill}
+							disabled={!currentRepNote.trim() && reps.filter(r => !r.passed).length === 0}
+							title="Analyze failure mechanism and get micro-adjustments for the 70–80% learning zone"
+						/>
+					</div>
 					<input
 						id="fail-note"
 						type="text"
@@ -400,6 +480,47 @@
 						class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
 					/>
 				</div>
+
+				{#if drillCritique || isCheckingDrill || drillError}
+					<div class="pt-1">
+						<LlmCritiqueCard
+							result={drillCritique}
+							loading={isCheckingDrill}
+							error={drillError}
+							title="Master Drill Coach: Rep Diagnostic & Calibration"
+							actions={drillActions}
+							onDismiss={() => (drillCritique = null)}
+							onRetry={runDrillDiagnostic}
+						/>
+
+						{#if drillCritique?.drillDiagnostic}
+							{@const dd = drillCritique.drillDiagnostic}
+							<div class="mt-2.5 p-3 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
+								<div class="flex flex-wrap items-center justify-between gap-1.5">
+									<span class="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30">
+										Failure Type: {dd.failureType}
+									</span>
+									<span class="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">
+										Zone Rec: {dd.zoneRecommendation}
+									</span>
+								</div>
+
+								{#if dd.mechanismDiagnosis}
+									<div class="text-[11px] text-neutral-300 leading-relaxed">
+										<strong class="text-neutral-200 font-mono text-[10px] uppercase">Root Mechanism:</strong> {dd.mechanismDiagnosis}
+									</div>
+								{/if}
+
+								{#if dd.microAdjustment}
+									<div class="p-2 rounded-lg bg-neutral-900 border border-neutral-800">
+										<div class="text-[10px] font-mono text-emerald-400 uppercase font-bold">Targeted Micro-Adjustment:</div>
+										<div class="text-neutral-200 mt-0.5 font-medium">{dd.microAdjustment}</div>
+									</div>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				{/if}
 
 				<!-- Mark rep buttons -->
 				<div class="grid grid-cols-2 gap-3">

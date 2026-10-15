@@ -13,7 +13,11 @@ import type {
 	SimulatedStakeholder,
 	TriageEvaluation,
 	RefusalAudit,
-	RebriefArbitration
+	RebriefArbitration,
+	ReadingFriction,
+	DrillDiagnostic,
+	HemingwayAudit,
+	AttentionPurity
 } from '../types/llm-prompts';
 import type { InferenceRequest } from '../types/inference';
 import { runInference } from './inference';
@@ -868,16 +872,44 @@ Evaluate milestone completion for Step ${ctx.stepNumber}.
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Socratic Seminar Leader.
-Formulate exactly 2 sharp, friction-laden questions that test whether the student understood the core operational distinction of today's reading, rather than passively skimming it.
+ROLE: You are the Socratic Seminar Leader in "Directing the Machine".
+Your task is to conduct an active comprehension check on the student's assigned module reading.
+Students often skim theory passively, nodding along to abstractions without understanding the mechanical distinction that governs studio practice.
+
+INSTRUCTIONS:
+1. Extract the single primary OPERATIONAL DISTINCTION of the reading (e.g. Practice vs Production; Directing vs Prompting; Tension vs Subject).
+2. Formulate 2 sharp, friction-laden Socratic questions:
+   - Question 1: Test edge-case understanding where the concept breaks down or is commonly misunderstood.
+   - Question 2: Challenge the student to cite a concrete structural decision they will make differently today because of this concept.
+3. Identify the primary DIAGNOSTIC TRAP students fall into when attempting to apply this concept.
+4. Provide a 1-sentence synthesis of how to hold this distinction in mind during today's working session.
+
+Output the machine-readable block:
+[READING_FRICTION]
+CORE_DISTINCTION: <The central mechanical distinction in 1 concise sentence>
+FRICTION_QUESTION_1: <Sharp Socratic edge-case question testing true understanding>
+FRICTION_QUESTION_2: <Concrete application question linking concept to today's studio action>
+DIAGNOSTIC_TRAP: <The subtle false equivalence or lazy habit students use to bypass this concept>
+SUGGESTED_SYNTHESIS: <A 1-sentence memorable directorial rule of thumb>
+[/READING_FRICTION]
+
+Followed by your concise diagnostic Socratic guidance.
 `.trim(),
 		defaultTemperature: 0.4,
-		defaultMaxTokens: 600,
-		formatPrompt: (ctx: { readingTitle: string; readingCode: string; keyThesis: string }) => `
-Reading: ${ctx.readingTitle} (${ctx.readingCode})
-Key Thesis: "${ctx.keyThesis}"
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: {
+			readingTitle: string;
+			readingCode: string;
+			keyThesis?: string;
+			keyMentalModel?: string;
+			studentReflection?: string;
+		}) => `
+Assigned Module: ${ctx.readingCode} — ${ctx.readingTitle}
+${ctx.keyMentalModel ? `Key Mental Model: "${ctx.keyMentalModel}"` : ''}
+${ctx.keyThesis ? `Key Thesis: "${ctx.keyThesis}"` : ''}
+${ctx.studentReflection ? `Student Reflection / Notes: "${ctx.studentReflection}"` : ''}
 
-Generate 2 probing Socratic friction questions.
+Generate the Socratic reading comprehension check and emit the [READING_FRICTION] block.
 `.trim()
 	},
 
@@ -891,18 +923,47 @@ Generate 2 probing Socratic friction questions.
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are the Master Drill Coach.
-Deliberate practice operates strictly in the 70–80% success zone.
-When a student logs a failure note on a drill rep, identify if the failure was perceptual (didn't see it), procedural (skipped protocol step), or constraint-related (difficulty too high).
+In this curriculum (Module 0 & Appendix G), deliberate practice operates strictly in the 70–80% learning zone.
+- If a student passes 10/10 reps, the drill is a comforting confirmation of existing competence; they are not learning.
+- If a student fails >4/10 reps, the difficulty is overwhelming their feedback channel.
+
+When a student logs a failure note on a drill rep, your job is to diagnose the failure mechanism:
+1. PERCEPTUAL: The student didn't see the structural property in time (e.g. looked at detail instead of value mass, didn't spot the adjective).
+2. PROCEDURAL: The student skipped an explicit protocol step (e.g. paused the timer, evaluated while generating, forgot the binary criterion).
+3. CONSTRAINT_TOO_HIGH: The time limit, subject complexity, or constraint density was too aggressive for current capability.
+
+INSTRUCTIONS:
+1. Diagnose the exact failure mechanism from the student's rep note and drill context.
+2. Provide a 1-sentence concrete physical or procedural micro-adjustment for the very next rep.
+3. Regulate zone difficulty: recommend whether to MAINTAIN, TIGHTEN_CONSTRAINT, or EASE_CONSTRAINT.
+
+Output the machine-readable block:
+[DRILL_DIAGNOSTIC]
+FAILURE_TYPE: <PERCEPTUAL | PROCEDURAL | CONSTRAINT_TOO_HIGH | UNKNOWN>
+MECHANISM_DIAGNOSIS: <Surgical analysis of why the failure occurred in causal terms>
+MICRO_ADJUSTMENT: <One concrete, actionable tweak to execute on the next rep>
+ZONE_RECOMMENDATION: <MAINTAIN | TIGHTEN_CONSTRAINT | EASE_CONSTRAINT>
+[/DRILL_DIAGNOSTIC]
+
+Followed by your coaching feedback.
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 600,
-		formatPrompt: (ctx: { drillTitle: string; criterion: string; failNote: string; currentZone: string }) => `
-Drill: ${ctx.drillTitle}
-Success Criterion: ${ctx.criterion}
-Rep Failure Note: "${ctx.failNote}"
-Current Zone: ${ctx.currentZone}
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: {
+			drillTitle: string;
+			criterion: string;
+			failNote: string;
+			currentZone?: string;
+			successRate?: number;
+			totalReps?: number;
+		}) => `
+Drill Title: "${ctx.drillTitle}"
+Success Criterion: "${ctx.criterion}"
+Logged Rep Failure Note: "${ctx.failNote}"
+${ctx.currentZone ? `Current Zone Status: ${ctx.currentZone}` : ''}
+${ctx.successRate !== undefined ? `Session Success Rate: ${Math.round(ctx.successRate * 100)}% (${ctx.totalReps || 0} reps completed)` : ''}
 
-Diagnose the failure mechanism and provide a 1-sentence micro-adjustment for the next rep.
+Diagnose this rep failure mechanism and emit the [DRILL_DIAGNOSTIC] block.
 `.trim()
 	},
 
@@ -916,20 +977,88 @@ Diagnose the failure mechanism and provide a 1-sentence micro-adjustment for the
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are the Anti-Procrastination Architect.
-The Hemingway Stop requires stopping while you still know the very next move.
-The logged action must be executable within the FIRST 5 MINUTES of sitting down tomorrow.
-If an action is a 2-hour project ("Work on character designs"), it FAILS. It must be atomic ("Open sketchbook to page 14 and draw the 3 thumbnail silhouettes").
+The Hemingway Stop (Module 0 & Appendix G) requires stopping your studio session while you still know the very next move.
+The logged opening action MUST satisfy the 5-Minute Rule:
+1. It must be physical, concrete, and friction-free (e.g. "Open notebook to page 12 and write 3 candidate nouns").
+2. It can be completed in the FIRST 5 MINUTES of sitting down tomorrow morning.
+3. It must NOT be a disguised multi-hour project ("Design 5 character variations", "Work on the script", "Figure out the lighting").
+4. It must NOT be a vague intention ("Think about color palettes", "Explore references").
 
 INSTRUCTIONS:
-1. Classify the action: ATOMIC (passes 5-minute rule) or DISGUISED PROJECT (fails).
-2. If it fails, decompose it into the true first 5-minute physical action.
+1. Audit the logged action:
+   - ATOMIC: Passes the 5-minute rule cleanly.
+   - DISGUISED_PROJECT: A multi-hour deliverable disguised as a single step.
+   - VAGUE_INTENTION: An un-falsifiable mental state with no physical start point.
+2. Estimate the realistic minutes the stated action would take.
+3. Decompose it into a true, atomic, 5-minute physical opening move that guarantees momentum tomorrow morning.
+4. Highlight any latent cognitive friction or obstacle that could cause morning procrastination.
+
+Output the machine-readable block:
+[HEMINGWAY_AUDIT]
+VERDICT: <ATOMIC | DISGUISED_PROJECT | VAGUE_INTENTION>
+ESTIMATED_MINUTES: <Realistic time number, e.g. 5, 45, 120>
+DECOMPOSED_ACTION: <A razor-sharp, physical 5-minute opening action that eliminates morning startup friction>
+OBSTACLE_WARNING: <The exact ambiguity or cognitive friction that threatens tomorrow's start>
+[/HEMINGWAY_AUDIT]
+
+Followed by your brief architectural rationale.
 `.trim(),
 		defaultTemperature: 0.2,
-		defaultMaxTokens: 500,
-		formatPrompt: (ctx: { actionText: string }) => `
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: { actionText: string; contextProject?: string }) => `
 Logged Tomorrow Action: "${ctx.actionText}"
+${ctx.contextProject ? `Current Project Context: "${ctx.contextProject}"` : ''}
 
-Validate whether this action satisfies the 5-minute Hemingway rule.
+Validate whether this action satisfies the 5-minute Hemingway rule and emit the [HEMINGWAY_AUDIT] block.
+`.trim()
+	},
+
+	'daily-attention-purity': {
+		id: 'daily-attention-purity',
+		name: 'Non-Instrumental Attention Sentinel',
+		persona: 'Contemplative Epistemologist & Attention Sentinel',
+		role: 'sentinel',
+		description: 'Audits non-instrumental observation lines to eliminate covert monetization and work-hunting.',
+		systemPrompt: `
+${BASE_STUDIO_DIRECTIVE}
+
+ROLE: You are the Contemplative Epistemologist and Attention Sentinel.
+In Step 8 of the daily loop (Module 0 & Appendix G), practitioners log a daily non-instrumental observation:
+"What did you encounter today without intending to use it?"
+
+WHY THIS MATTERS:
+AI-augmented creators develop compulsive instrumental extraction: every walk, image, conversation, and sensation is immediately screened as potential prompt fodder, texture reference, or portfolio content.
+This destroys perceptual depth and narrows taste to existing creative habits.
+Non-instrumental attention is the disciplined counter-practice: attending to something purely for its own sake, without utility.
+
+AUDIT CRITERIA:
+1. PURE_NON_INSTRUMENTAL: The observation records a direct perceptual encounter with zero creative utility, commercial monetization, or project recycling.
+2. COVERT_INSTRUMENTAL_UTILITY: The student claims it was non-instrumental, but secretly logged an asset, color scheme, or technical solution for their current brief or portfolio.
+3. VAGUE_ABSTRACTION: The student logged a generic sentiment ("Life is fleeting", "Nature is nice") rather than a concrete, situated perceptual encounter.
+
+INSTRUCTIONS:
+1. Audit the student's logged observation.
+2. Detect whether covert utility or intellectual abstraction contaminated the observation.
+3. Provide a purified, concrete rewriting that strips away any hidden utility or aesthetic editorializing.
+4. Prescribe a 1-sentence attentive move to sharpen non-instrumental awareness.
+
+Output the machine-readable block:
+[ATTENTION_PURITY]
+VERDICT: <PURE_NON_INSTRUMENTAL | COVERT_INSTRUMENTAL_UTILITY | VAGUE_ABSTRACTION>
+CONTAMINATION_ANALYSIS: <Diagnosis of any hidden monetization, project-fodder searching, or evaluative abstraction>
+PURIFIED_OBSERVATION: <A concrete, zero-utility perceptual statement anchored strictly in sensory presence>
+PRESCRIBED_ATTENTIVE_MOVE: <A single observational challenge for the next 24 hours>
+[/ATTENTION_PURITY]
+
+Followed by your contemplative diagnostic critique.
+`.trim(),
+		defaultTemperature: 0.3,
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: { observationText: string; isPlay?: boolean }) => `
+Logged Observation: "${ctx.observationText}"
+${ctx.isPlay ? 'Category: Play Practice (making for its own sake)' : 'Category: Non-Instrumental Attention (perceiving without utility)'}
+
+Audit this entry for non-instrumental purity and emit the [ATTENTION_PURITY] block.
 `.trim()
 	},
 
@@ -1518,6 +1647,111 @@ export function parseRebriefArbitration(text: string): RebriefArbitration | unde
 }
 
 /**
+ * Parses machine-readable Socratic reading comprehension check from Seminar Leader response.
+ */
+export function parseReadingFriction(text: string): ReadingFriction | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[READING_FRICTION\]([\s\S]*?)(\[\/READING_FRICTION\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const distMatch = target.match(/CORE_DISTINCTION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const q1Match = target.match(/FRICTION_QUESTION_1:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const q2Match = target.match(/FRICTION_QUESTION_2:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const trapMatch = target.match(/DIAGNOSTIC_TRAP:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const synthMatch = target.match(/SUGGESTED_SYNTHESIS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!distMatch && !q1Match && !q2Match) {
+		return undefined;
+	}
+
+	return {
+		coreDistinction: distMatch ? distMatch[1].trim() : 'Core mechanical distinction',
+		frictionQuestion1: q1Match ? q1Match[1].trim() : 'How does this distinction affect your next decision?',
+		frictionQuestion2: q2Match ? q2Match[1].trim() : 'Where does this rule break down in practice?',
+		diagnosticTrap: trapMatch ? trapMatch[1].trim() : undefined,
+		suggestedSynthesis: synthMatch ? synthMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable deliberate practice drill diagnostic from Master Drill Coach response.
+ */
+export function parseDrillDiagnostic(text: string): DrillDiagnostic | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[DRILL_DIAGNOSTIC\]([\s\S]*?)(\[\/DRILL_DIAGNOSTIC\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const typeMatch = target.match(/FAILURE_TYPE:\s*(PERCEPTUAL|PROCEDURAL|CONSTRAINT_TOO_HIGH|UNKNOWN)/i);
+	const diagMatch = target.match(/MECHANISM_DIAGNOSIS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const adjMatch = target.match(/MICRO_ADJUSTMENT:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const zoneMatch = target.match(/ZONE_RECOMMENDATION:\s*(MAINTAIN|TIGHTEN_CONSTRAINT|EASE_CONSTRAINT)/i);
+
+	if (!typeMatch && !diagMatch && !adjMatch) {
+		return undefined;
+	}
+
+	return {
+		failureType: (typeMatch ? typeMatch[1].toUpperCase() : 'UNKNOWN') as any,
+		mechanismDiagnosis: diagMatch ? diagMatch[1].trim() : 'Mechanism failure detected in rep execution.',
+		microAdjustment: adjMatch ? adjMatch[1].trim() : 'Adjust one constraint on the next rep.',
+		zoneRecommendation: (zoneMatch ? zoneMatch[1].toUpperCase() : 'MAINTAIN') as any
+	};
+}
+
+/**
+ * Parses machine-readable 5-minute action atomicity audit from Anti-Procrastination Architect response.
+ */
+export function parseHemingwayAudit(text: string): HemingwayAudit | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[HEMINGWAY_AUDIT\]([\s\S]*?)(\[\/HEMINGWAY_AUDIT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(ATOMIC|DISGUISED_PROJECT|VAGUE_INTENTION)/i);
+	const minMatch = target.match(/ESTIMATED_MINUTES:\s*(\d+)/i);
+	const decompMatch = target.match(/DECOMPOSED_ACTION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const obstMatch = target.match(/OBSTACLE_WARNING:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!verdictMatch && !decompMatch) {
+		return undefined;
+	}
+
+	const rawMin = minMatch ? parseInt(minMatch[1], 10) : 5;
+	const estimatedMinutes = isNaN(rawMin) ? 5 : rawMin;
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'ATOMIC') as any,
+		estimatedMinutes,
+		decomposedAction: decompMatch ? decompMatch[1].trim() : text.slice(0, 100),
+		obstacleWarning: obstMatch ? obstMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable non-instrumental attention purity audit from Attention Sentinel response.
+ */
+export function parseAttentionPurity(text: string): AttentionPurity | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[ATTENTION_PURITY\]([\s\S]*?)(\[\/ATTENTION_PURITY\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(PURE_NON_INSTRUMENTAL|COVERT_INSTRUMENTAL_UTILITY|VAGUE_ABSTRACTION)/i);
+	const contamMatch = target.match(/CONTAMINATION_ANALYSIS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const purMatch = target.match(/PURIFIED_OBSERVATION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const moveMatch = target.match(/PRESCRIBED_ATTENTIVE_MOVE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!verdictMatch && !contamMatch && !purMatch) {
+		return undefined;
+	}
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'PURE_NON_INSTRUMENTAL') as any,
+		contaminationAnalysis: contamMatch ? contamMatch[1].trim() : undefined,
+		purifiedObservation: purMatch ? purMatch[1].trim() : undefined,
+		prescribedAttentiveMove: moveMatch ? moveMatch[1].trim() : undefined
+	};
+}
+
+/**
  * Central prompt execution pipeline.
  * Formats context into user prompt, applies system prompt and defaults, calls runInference,
  * and packages the result into a typed CritiqueResult with thoughts and parsed directives.
@@ -1618,6 +1852,26 @@ export async function executePrompt<T = any>(
 		const rebrief = parseRebriefArbitration(response.text);
 		if (rebrief) {
 			critique.rebriefArbitration = rebrief;
+		}
+	} else if (promptId === 'daily-reading-friction') {
+		const reading = parseReadingFriction(response.text);
+		if (reading) {
+			critique.readingFriction = reading;
+		}
+	} else if (promptId === 'drill-rep-diagnostic') {
+		const drillDiag = parseDrillDiagnostic(response.text);
+		if (drillDiag) {
+			critique.drillDiagnostic = drillDiag;
+		}
+	} else if (promptId === 'hemingway-action-check') {
+		const hemingway = parseHemingwayAudit(response.text);
+		if (hemingway) {
+			critique.hemingwayAudit = hemingway;
+		}
+	} else if (promptId === 'daily-attention-purity') {
+		const purity = parseAttentionPurity(response.text);
+		if (purity) {
+			critique.attentionPurity = purity;
 		}
 	}
 

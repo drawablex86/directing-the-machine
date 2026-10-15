@@ -32,6 +32,10 @@
 	import ReadingModal from './ReadingModal.svelte';
 	import ProjectBriefModal from '../course/ProjectBriefModal.svelte';
 	import DrillRunner from './DrillRunner.svelte';
+	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
+	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
+	import { executePrompt } from '$lib/engine/prompt-registry';
+	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
 
 	let { onSelectModality }: { onSelectModality: (modId: string) => void } = $props();
 
@@ -125,6 +129,148 @@
 				practiceStore.toggleTask(readTask.id);
 			}
 		}
+	});
+
+	// LLM State: Socratic Reading Comprehension Check
+	let readingCritique = $state<CritiqueResult | null>(null);
+	let isCheckingReading = $state(false);
+	let readingError = $state<string | null>(null);
+
+	async function runReadingCheck() {
+		isCheckingReading = true;
+		readingError = null;
+		try {
+			const result = await executePrompt('daily-reading-friction', {
+				readingTitle: currentDayData.assignedReading.title,
+				readingCode: currentDayData.assignedReading.moduleCode,
+				keyMentalModel: currentDayData.assignedReading.keyMentalModel,
+				keyThesis: currentAssignedCoreReading?.summary || currentDayData.assignedReading.keyMentalModel
+			});
+			readingCritique = result;
+		} catch (err: any) {
+			readingError = err?.message || 'Failed to generate Socratic reading check.';
+		} finally {
+			isCheckingReading = false;
+		}
+	}
+
+	let readingActions = $derived.by<LlmAction[]>(() => {
+		if (!readingCritique?.readingFriction) return [];
+		const rf = readingCritique.readingFriction;
+		const actions: LlmAction[] = [];
+
+		const readTask = currentDayData.tasks.find((t) => t.stepId === 'read');
+		if (readTask && !practiceStore.isTaskCompleted(readTask.id)) {
+			actions.push({
+				label: 'Mark Step 1 (Read) Completed',
+				primary: true,
+				variant: 'primary',
+				onClick: () => {
+					toggleTaskWithSound(readTask.id);
+				}
+			});
+		}
+
+		if (currentAssignedCoreReading && !practiceStore.isReadingCompleted(currentAssignedCoreReading.code)) {
+			actions.push({
+				label: 'Mark Core Reading Completed',
+				variant: 'secondary',
+				onClick: () => {
+					if (currentAssignedCoreReading) {
+						practiceStore.toggleReadingCompleted(currentAssignedCoreReading.code);
+					}
+				}
+			});
+		}
+
+		return actions;
+	});
+
+	// LLM State: Hemingway Stop 5-Minute Action Check
+	let hemingwayCritique = $state<CritiqueResult | null>(null);
+	let isCheckingHemingway = $state(false);
+	let hemingwayError = $state<string | null>(null);
+
+	async function runHemingwayCheck() {
+		if (!tomorrowInput.trim()) return;
+		isCheckingHemingway = true;
+		hemingwayError = null;
+		try {
+			const result = await executePrompt('hemingway-action-check', {
+				actionText: tomorrowInput.trim(),
+				contextProject: `P${currentProject.number}: ${currentProject.title}`
+			});
+			hemingwayCritique = result;
+		} catch (err: any) {
+			hemingwayError = err?.message || 'Failed to validate Hemingway action.';
+		} finally {
+			isCheckingHemingway = false;
+		}
+	}
+
+	let hemingwayActions = $derived.by<LlmAction[]>(() => {
+		if (!hemingwayCritique?.hemingwayAudit) return [];
+		const ha = hemingwayCritique.hemingwayAudit;
+		const actions: LlmAction[] = [];
+
+		if (ha.decomposedAction && ha.decomposedAction !== tomorrowInput) {
+			actions.push({
+				label: 'Adopt Decomposed 5-Min Action',
+				primary: true,
+				variant: 'primary',
+				onClick: () => {
+					tomorrowInput = ha.decomposedAction;
+				}
+			});
+		}
+
+		return actions;
+	});
+
+	// LLM State: Non-Instrumental Attention Purity Check
+	let attentionCritique = $state<CritiqueResult | null>(null);
+	let isCheckingAttention = $state(false);
+	let attentionError = $state<string | null>(null);
+
+	async function runAttentionPurityCheck() {
+		const text = quickAttention.trim() || quickPlay.trim();
+		if (!text) return;
+		isCheckingAttention = true;
+		attentionError = null;
+		try {
+			const result = await executePrompt('daily-attention-purity', {
+				observationText: text,
+				isPlay: !quickAttention.trim() && Boolean(quickPlay.trim())
+			});
+			attentionCritique = result;
+		} catch (err: any) {
+			attentionError = err?.message || 'Failed to audit attention purity.';
+		} finally {
+			isCheckingAttention = false;
+		}
+	}
+
+	let attentionActions = $derived.by<LlmAction[]>(() => {
+		if (!attentionCritique?.attentionPurity) return [];
+		const ap = attentionCritique.attentionPurity;
+		const actions: LlmAction[] = [];
+
+		if (ap.purifiedObservation) {
+			actions.push({
+				label: 'Adopt Purified Observation',
+				primary: true,
+				variant: 'primary',
+				onClick: () => {
+					if (quickAttention.trim()) {
+						quickAttention = ap.purifiedObservation!;
+					} else {
+						quickPlay = ap.purifiedObservation!;
+					}
+				}
+			});
+		}
+
+		return actions;
 	});
 
 	function openCurrentReading() {
@@ -267,20 +413,28 @@
 				</div>
 			</div>
 
-			<!-- Quick Day Switcher -->
-			<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
-				{#each currentWeekData.days as d}
-					<button
-						type="button"
-						onclick={() => {
-							practiceStore.activeDay = d.dayNumber;
-							practiceStore.saveToStorage();
-						}}
-						class="px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer {practiceStore.activeDay === d.dayNumber ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'}"
-					>
-						{d.dayName.slice(0, 3)}
-					</button>
-				{/each}
+			<!-- Quick Day Switcher and Reading Trigger -->
+			<div class="flex items-center gap-2 flex-wrap">
+				<LlmTriggerButton
+					label="Socratic Reading Check"
+					onclick={runReadingCheck}
+					loading={isCheckingReading}
+					title="Test operational comprehension of today's assigned reading"
+				/>
+				<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
+					{#each currentWeekData.days as d}
+						<button
+							type="button"
+							onclick={() => {
+								practiceStore.activeDay = d.dayNumber;
+								practiceStore.saveToStorage();
+							}}
+							class="px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer {practiceStore.activeDay === d.dayNumber ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'}"
+						>
+							{d.dayName.slice(0, 3)}
+						</button>
+					{/each}
+				</div>
 			</div>
 		</div>
 
@@ -320,6 +474,56 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Socratic Reading Check Critique Card -->
+		{#if readingCritique || isCheckingReading || readingError}
+			<div class="pt-2">
+				<LlmCritiqueCard
+					result={readingCritique}
+					loading={isCheckingReading}
+					error={readingError}
+					title="Socratic Seminar Leader: Reading Comprehension Check"
+					actions={readingActions}
+					onDismiss={() => (readingCritique = null)}
+					onRetry={runReadingCheck}
+				/>
+
+				{#if readingCritique?.readingFriction}
+					{@const rf = readingCritique.readingFriction}
+					<div class="mt-2.5 p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2.5 text-xs">
+						{#if rf.coreDistinction}
+							<div class="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300">
+								<strong class="text-amber-400 block mb-0.5 text-[11px] uppercase tracking-wider font-mono">Core Operational Distinction:</strong>
+								<span class="leading-relaxed">{rf.coreDistinction}</span>
+							</div>
+						{/if}
+
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
+							<div class="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 space-y-1">
+								<div class="font-bold font-mono text-[10px] uppercase text-amber-400">Friction Probe 1 (Edge Case):</div>
+								<p class="text-neutral-300 leading-relaxed italic">"{rf.frictionQuestion1}"</p>
+							</div>
+							<div class="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 space-y-1">
+								<div class="font-bold font-mono text-[10px] uppercase text-amber-400">Friction Probe 2 (Today's Decision):</div>
+								<p class="text-neutral-300 leading-relaxed italic">"{rf.frictionQuestion2}"</p>
+							</div>
+						</div>
+
+						{#if rf.diagnosticTrap}
+							<div class="text-[11px] text-rose-300/90 leading-relaxed">
+								<strong class="text-rose-400 font-mono text-[10px] uppercase">Common Trap:</strong> {rf.diagnosticTrap}
+							</div>
+						{/if}
+
+						{#if rf.suggestedSynthesis}
+							<div class="text-[11px] text-emerald-300/90 font-mono pt-1 border-t border-neutral-800">
+								<strong class="text-emerald-400">Directorial Rule of Thumb:</strong> {rf.suggestedSynthesis}
+							</div>
+						{/if}
+					</div>
+				{/if}
+			</div>
+		{/if}
 	</div>
 
 	<!-- Step-by-Step Task Pipeline: Focus Hero -->
@@ -897,9 +1101,18 @@
 			</p>
 
 			<div class="space-y-2">
-				<label for="tomorrow-action-input" class="text-xs text-neutral-300 font-medium">
-					Tomorrow's first 5-minute opening action:
-				</label>
+				<div class="flex items-center justify-between">
+					<label for="tomorrow-action-input" class="text-xs text-neutral-300 font-medium">
+						Tomorrow's first 5-minute opening action:
+					</label>
+					<LlmTriggerButton
+						label="Validate 5-Min Action"
+						onclick={runHemingwayCheck}
+						loading={isCheckingHemingway}
+						disabled={!tomorrowInput.trim()}
+						title="Audit whether this action is atomic, concrete, and doable in <= 5 minutes"
+					/>
+				</div>
 				<div class="flex gap-2">
 					<input
 						id="tomorrow-action-input"
@@ -919,9 +1132,59 @@
 				</div>
 			</div>
 
+			{#if hemingwayCritique || isCheckingHemingway || hemingwayError}
+				<div class="pt-2">
+					<LlmCritiqueCard
+						result={hemingwayCritique}
+						loading={isCheckingHemingway}
+						error={hemingwayError}
+						title="Anti-Procrastination Architect: Hemingway Stop Validation"
+						actions={hemingwayActions}
+						onDismiss={() => (hemingwayCritique = null)}
+						onRetry={runHemingwayCheck}
+					/>
+
+					{#if hemingwayCritique?.hemingwayAudit}
+						{@const ha = hemingwayCritique.hemingwayAudit}
+						<div class="mt-2.5 p-3 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
+							<div class="flex items-center justify-between">
+								<span class="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded {ha.verdict === 'ATOMIC' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}">
+									Verdict: {ha.verdict}
+								</span>
+								<span class="font-mono text-neutral-400 text-[11px]">
+									Est. Duration: <strong class="text-amber-400">{ha.estimatedMinutes} min</strong>
+								</span>
+							</div>
+
+							{#if ha.decomposedAction}
+								<div class="p-2 rounded-lg bg-neutral-900 border border-neutral-800">
+									<div class="text-[10px] font-mono text-neutral-400 uppercase">Atomic 5-Minute Alternative:</div>
+									<div class="text-neutral-200 mt-0.5 font-medium">{ha.decomposedAction}</div>
+								</div>
+							{/if}
+
+							{#if ha.obstacleWarning}
+								<div class="text-[11px] text-amber-300/90 leading-tight">
+									<strong class="text-amber-400 font-mono text-[10px] uppercase">Obstacle Warning:</strong> {ha.obstacleWarning}
+								</div>
+							{/if}
+						</div>
+					{/if}
+				</div>
+			{/if}
+
 			<!-- Daily Attention & Play Quick Journal -->
 			<div class="pt-2 border-t border-neutral-800 space-y-3">
-				<div class="text-[11px] font-semibold text-neutral-400">Protected Daily 1-Sentence Logs:</div>
+				<div class="flex items-center justify-between">
+					<div class="text-[11px] font-semibold text-neutral-400">Protected Daily 1-Sentence Logs:</div>
+					<LlmTriggerButton
+						label="Audit Attention Purity"
+						onclick={runAttentionPurityCheck}
+						loading={isCheckingAttention}
+						disabled={!quickAttention.trim() && !quickPlay.trim()}
+						title="Audit whether attention observation is genuinely non-instrumental or utility-contaminated"
+					/>
+				</div>
 				<div class="space-y-2 text-xs">
 					<div class="flex gap-2">
 						<input
@@ -957,6 +1220,50 @@
 						</button>
 					</div>
 				</div>
+
+				{#if attentionCritique || isCheckingAttention || attentionError}
+					<div class="pt-2">
+						<LlmCritiqueCard
+							result={attentionCritique}
+							loading={isCheckingAttention}
+							error={attentionError}
+							title="Attention Sentinel: Non-Instrumental Purity Audit"
+							actions={attentionActions}
+							onDismiss={() => (attentionCritique = null)}
+							onRetry={runAttentionPurityCheck}
+						/>
+
+						{#if attentionCritique?.attentionPurity}
+							{@const ap = attentionCritique.attentionPurity}
+							<div class="mt-2.5 p-3 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
+								<div class="flex items-center justify-between">
+									<span class="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded {ap.verdict === 'PURE_NON_INSTRUMENTAL' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">
+										Purity: {ap.verdict}
+									</span>
+								</div>
+
+								{#if ap.contaminationAnalysis}
+									<div class="text-[11px] text-neutral-300 leading-relaxed">
+										<strong class="text-amber-400 font-mono text-[10px] uppercase">Analysis:</strong> {ap.contaminationAnalysis}
+									</div>
+								{/if}
+
+								{#if ap.purifiedObservation}
+									<div class="p-2 rounded-lg bg-neutral-900 border border-neutral-800">
+										<div class="text-[10px] font-mono text-neutral-400 uppercase">Purified Sensory Observation:</div>
+										<div class="text-neutral-200 mt-0.5 italic">{ap.purifiedObservation}</div>
+									</div>
+								{/if}
+
+								{#if ap.prescribedAttentiveMove}
+									<div class="text-[11px] text-emerald-300/90 font-mono pt-1 border-t border-neutral-800">
+										<strong class="text-emerald-400">Prescribed Move:</strong> {ap.prescribedAttentiveMove}
+									</div>
+								{/if}
+							</div>
+						{/if}
+					</div>
+				{/if}
 			</div>
 		</div>
 	</div>
