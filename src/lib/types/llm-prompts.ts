@@ -178,6 +178,28 @@ export interface AttentionPurity {
 	prescribedAttentiveMove?: string;
 }
 
+export interface PositionGapMirrorResult {
+	alignmentLevel: 'CONGRUENT' | 'ASPIRATIONAL_DRIFT' | 'DIAMETRIC_CONTRADICTION';
+	dissonanceDiagnosis: string;
+	borrowedAmbition?: string;
+	emergentAuthenticPosition?: string;
+	recommendedStatement?: string;
+}
+
+export interface RemovalTestResult {
+	synthesisVerdict: 'GENUINE_SYNTHESIS' | 'TEXT_REDUNDANT' | 'IMAGE_ILLUSTRATIVE' | 'SEPARATE_OBJECTS';
+	coDependenceAnalysis: string;
+	sharpenedThirdThing?: string;
+	recommendedCounterWeight?: string;
+}
+
+export interface CapstoneMilestoneResult {
+	verdict: 'RIGOROUS_PASS' | 'NEEDS_REVISION' | 'SCAFFOLDING_RELAPSE';
+	directorialAutonomyAudit: string;
+	criticalInquiry: string;
+	nextDirectorialMove: string;
+}
+
 export interface CritiqueResult {
 	id: string;
 	timestamp: string;
@@ -212,6 +234,9 @@ export interface CritiqueResult {
 	drillDiagnostic?: DrillDiagnostic;
 	hemingwayAudit?: HemingwayAudit;
 	attentionPurity?: AttentionPurity;
+	positionGap?: PositionGapMirrorResult;
+	removalTest?: RemovalTestResult;
+	capstoneMilestone?: CapstoneMilestoneResult;
 }
 
 export interface LlmAction {

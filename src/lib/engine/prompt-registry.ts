@@ -17,7 +17,10 @@ import type {
 	ReadingFriction,
 	DrillDiagnostic,
 	HemingwayAudit,
-	AttentionPurity
+	AttentionPurity,
+	PositionGapMirrorResult,
+	RemovalTestResult,
+	CapstoneMilestoneResult
 } from '../types/llm-prompts';
 import type { InferenceRequest } from '../types/inference';
 import { runInference } from './inference';
@@ -773,20 +776,38 @@ Arbitrate whether the director should proceed with revision or trigger a Re-Brie
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are a rigorous Monograph Essayist and Visual Critic.
-The "Position Gap" is the delta between what an artist CLAIMS to make (their artist statement or written position) and what an outside observer actually INFERS from their work.
+The "Position Gap" (Module 15: Authorship, Agency, and Style as Refusal) is the delta between what an artist CLAIMS to make (their artist statement, written position, or philosophical ambition) and what an outside observer actually INFERS from 10 untitled physical works.
+Authorship is NOT what you say you believe; authorship is the pattern of repeated commitments and consistent refusals visible in the work.
 
 INSTRUCTIONS:
-1. Compare the claimed position with the inferred traits.
-2. Highlight where the claimed position is pretentious, aspirational, or contradicted by visible decisions.
-3. Isolate the authentic position that is already emerging in the work itself.
+1. Compare the claimed written position with the inferred position.
+2. Diagnose the Alignment Level:
+   - CONGRUENT: The physical work actually demonstrates the stated philosophical/aesthetic claims.
+   - ASPIRATIONAL_DRIFT: The statement claims lofty, philosophical, or psychological depths that are only cosmetically or partially realized in the physical decisions.
+   - DIAMETRIC_CONTRADICTION: The physical decisions directly oppose the stated philosophy (e.g. claiming to critique consumerism while producing high-polish luxury advertisement aesthetics).
+3. Detect "Borrowed Ambition": Call out hollow, fashionable buzzwords or unearned philosophical postures in the written statement.
+4. Isolate the "Emergent Authentic Position": A single crisp, grounded sentence describing the authentic aesthetic position already demonstrated by the physical decisions in the work itself.
+5. Provide a "Recommended Statement": A revised, concrete written statement stripped of borrowed ambition that accurately captures their real commitments.
+
+OUTPUT FORMAT:
+Provide your critical monograph critique.
+Then, you MUST append a machine-readable block exactly as formatted below:
+
+[POSITION_GAP]
+ALIGNMENT_LEVEL: <CONGRUENT | ASPIRATIONAL_DRIFT | DIAMETRIC_CONTRADICTION>
+DISSONANCE_DIAGNOSIS: <1-2 sentences on what the physical decisions prioritize vs what the statement claims>
+BORROWED_AMBITION: <Identified hollow buzzwords or unearned philosophical posturing>
+EMERGENT_AUTHENTIC_POSITION: <1 crisp grounded sentence on the real position shown in the work>
+RECOMMENDED_STATEMENT: <Concrete revised statement without borrowed ambition>
+[/POSITION_GAP]
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 850,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: { writtenPosition: string; inferredPosition: string }) => `
 Claimed Written Position: "${ctx.writtenPosition}"
 Inferred Position from Work: "${ctx.inferredPosition}"
 
-Diagnose the Position Gap and provide the mirror evaluation.
+Diagnose the Position Gap, isolate borrowed ambition, identify the emergent authentic position, and emit the [POSITION_GAP] block.
 `.trim()
 	},
 
@@ -801,21 +822,38 @@ Diagnose the Position Gap and provide the mirror evaluation.
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are the Multimodal Dramaturg.
-In authentic cross-medium synthesis (Module 17), text must NOT merely describe the image, and image must NOT merely ornament the text.
-The "Third Thing" is the emergent tension that exists ONLY when both are juxtaposed.
+In authentic cross-medium synthesis (Module 17: Multimodal Directing: Beyond Illustration), text must NOT merely describe the image, and image must NOT merely ornament the text.
+The "Third Thing" is the emergent tension that exists ONLY when both are held together.
 
-THE REMOVAL TEST:
-- If removing the text leaves the work complete, the text was redundant decorative fluff.
-- If removing the image leaves the work complete, the image was an illustrative ornament.
-Both removals MUST break the central proposition.
+THE DUAL-REMOVAL TEST:
+- If removing the text leaves the work complete and self-contained, the text was redundant decorative fluff.
+- If removing the image leaves the work complete and self-contained, the image was an illustrative ornament.
+Both removals MUST break the central proposition. If the work survives either removal intact, genuine multimodal synthesis has NOT occurred.
 
 INSTRUCTIONS:
 1. Audit the claimed roles of the visual and textual components.
 2. Evaluate what happens when each is removed.
-3. Validate whether the "Third Thing" is genuinely emergent or just two separate things placed in the same room.
+3. Classify the Synthesis Verdict:
+   - GENUINE_SYNTHESIS: Both removals break the core tension; neither medium is an ornament or label.
+   - TEXT_REDUNDANT: Removing text changes nothing; the image already does all the heavy lifting.
+   - IMAGE_ILLUSTRATIVE: Removing the image changes nothing; the text is self-sufficient and the image is just a picture of the words.
+   - SEPARATE_OBJECTS: The text and image are merely two unrelated pieces placed in the same frame without tension.
+4. Formulate a Sharpened Third Thing: State the emergent tension between image and text with zero evaluative adjectives.
+5. Provide a Recommended Counter-Weight: A concrete directorial tweak to either medium to break illustrative symmetry (e.g. make text a dry bureaucratic ledger if image is visceral horror).
+
+OUTPUT FORMAT:
+Provide your directorial analysis.
+Then, you MUST append a machine-readable block exactly as formatted below:
+
+[REMOVAL_TEST]
+SYNTHESIS_VERDICT: <GENUINE_SYNTHESIS | TEXT_REDUNDANT | IMAGE_ILLUSTRATIVE | SEPARATE_OBJECTS>
+CO_DEPENDENCE_ANALYSIS: <1-2 sentences evaluating whether either medium is currently redundant>
+SHARPENED_THIRD_THING: <Crisp statement of the emergent tension existing ONLY in their juxtaposition>
+RECOMMENDED_COUNTER_WEIGHT: <Concrete directorial move to break decorative parity>
+[/REMOVAL_TEST]
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 800,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: {
 			visualRole: string;
 			textRole: string;
@@ -829,7 +867,7 @@ Claimed Emergent Third Thing: "${ctx.thirdThing}"
 Reported Impact Without Visual: "${ctx.removeVisualImpact}"
 Reported Impact Without Text: "${ctx.removeTextImpact}"
 
-Run the Dual-Removal Test and diagnose multimodal co-dependence.
+Run the Dual-Removal Test, evaluate multimodal co-dependence, sharpen the Third Thing, and emit the [REMOVAL_TEST] block.
 `.trim()
 	},
 
@@ -844,11 +882,50 @@ Run the Dual-Removal Test and diagnose multimodal co-dependence.
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are the Master of the Blank Sheet.
-The student is undertaking the 14-step unassisted capstone where all course scaffolding is removed.
-You must never give ideas or solve the step for them. You evaluate whether they completed the current step with rigorous independence.
+The student is undertaking the 14-step unassisted blank-sheet capstone (Module 16 & Months 8–9: Layer 3 Agency).
+All external course scaffolding has been stripped away: no assigned problem, no template, no pre-packaged prompt.
+You must NEVER provide answers, generate ideas, or complete the step for them.
+Your task is to judge whether their submission demonstrates rigorous directorial autonomy or whether they have relapsed into passive prompt-engineering habits, borrowed problems, or ungrounded execution.
+
+THE 14 BLANK-SHEET MILESTONES:
+1. Encounter unassigned situation (noting physical, unmanipulated reality)
+2. 30m non-instrumental observation (pure attention without utility)
+3. Locate 3 candidate problems (structural tensions, not subjects)
+4. Positionality check & standing (Why me? From/With/For/About/Over)
+5. Select 1 problem & justify (rejection of other 2 based on standing)
+6. Generate 3 premises with tension (rival angles of attack)
+7. Write self-authored brief without template (concrete physical constraints)
+8. Build & map causal pipeline (mechanisms, variables, nodes)
+9. Lock pre-run prediction with confidence % (falsifiable causal hypothesis)
+10. Generate initial drafts (controlled execution under constraints)
+11. Top-down diagnosis against brief (intent over surface polish)
+12. Max 3 revisions or re-brief fork (enforcing revision discipline)
+13. Deliver & live defense on camera (answering for physical decisions)
+14. Write "How I Decided What to Make" (reconstructing the authored problem)
+
+INSTRUCTIONS:
+1. Evaluate the student's submission against the specific demands of the active milestone step.
+2. Determine Verdict:
+   - RIGOROUS_PASS: Demonstrates authentic independence, concrete decisions, and zero course crutches.
+   - NEEDS_REVISION: Incomplete, vague, or lacking physical/causal specificity for this step.
+   - SCAFFOLDING_RELAPSE: Relapsing into relying on pre-packaged course prompts, generic prompt-engineering cliches, or passive reception.
+3. Conduct Directorial Autonomy Audit: 1-2 sentences pinpointing where the student authored the work vs where they accepted default generation.
+4. Formulate Critical Inquiry: The single sharpest question the student must be able to answer to defend this milestone.
+5. State Next Directorial Move: The immediate physical action required to complete or advance this step.
+
+OUTPUT FORMAT:
+Provide your mentor critique.
+Then, you MUST append a machine-readable block exactly as formatted below:
+
+[CAPSTONE_MILESTONE]
+VERDICT: <RIGOROUS_PASS | NEEDS_REVISION | SCAFFOLDING_RELAPSE>
+DIRECTORIAL_AUTONOMY_AUDIT: <1-2 sentences on whether the student authored the step or accepted defaults>
+CRITICAL_INQUIRY: <The single sharpest question to test their defense of this milestone>
+NEXT_DIRECTORIAL_MOVE: <Concrete immediate action to progress>
+[/CAPSTONE_MILESTONE]
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 800,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: { stepNumber: number; stepTitle: string; studentWork: string }) => `
 Capstone Step: Step ${ctx.stepNumber} (${ctx.stepTitle})
 Student Submission / Artifact:
@@ -856,7 +933,7 @@ Student Submission / Artifact:
 ${ctx.studentWork}
 """
 
-Evaluate milestone completion for Step ${ctx.stepNumber}.
+Evaluate milestone completion for Step ${ctx.stepNumber}, audit directorial autonomy, and emit the [CAPSTONE_MILESTONE] block.
 `.trim()
 	},
 
@@ -1873,7 +1950,99 @@ export async function executePrompt<T = any>(
 		if (purity) {
 			critique.attentionPurity = purity;
 		}
+	} else if (promptId === 'm7-position-gap-mirror') {
+		const gap = parsePositionGap(response.text);
+		if (gap) {
+			critique.positionGap = gap;
+		}
+	} else if (promptId === 'm7-removal-test') {
+		const removal = parseRemovalTest(response.text);
+		if (removal) {
+			critique.removalTest = removal;
+		}
+	} else if (promptId === 'm7-blank-sheet-milestone') {
+		const milestone = parseCapstoneMilestone(response.text);
+		if (milestone) {
+			critique.capstoneMilestone = milestone;
+		}
 	}
 
 	return critique;
+}
+
+/**
+ * Parses machine-readable [POSITION_GAP] blocks from m7-position-gap-mirror.
+ */
+export function parsePositionGap(text: string): PositionGapMirrorResult | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[POSITION_GAP\]([\s\S]*?)(\[\/POSITION_GAP\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const alignMatch = target.match(/ALIGNMENT_LEVEL:\s*(CONGRUENT|ASPIRATIONAL_DRIFT|DIAMETRIC_CONTRADICTION)/i);
+	const dissMatch = target.match(/DISSONANCE_DIAGNOSIS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const borrowMatch = target.match(/BORROWED_AMBITION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const emergentMatch = target.match(/EMERGENT_AUTHENTIC_POSITION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const recMatch = target.match(/RECOMMENDED_STATEMENT:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!alignMatch && !dissMatch && !emergentMatch) {
+		return undefined;
+	}
+
+	return {
+		alignmentLevel: (alignMatch ? alignMatch[1].toUpperCase() : 'ASPIRATIONAL_DRIFT') as any,
+		dissonanceDiagnosis: dissMatch ? dissMatch[1].trim() : 'Diagnosis not extracted.',
+		borrowedAmbition: borrowMatch ? borrowMatch[1].trim() : undefined,
+		emergentAuthenticPosition: emergentMatch ? emergentMatch[1].trim() : undefined,
+		recommendedStatement: recMatch ? recMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable [REMOVAL_TEST] blocks from m7-removal-test.
+ */
+export function parseRemovalTest(text: string): RemovalTestResult | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[REMOVAL_TEST\]([\s\S]*?)(\[\/REMOVAL_TEST\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/SYNTHESIS_VERDICT:\s*(GENUINE_SYNTHESIS|TEXT_REDUNDANT|IMAGE_ILLUSTRATIVE|SEPARATE_OBJECTS)/i);
+	const coDepMatch = target.match(/CO_DEPENDENCE_ANALYSIS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const thirdMatch = target.match(/SHARPENED_THIRD_THING:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const counterMatch = target.match(/RECOMMENDED_COUNTER_WEIGHT:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!verdictMatch && !coDepMatch && !thirdMatch) {
+		return undefined;
+	}
+
+	return {
+		synthesisVerdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'SEPARATE_OBJECTS') as any,
+		coDependenceAnalysis: coDepMatch ? coDepMatch[1].trim() : 'Analysis not extracted.',
+		sharpenedThirdThing: thirdMatch ? thirdMatch[1].trim() : undefined,
+		recommendedCounterWeight: counterMatch ? counterMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable [CAPSTONE_MILESTONE] blocks from m7-blank-sheet-milestone.
+ */
+export function parseCapstoneMilestone(text: string): CapstoneMilestoneResult | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[CAPSTONE_MILESTONE\]([\s\S]*?)(\[\/CAPSTONE_MILESTONE\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(RIGOROUS_PASS|NEEDS_REVISION|SCAFFOLDING_RELAPSE)/i);
+	const autoMatch = target.match(/DIRECTORIAL_AUTONOMY_AUDIT:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const inquiryMatch = target.match(/CRITICAL_INQUIRY:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const moveMatch = target.match(/NEXT_DIRECTORIAL_MOVE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!verdictMatch && !autoMatch && !inquiryMatch) {
+		return undefined;
+	}
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'NEEDS_REVISION') as any,
+		directorialAutonomyAudit: autoMatch ? autoMatch[1].trim() : 'Autonomy audit not extracted.',
+		criticalInquiry: inquiryMatch ? inquiryMatch[1].trim() : 'Defend your physical decisions for this milestone.',
+		nextDirectorialMove: moveMatch ? moveMatch[1].trim() : 'Complete active milestone requirements.'
+	};
 }

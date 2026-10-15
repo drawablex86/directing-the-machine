@@ -210,10 +210,14 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Added interactive Recent Decision Log history tables to Tab 1 (Revision choices), Tab 2 (Triage choices), and Tab 3 (Refusal letters) with in-place inspection and entry deletion.
   - Verified 0 TypeScript errors with `pnpm run check`, verified production build with `pnpm run build`, and passed all unit test assertions.
 
-- [ ] **Task 25: M7 Studio & Capstone — Position Gap Mirror & Cross-Medium Removal Tester**
-  - Integrate Position Gap Mirror in `M7AgencyBlankSheet.svelte` diagnosing deltas between claimed artistic statements and visible artifact traits.
-  - Implement Dual-Removal Test report verifying cross-medium non-redundancy (text vs image).
-  - Implement 14-step unassisted blank-sheet capstone milestone reviewer.
+- [x] **Task 25: M7 Studio & Capstone — Position Gap Mirror & Cross-Medium Removal Tester**
+  - Integrated Position Gap Mirror (`m7-position-gap-mirror`) in `M7AgencyBlankSheet.svelte` Tab 2 (Position Gap) with `[POSITION_GAP]` parsing, unmasking borrowed ambition and offering 1-click **"Adopt Emergent Authentic Position"** and **"Commit Gap Diagnosis to Decision Log"**.
+  - Integrated Cross-Medium Synthesis Removal Tester (`m7-removal-test`) in Tab 3 (Synthesis Removal) with `[REMOVAL_TEST]` parsing, testing dual-removal co-dependence and providing 1-click **"Adopt Sharpened Synthesis ("Third Thing")"** and **"Append Counter-Weight to Text Role"**.
+  - Integrated 14-Step Blank-Sheet Capstone Mentor (`m7-blank-sheet-milestone`) in Tab 1 (Blank-Sheet Capstone) auditing Steps 1–13 milestone artifacts and Step 14 *"How I Decided What to Make"* Reconstruction Essay with `[CAPSTONE_MILESTONE]` parsing and 1-click **"Commit & Advance to Next Milestone"**.
+  - Added dedicated milestone artifact textarea across Steps 1–13 empowering students to document physical evidence and audit directorial autonomy at every step.
+  - Added interactive Recent M7 Agency Decisions history table with in-place inspection and entry deletion.
+  - Built comprehensive unit testing script verifying all 3 prompt parsers with 100% test assertions passing.
+  - Verified 0 TypeScript errors (`pnpm run check`) and verified successful static pre-rendering of all 9 routes with `pnpm run build`.
 
 - [x] **Task 26: Daily Practice Loop Guidance & Deliberate Practice Drill Coach**
   - Integrated Socratic Reading Comprehension Check (`daily-reading-friction`) in `DailyPracticeView.svelte` (Step 1: Read) with `[READING_FRICTION]` parsing, edge-case probing questions, diagnostic traps, and directorial rules of thumb. Added 1-click **"Mark Step 1 (Read) Completed"** and **"Mark Core Reading Completed"** in-place actions.
