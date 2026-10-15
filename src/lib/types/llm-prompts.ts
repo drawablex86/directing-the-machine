@@ -12,6 +12,7 @@ export type PromptTemplateId =
 	| 'm3-brief-redline'
 	// M4 Causal Calibration
 	| 'm4-pre-run-reality-check'
+	| 'm4-post-run-divergence'
 	| 'm4-narrowness-audit'
 	// M5 Taste Infrastructure
 	| 'm5-taste-formula-interrogation'
@@ -93,6 +94,30 @@ export interface BriefRedline {
 	flaggedWeaknesses?: string[];
 }
 
+export interface CalibrationCheck {
+	verdict: 'OVERCONFIDENT' | 'UNDERCONFIDENT' | 'WELL_CALIBRATED' | 'UNFALSIFIABLE';
+	recommendedConfidence: number;
+	latentRisk?: string;
+	falsificationCriterion?: string;
+	sharpenedPrediction?: string;
+}
+
+export interface PostRunDivergence {
+	verdict: 'GENUINE_LEARNING' | 'SHALLOW_RATIONALISATION' | 'TAUTOLOGY_UNTESTED' | 'UNEXPLAINED_SURPRISE';
+	diagnosedCausalMechanism?: string;
+	sharpenedModelRevision?: string;
+	nextProbe?: string;
+}
+
+export interface NarrownessAudit {
+	diversityRating: 'HIGH_RANGE' | 'MODERATE' | 'COMFORT_ZONE_LOCKED';
+	comfortZoneObservation?: string;
+	prescribedDomain?: 'pipeline' | 'curation' | 'visual' | 'writing' | 'audience' | 'direction' | 'problem';
+	prescribedVariable?: string;
+	prescribedHypothesis?: string;
+	prescribedConfidence?: number;
+}
+
 export interface CritiqueResult {
 	id: string;
 	timestamp: string;
@@ -116,6 +141,9 @@ export interface CritiqueResult {
 	positionVerdict?: PositionVerdict;
 	premiseTriangulation?: PremiseTriangulation;
 	briefRedline?: BriefRedline;
+	calibrationCheck?: CalibrationCheck;
+	postRunDivergence?: PostRunDivergence;
+	narrownessAudit?: NarrownessAudit;
 }
 
 export interface LlmAction {

@@ -1,4 +1,16 @@
-import type { PromptConfig, PromptTemplateId, CritiqueResult, SurgicalPatch, TensionReframe, PositionVerdict, PremiseTriangulation, BriefRedline } from '../types/llm-prompts';
+import type {
+	PromptConfig,
+	PromptTemplateId,
+	CritiqueResult,
+	SurgicalPatch,
+	TensionReframe,
+	PositionVerdict,
+	PremiseTriangulation,
+	BriefRedline,
+	CalibrationCheck,
+	PostRunDivergence,
+	NarrownessAudit
+} from '../types/llm-prompts';
 import type { InferenceRequest } from '../types/inference';
 import { runInference } from './inference';
 import { practiceStore } from '../state/practice.svelte';
@@ -313,18 +325,32 @@ Redline this 7-layer creative brief and emit the structured redline block at the
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Superforecaster.
+ROLE: You are the Superforecaster and Calibration Master (Module 9, Appendix L).
 Before modifying a variable in a creative pipeline, the director must formulate a falsifiable hypothesis and assign an honest confidence probability (0–100%).
-Most amateurs are severely overconfident (declaring 80%+ on unpredictable generative systems) or uncalibrated (always guessing 50%).
+Amateurs suffer from two severe pathologies:
+1. Hubristic Overconfidence: Declaring 80%+ on volatile, non-linear latent generative models with massive cross-attention couplings.
+2. Hedging & False Modesty: Defaulting to 50% on everything, which represents complete ignorance rather than calibrated judgment.
 
 INSTRUCTIONS:
-1. Examine the single variable being changed and the predicted causal outcome.
+1. Examine the domain, variable changed, predicted causal outcome, and stated confidence.
 2. Critique the confidence level: Is this confidence justified given the volatility and complexity of the model/pipeline?
 3. Highlight the primary hidden variable or latent interaction most likely to surprise the student.
-4. Demand a concrete criterion for what will constitute an "Actual Match" vs "Surprising Divergence".
+4. Demand a concrete, binary criterion for what will constitute an "Actual Match" vs "Surprising Divergence".
+5. Provide a sharpened, falsifiable rewrite of the prediction.
+
+MANDATORY OUTPUT FORMAT:
+You must conclude your critique with an exact machine-readable block:
+
+[CALIBRATION_CHECK]
+VERDICT: OVERCONFIDENT | UNDERCONFIDENT | WELL_CALIBRATED | UNFALSIFIABLE
+RECOMMENDED_CONFIDENCE: [Integer between 0 and 100]
+LATENT_RISK: [Single sentence describing the hidden confounder or model volatility]
+FALSIFICATION_CRITERION: [Binary observable test to verify whether outcome truly matched]
+SHARPENED_PREDICTION: [A sharpened, falsifiable rewrite of what will happen]
+[/CALIBRATION_CHECK]
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 750,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: {
 			variableChanged: string;
 			prediction: string;
@@ -340,6 +366,62 @@ Audit this pre-run hypothesis and confidence calibration.
 `.trim()
 	},
 
+	'm4-post-run-divergence': {
+		id: 'm4-post-run-divergence',
+		name: 'Post-Run Divergence & Mental Model Coach',
+		persona: 'Post-Mortem Causal Diagnostician',
+		role: 'coach',
+		modalityId: 'm4',
+		description: 'Diagnoses why pre-run predictions diverged from reality and enforces mental model revision.',
+		systemPrompt: `
+${BASE_STUDIO_DIRECTIVE}
+
+ROLE: You are the Post-Mortem Causal Diagnostician (Module 8 & 9).
+Directing an AI system is an ongoing scientific loop: Predict -> Run -> Compare -> Revise Mental Model.
+When a test concludes, most students make one of two diagnostic errors:
+1. Shallow Rationalisation: When the test fails, they write vague excuses ("the AI got weird", "it hallucinated") rather than identifying which causal parameter broke.
+2. Lucky Hit Confabulation: When the test accidentally matches or looks pleasant, they take credit without verifying if the specific variable they tweaked was the actual cause.
+
+INSTRUCTIONS:
+1. Compare the Pre-Run Prediction against the Actual Outcome and whether the student claimed it matched or surprised them.
+2. Diagnose the true underlying causal mechanism: What algorithmic, spatial, or prompt interaction actually produced the observed result?
+3. Evaluate the student's claimed mental model revision. If it is vague or defensive, provide a hardened, structural rule for future directing.
+4. Formulate the next single-variable probe to test or exploit this newly discovered rule.
+
+MANDATORY OUTPUT FORMAT:
+You must conclude your critique with an exact machine-readable block:
+
+[POST_RUN_DIVERGENCE]
+ANALYSIS_VERDICT: GENUINE_LEARNING | SHALLOW_RATIONALISATION | TAUTOLOGY_UNTESTED | UNEXPLAINED_SURPRISE
+DIAGNOSED_CAUSAL_MECHANISM: [The exact physical or algorithmic reason why the variable produced this outcome]
+SHARPENED_MODEL_REVISION: [The corrected mental model rule for future directing]
+NEXT_PROBE: [The next specific variable test to isolate or confirm this causal finding]
+[/POST_RUN_DIVERGENCE]
+`.trim(),
+		defaultTemperature: 0.3,
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: {
+			domain: string;
+			variableChanged: string;
+			prediction: string;
+			confidencePct: number;
+			actualOutcome: string;
+			matchedExpectation: boolean;
+			wasSurprising: boolean;
+			modelRevision?: string;
+		}) => `
+Domain: ${ctx.domain}
+Variable Changed: "${ctx.variableChanged}"
+Pre-Run Prediction: "${ctx.prediction}" (Stated Confidence: ${ctx.confidencePct}%)
+Actual Outcome: "${ctx.actualOutcome}"
+Student Evaluated Matched: ${ctx.matchedExpectation ? 'YES' : 'NO'}
+Student Evaluated Surprising: ${ctx.wasSurprising ? 'YES' : 'NO'}
+Student Mental Model Revision: "${ctx.modelRevision || 'None provided'}"
+
+Perform the post-run divergence audit and update the mental model.
+`.trim()
+	},
+
 	'm4-narrowness-audit': {
 		id: 'm4-narrowness-audit',
 		name: 'Taste-Narrowness & Domain Diversity Audit',
@@ -350,23 +432,71 @@ Audit this pre-run hypothesis and confidence calibration.
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Bayesian Epistemologist.
+ROLE: You are the Bayesian Epistemologist (Module 9 & Appendix L).
 A director with a great Brier score who only tests the same narrow aesthetic style or prompt template is suffering from Taste Narrowness.
-True calibration requires testing across varied, volatile creative frontiers.
+True calibration requires testing across varied, volatile creative frontiers (visual composition, pipeline variables, writing rhythm, curation filters, directorial stance).
 
 INSTRUCTIONS:
-1. Review the calibration history.
-2. Identify whether the director is playing safe by making predictable micro-edits in a comfort zone.
-3. Prescribe a high-variance, boundary-pushing variable experiment to shock their calibration into a new domain.
+1. Review the practitioner's calibration telemetry (total entries, Brier score, hit rate, surprise rate, domain distribution) and recent variables tested.
+2. If total entries is 0 or low (< 3), diagnose the uncalibrated blank slate and prescribe a foundational high-divergence baseline experiment.
+3. If entries show domain clustering or high hit rate (> 80%) with low surprise (< 20%), expose the safe comfort zone.
+4. Prescribe a high-variance, boundary-pushing variable experiment in an under-explored domain to shock their calibration.
+
+MANDATORY OUTPUT FORMAT:
+You must conclude your critique with an exact machine-readable block:
+
+[NARROWNESS_AUDIT]
+DIVERSITY_RATING: HIGH_RANGE | MODERATE | COMFORT_ZONE_LOCKED
+COMFORT_ZONE_OBSERVATION: [Specific diagnosis of what safe parameters are being over-relied upon]
+PRESCRIBED_DOMAIN: pipeline | curation | visual | writing | audience | direction | problem
+PRESCRIBED_VARIABLE: [Specific high-variance variable to perturb outside the comfort zone]
+PRESCRIBED_HYPOTHESIS: [Bold prediction to test with real risk of surprise]
+PRESCRIBED_CONFIDENCE: [Integer between 25 and 55, typically 40]
+[/NARROWNESS_AUDIT]
 `.trim(),
 		defaultTemperature: 0.4,
-		defaultMaxTokens: 750,
-		formatPrompt: (ctx: { brierScore: number; recentVariables: string[] }) => `
-Current Brier Score: ${ctx.brierScore.toFixed(3)}
-Recent Variables Tested:
-${ctx.recentVariables.map((v) => `- ${v}`).join('\n')}
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: {
+			brierScore: number;
+			totalEntries?: number;
+			hitRate?: number;
+			surpriseRate?: number;
+			domainDiversity?: number;
+			domainCounts?: Record<string, number>;
+			recentCalibrations?: Array<{
+				domain: string;
+				variable: string;
+				prediction: string;
+				confidence: number;
+				matched: boolean;
+				surprising: boolean;
+			}>;
+			recentVariables?: string[];
+		}) => `
+Calibration Telemetry:
+- Total Entries Logged: ${ctx.totalEntries ?? 0}
+- Current Brier Score: ${ctx.brierScore.toFixed(3)}
+- Hit Rate: ${ctx.hitRate ?? 0}%
+- Surprise Rate: ${ctx.surpriseRate ?? 0}%
+- Active Domains Explored: ${ctx.domainDiversity ?? 0}
+${ctx.domainCounts ? `- Domain Distribution: ${JSON.stringify(ctx.domainCounts)}` : ''}
 
-Audit this record for Taste Narrowness.
+Recent Variables Tested:
+${(ctx.recentVariables ?? []).map((v) => `- ${v}`).join('\n') || 'None recorded yet.'}
+
+${
+	ctx.recentCalibrations && ctx.recentCalibrations.length > 0
+		? `Recent Calibration Log History:
+${ctx.recentCalibrations
+	.map(
+		(c) =>
+			`- [${c.domain.toUpperCase()}] Var: "${c.variable}" | Pred: "${c.prediction}" (${c.confidence}%) | Matched: ${c.matched ? 'YES' : 'NO'} | Surprising: ${c.surprising ? 'YES' : 'NO'}`
+	)
+	.join('\n')}`
+		: ''
+}
+
+Audit this record for Taste Narrowness and prescribe a boundary-pushing experiment.
 `.trim()
 	},
 
@@ -1115,6 +1245,93 @@ export function parseBriefRedline(text: string): BriefRedline | undefined {
 }
 
 /**
+ * Parses machine-readable calibration check from Superforecaster response.
+ */
+export function parseCalibrationCheck(text: string): CalibrationCheck | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[CALIBRATION_CHECK\]([\s\S]*?)(\[\/CALIBRATION_CHECK\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(OVERCONFIDENT|UNDERCONFIDENT|WELL_CALIBRATED|UNFALSIFIABLE)/i);
+	const confMatch = target.match(/RECOMMENDED_CONFIDENCE:\s*(\d+)/i);
+	const riskMatch = target.match(/LATENT_RISK:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const criterionMatch = target.match(/FALSIFICATION_CRITERION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const predMatch = target.match(/SHARPENED_PREDICTION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!verdictMatch && !confMatch && !riskMatch && !criterionMatch && !predMatch) {
+		return undefined;
+	}
+
+	const rawConf = confMatch ? parseInt(confMatch[1], 10) : 50;
+	const recommendedConfidence = Math.max(0, Math.min(100, isNaN(rawConf) ? 50 : rawConf));
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'OVERCONFIDENT') as any,
+		recommendedConfidence,
+		latentRisk: riskMatch ? riskMatch[1].trim() : undefined,
+		falsificationCriterion: criterionMatch ? criterionMatch[1].trim() : undefined,
+		sharpenedPrediction: predMatch ? predMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable post-run divergence audit from Post-Mortem Causal Diagnostician response.
+ */
+export function parsePostRunDivergence(text: string): PostRunDivergence | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[POST_RUN_DIVERGENCE\]([\s\S]*?)(\[\/POST_RUN_DIVERGENCE\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/ANALYSIS_VERDICT:\s*(GENUINE_LEARNING|SHALLOW_RATIONALISATION|TAUTOLOGY_UNTESTED|UNEXPLAINED_SURPRISE)/i);
+	const mechanismMatch = target.match(/DIAGNOSED_CAUSAL_MECHANISM:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const revisionMatch = target.match(/SHARPENED_MODEL_REVISION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const probeMatch = target.match(/NEXT_PROBE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!verdictMatch && !mechanismMatch && !revisionMatch && !probeMatch) {
+		return undefined;
+	}
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'SHALLOW_RATIONALISATION') as any,
+		diagnosedCausalMechanism: mechanismMatch ? mechanismMatch[1].trim() : undefined,
+		sharpenedModelRevision: revisionMatch ? revisionMatch[1].trim() : undefined,
+		nextProbe: probeMatch ? probeMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable taste-narrowness audit from Bayesian Epistemologist response.
+ */
+export function parseNarrownessAudit(text: string): NarrownessAudit | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[NARROWNESS_AUDIT\]([\s\S]*?)(\[\/NARROWNESS_AUDIT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const ratingMatch = target.match(/DIVERSITY_RATING:\s*(HIGH_RANGE|MODERATE|COMFORT_ZONE_LOCKED)/i);
+	const obsMatch = target.match(/COMFORT_ZONE_OBSERVATION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const domMatch = target.match(/PRESCRIBED_DOMAIN:\s*(pipeline|curation|visual|writing|audience|direction|problem)/i);
+	const varMatch = target.match(/PRESCRIBED_VARIABLE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const hypMatch = target.match(/PRESCRIBED_HYPOTHESIS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const confMatch = target.match(/PRESCRIBED_CONFIDENCE:\s*(\d+)/i);
+
+	if (!ratingMatch && !obsMatch && !domMatch && !varMatch) {
+		return undefined;
+	}
+
+	const rawConf = confMatch ? parseInt(confMatch[1], 10) : 40;
+	const prescribedConfidence = Math.max(0, Math.min(100, isNaN(rawConf) ? 40 : rawConf));
+
+	return {
+		diversityRating: (ratingMatch ? ratingMatch[1].toUpperCase() : 'COMFORT_ZONE_LOCKED') as any,
+		comfortZoneObservation: obsMatch ? obsMatch[1].trim() : undefined,
+		prescribedDomain: domMatch ? (domMatch[1].toLowerCase() as any) : undefined,
+		prescribedVariable: varMatch ? varMatch[1].trim() : undefined,
+		prescribedHypothesis: hypMatch ? hypMatch[1].trim() : undefined,
+		prescribedConfidence
+	};
+}
+
+/**
  * Central prompt execution pipeline.
  * Formats context into user prompt, applies system prompt and defaults, calls runInference,
  * and packages the result into a typed CritiqueResult with thoughts and parsed directives.
@@ -1181,6 +1398,21 @@ export async function executePrompt<T = any>(
 		const redline = parseBriefRedline(response.text);
 		if (redline) {
 			critique.briefRedline = redline;
+		}
+	} else if (promptId === 'm4-pre-run-reality-check') {
+		const check = parseCalibrationCheck(response.text);
+		if (check) {
+			critique.calibrationCheck = check;
+		}
+	} else if (promptId === 'm4-post-run-divergence') {
+		const postRun = parsePostRunDivergence(response.text);
+		if (postRun) {
+			critique.postRunDivergence = postRun;
+		}
+	} else if (promptId === 'm4-narrowness-audit') {
+		const audit = parseNarrownessAudit(response.text);
+		if (audit) {
+			critique.narrownessAudit = audit;
 		}
 	}
 

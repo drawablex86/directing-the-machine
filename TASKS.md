@@ -179,10 +179,18 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Completed missing UI state rendering for Candidate Premise 3 and Layer 6 Negative Rejection Conditions list.
   - Verified 0 TypeScript errors with `pnpm run check`, verified production build with `pnpm run build`, and passed all unit test assertions.
 
-- [ ] **Task 22: M4 Studio — Causal Calibration Coach & Taste-Narrowness Detector**
-  - Integrate pre-run reality check in `M4PipelineCalibration.svelte` evaluating causal hypotheses and stated confidence percentages prior to execution.
-  - Implement post-run divergence analysis and model revision coaching.
-  - Implement taste-narrowness domain diversity detector to identify creative risk-aversion.
+- [x] **Task 22: M4 Studio — Causal Calibration Coach & Taste-Narrowness Detector**
+  - Integrated Superforecaster & Calibration Master (`m4-pre-run-reality-check`) into `M4PipelineCalibration.svelte` Tab 2 evaluating causal hypotheses and stated confidence percentages prior to execution.
+  - Implemented `parseCalibrationCheck` in `prompt-registry.ts` parsing machine-readable `[CALIBRATION_CHECK]` blocks (`VERDICT`, `RECOMMENDED_CONFIDENCE`, `LATENT_RISK`, `FALSIFICATION_CRITERION`, `SHARPENED_PREDICTION`).
+  - Added 1-click **"Adopt Calibrated Confidence (X%)"** and **"Adopt Sharpened Falsifiable Prediction"** in-place actions in Pre-Run form.
+  - Integrated Post-Mortem Causal Diagnostician (`m4-post-run-divergence`) diagnosing why predictions diverged from actual outcomes and enforcing rigorous mental model updates.
+  - Implemented `parsePostRunDivergence` in `prompt-registry.ts` parsing machine-readable `[POST_RUN_DIVERGENCE]` blocks (`ANALYSIS_VERDICT`, `DIAGNOSED_CAUSAL_MECHANISM`, `SHARPENED_MODEL_REVISION`, `NEXT_PROBE`).
+  - Added 1-click **"Adopt Sharpened Mental Model Revision"** in-place action in Post-Run actuals.
+  - Integrated Bayesian Epistemologist (`m4-narrowness-audit`) evaluating telemetry (Brier score, hit rate, surprise rate, domain distribution) to expose safe-zone camping.
+  - Implemented `parseNarrownessAudit` in `prompt-registry.ts` parsing machine-readable `[NARROWNESS_AUDIT]` blocks (`DIVERSITY_RATING`, `COMFORT_ZONE_OBSERVATION`, `PRESCRIBED_DOMAIN`, `PRESCRIBED_VARIABLE`, `PRESCRIBED_HYPOTHESIS`, `PRESCRIBED_CONFIDENCE`).
+  - Added 1-click **"Load Prescribed Boundary-Pushing Experiment"** populating pre-run fields with a high-variance frontier perturbation.
+  - Added interactive Recent Calibration Records history table with entry inspection and deletion capabilities.
+  - Verified 0 TypeScript errors with `pnpm run check`, verified production build with `pnpm run build`, and passed all unit test assertions.
 
 - [ ] **Task 23: M5 Studio — Taste Formula Interrogator & Reverse Direction Coach**
   - Integrate 5-part Taste Formula interrogation (`Preference + Criteria + Ref Class + Mechanism + Purpose`) in `M5TasteCurationArena.svelte`.
