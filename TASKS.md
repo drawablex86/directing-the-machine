@@ -140,4 +140,64 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Updated `index.md` with links to `AGENT.md`, `docs/ARCHITECTURE.md`, `docs/DESIGN_SYSTEM.md`, and an updated directory tree.
   - Verified 0 TypeScript errors with `pnpm run check` and successful static pre-rendering of all 9 routes with `pnpm run build`.
 
+- [x] **Task 18: LLM Interaction Primitives & Prompt Registry Architecture**
+  - Implemented type system `src/lib/types/llm-prompts.ts` defining `PromptTemplateId`, `PromptRole`, `PromptConfig`, `CritiqueResult`, and `LlmAction`.
+  - Built central prompt engine `src/lib/engine/prompt-registry.ts` housing system prompts, formatters, and parameters for all 23 course touchpoints governed by the strict anti-slop, zero-adjective directive.
+  - Built unified execution function `executePrompt` executing inference through `runInference` and returning structured critique records with latency, token usage, and model metadata.
+  - Built accessible UI primitive `LlmTriggerButton.svelte` with loading state, automatic BYOK key status detection, model pill, and popover shortcut to Settings (`?tab=settings`) when keys are missing.
+  - Built accessible UI primitive `LlmCritiqueCard.svelte` featuring Markdown rendering, metadata bar, copy-to-clipboard, custom action buttons ("Apply to Field"), and error recovery.
+  - Enhanced `PracticeEngine` reactive store with `isByokConfigured` and `activeModelName` status getters.
+  - Verified 0 TypeScript errors with `pnpm run check` and verified static pre-rendering build with `pnpm run build`.
+
+- [ ] **Task 19: M2 Studio — Semantic Zero-Adjective Linter & Diagnostic Ladder Auditor**
+  - Integrate semantic zero-adjective auditing in `M2DiagnosticVision.svelte` to catch covert evaluative shortcuts ("striking", "subtle", "dynamic") and suggest purely structural replacements.
+  - Implement Diagnostic Ladder level-locking to enforce Level 1–3 intent/structure resolution before allowing Level 6–7 surface polish.
+  - Add interactive token chips and Level-Lock banner in M2 Studio.
+
+- [ ] **Task 20: M1 Studio — Problem Funnel Interrogator & Positionality Compass Auditor**
+  - Integrate problem statement stress-testing in `M1ProblemPositionLab.svelte` to differentiate genuine tensions with stakes from passive topics.
+  - Implement positionality standing audit (`From`, `With`, `For`, `About`, `Over`) testing standing justification without moral paralysis.
+  - Add collapsible "Problem Stress-Test Report" in Funnel steps.
+
+- [ ] **Task 21: M3 Studio — Premise Matrix Triangulator & 7-Layer Brief Reviewer**
+  - Integrate 3-premise viability scoring and rejection logic auditing in `M3PremiseBriefLab.svelte`.
+  - Implement 7-layer creative brief redliner detecting ambiguous adjectives, loophole constraints, and missing rejection conditions.
+  - Add "Premise Viability Matrix" comparison and "Brief Redline" drawer with one-click revision injection.
+
+- [ ] **Task 22: M4 Studio — Causal Calibration Coach & Taste-Narrowness Detector**
+  - Integrate pre-run reality check in `M4PipelineCalibration.svelte` evaluating causal hypotheses and stated confidence percentages prior to execution.
+  - Implement post-run divergence analysis and model revision coaching.
+  - Implement taste-narrowness domain diversity detector to identify creative risk-aversion.
+
+- [ ] **Task 23: M5 Studio — Taste Formula Interrogator & Reverse Direction Coach**
+  - Integrate 5-part Taste Formula interrogation (`Preference + Criteria + Ref Class + Mechanism + Purpose`) in `M5TasteCurationArena.svelte`.
+  - Implement Reverse Direction Challenge coach transforming machine flaws into deliberate structural necessities.
+  - Implement 40% human anchor verification for collections.
+
+- [ ] **Task 24: M6 Studio — Stakeholder Critique Simulator & 5-Mode Refusal Coach**
+  - Integrate interactive stakeholder critique simulator in `M6DirectionCollab.svelte` generating realistic, conflicting client feedback.
+  - Implement directorial triage evaluation (`Apply`, `Adapt`, `Alternative`, `Push Back`, `Re-Brief`).
+  - Implement 5-mode refusal letter soundness auditor (`Ethical`, `Positional`, `Technical`, `Intentional`, `Slop`).
+  - Implement Revision vs. Re-Brief arbiter after Cycle 2/3.
+
+- [ ] **Task 25: M7 Studio & Capstone — Position Gap Mirror & Cross-Medium Removal Tester**
+  - Integrate Position Gap Mirror in `M7AgencyBlankSheet.svelte` diagnosing deltas between claimed artistic statements and visible artifact traits.
+  - Implement Dual-Removal Test report verifying cross-medium non-redundancy (text vs image).
+  - Implement 14-step unassisted blank-sheet capstone milestone reviewer.
+
+- [ ] **Task 26: Daily Practice Loop Guidance & Deliberate Practice Drill Coach**
+  - Integrate Socratic reading comprehension check in `DailyPracticeView.svelte` (Step 1: Read).
+  - Integrate real-time rep failure diagnostic in `DrillRunner.svelte` with 70–80% learning zone difficulty adaptation.
+  - Integrate Hemingway Stop validation in `HemingwayStopModal.svelte` verifying atomic 5-minute action criteria.
+  - Integrate non-instrumental attention purity check (Step 8: Play/Attention).
+
+- [ ] **Task 27: Flagship Projects 1–12 & Two-Axis Assessment Cross-Examiner**
+  - Integrate project deliverable rubric auditing across Projects 1–12 in `ProjectWorkspace.svelte`.
+  - Implement Socratic Two-Axis matrix cross-examination in `TwoAxisQuadrant.svelte` to detect Rationalisation (excusing poor work) and Lucky Hits (unrepeatable accidents).
+
+- [ ] **Task 28: Studio Logbook Sentinel & Anti-Decay Intelligence**
+  - Integrate automated Log Decay scanning in `/logs` detecting rote phrase repetition and hollow logging compliance.
+  - Implement intelligent retrospective narrative generator for Appendix L portfolio archive export.
+
+
 

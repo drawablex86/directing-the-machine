@@ -142,7 +142,8 @@ directing-the-machine/
 │       ├── config/
 │       │   └── site.ts                 # SITE_CONFIG (canonical domain, social handles, metadata)
 │       ├── types/
-│       │   └── inference.ts            # Type definitions for BYOK inference providers & requests
+│       │   ├── inference.ts            # Type definitions for BYOK inference providers & requests
+│       │   └── llm-prompts.ts          # Type system for prompt templates, roles, and critique results
 │       ├── schemas/
 │       │   ├── course.schema.ts        # Zod schemas for logs, briefs, baseline, calibrations
 │       │   └── competency-details.ts   # Definitions for the 12 deliberate practice competencies
@@ -153,6 +154,7 @@ directing-the-machine/
 │       │   ├── calibration-math.ts     # Brier score calculator & taste-narrowness detector
 │       │   ├── archive-exporter.ts     # Appendix L Markdown/JSON bundle generator
 │       │   ├── inference.ts            # Client-side multi-provider LLM executor & latency tester
+│       │   ├── prompt-registry.ts      # Central system prompt catalog & execution pipeline
 │       │   ├── sound-system.ts         # Synthesized Web Audio API sound cues
 │       │   └── markdown-renderer.ts    # Lightweight markdown-to-HTML parser for modal readers
 │       ├── data/
@@ -170,6 +172,7 @@ directing-the-machine/
 │           ├── assessment/             # CompetencyRadar16 and TwoAxisQuadrant visualizers
 │           ├── course/                 # CourseSyllabusView, ProjectBriefModal, ProjectWorkspace
 │           ├── settings/               # ByokSettingsTab and provider configuration controls
+│           ├── llm/                    # Standardized LLM primitives (LlmTriggerButton, LlmCritiqueCard)
 │           ├── blog/                   # BlogHeader, BlogCard, BlogStudioCallout
 │           └── seo/                    # SeoHead with JSON-LD structured data
 ├── static/
@@ -270,10 +273,16 @@ Provides unified access to LLMs without a backend:
 - **Dynamic Model Enumeration**: `fetchAvailableModels(provider, config)` queries provider `/models` endpoints to fetch live model lists and populate the UI dropdown.
 - **Connection & Latency Tester**: `testInferenceConnection(provider, config)` sends a 1-token ping to verify keys and measure round-trip ping time in milliseconds.
 
-### 4. Synthesized Web Audio Sound System (`src/lib/engine/sound-system.ts`)
+### 4. Prompt Registry & Diagnostic Interlocutor Engine (`src/lib/engine/prompt-registry.ts`)
+Houses the central catalog of calibrated system personas, prompt formatters, and output parsers across all studio touchpoints:
+- **Strict Anti-Slop Directive**: Enforces zero-adjective discipline, bans empty affirmation ("Great job!"), prevents the model from generating student work, and isolates the single highest unresolved structural defect.
+- **Unified Pipeline (`executePrompt`)**: Accepts a typed `PromptTemplateId`, user context payload, and optional overrides, and executes inference via `runInference`, packaging results into a structured `CritiqueResult` with latency, model metadata, and token usage.
+- **Typed Prompt Primitives**: `src/lib/components/llm/LlmTriggerButton.svelte` (accessible trigger with BYOK check and loading spinner) and `src/lib/components/llm/LlmCritiqueCard.svelte` (standardized critique card with markdown rendering, metadata bar, copy, and action hooks).
+
+### 5. Synthesized Web Audio Sound System (`src/lib/engine/sound-system.ts`)
 Uses the browser's native `AudioContext` to synthesize tactile audio cues (drill completion bells, 10-minute timer alerts, button confirmations) using pure sine/triangle oscillators—eliminating heavy external sound assets.
 
-### 5. Appendix L Archive Exporter (`src/lib/engine/archive-exporter.ts`)
+### 6. Appendix L Archive Exporter (`src/lib/engine/archive-exporter.ts`)
 Packages the practitioner's local-first records into a structured GitHub-Flavored Markdown dossier and raw JSON archive matching Appendix L specifications for one-click downloading.
 
 ---

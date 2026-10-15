@@ -569,6 +569,21 @@ export class PracticeEngine {
 		this.saveToStorage();
 	}
 
+	// BYOK Status Helpers
+	get isByokConfigured(): boolean {
+		const active = this.byokSettings.activeProvider;
+		const config = this.byokSettings.providers[active];
+		if (!config) return false;
+		if (active === 'custom') return true;
+		return Boolean(config.apiKey && config.apiKey.trim().length > 0);
+	}
+
+	get activeModelName(): string {
+		const active = this.byokSettings.activeProvider;
+		const config = this.byokSettings.providers[active];
+		return config?.selectedModel || 'Default Model';
+	}
+
 	// Dynamic Persistence (localStorage)
 	saveToStorage() {
 		if (!isBrowser) return;

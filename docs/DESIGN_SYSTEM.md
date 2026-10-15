@@ -252,6 +252,15 @@ Every laboratory view (M0 through M7) uses a standard structural shell:
 - Modal Window: `bg-neutral-900 border border-neutral-800 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden`.
 - Global hotkey listener automatically binds <kbd>Esc</kbd> to close any open modal.
 
+### 6. Calibrated LLM Primitives
+- **`LlmTriggerButton.svelte`**:
+  - Accessible trigger button with loading state, automatic BYOK key status check, provider badge, and popover prompt to open Settings (`?tab=settings`) when keys are missing.
+  - Variants: `primary` (Amber), `secondary` (Surface), `subtle` (Ghost), and `outline`.
+- **`LlmCritiqueCard.svelte`**:
+  - Structured critique container rendering system persona, provider/model label, and inference latency in milliseconds (`740ms`).
+  - Markdown-formatted critique body with code blocks, alert callouts, and clean typographic leading.
+  - Action footer supporting 1-click clipboard copy, re-run trigger, and domain-specific action buttons ("Apply to Field", "Decompose into Tasks").
+
 ---
 
 ## 6. Animation & Motion Guidelines
