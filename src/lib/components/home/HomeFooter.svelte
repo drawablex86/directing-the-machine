@@ -70,10 +70,12 @@
 			<div class="space-y-3">
 				<div class="font-mono uppercase text-neutral-300 font-bold tracking-wider">Field Reference</div>
 				<ul class="space-y-2">
+					<li><a href="/blog" class="text-amber-400 font-medium hover:text-amber-300 transition flex items-center gap-1.5"><BookOpen class="w-3 h-3" /><span>Field Essays & Blog</span></a></li>
 					<li><a href="/app?tab=manual" class="hover:text-amber-400 transition">Field Manual (Appendices A–O)</a></li>
 					<li><a href="/logs" class="hover:text-amber-400 transition">Unified Studio Logbook</a></li>
 					<li><a href="/app?tab=assessment" class="hover:text-amber-400 transition">Decision vs Outcome Matrix</a></li>
-					<li><a href="/app?tab=assessment" class="hover:text-amber-400 transition">12-Competency Radar</a></li>
+					<li><a href="/blog/rss.xml" class="hover:text-amber-400 transition">RSS 2.0 Feed</a></li>
+					<li><a href="/sitemap.xml" class="hover:text-amber-400 transition">XML Sitemap</a></li>
 				</ul>
 			</div>
 

@@ -10,6 +10,7 @@
 	import DailyLoopRhythm from '$lib/components/home/DailyLoopRhythm.svelte';
 	import AudienceCriteria from '$lib/components/home/AudienceCriteria.svelte';
 	import SensibilityDiagnostic from '$lib/components/home/SensibilityDiagnostic.svelte';
+	import FieldEssaysSection from '$lib/components/home/FieldEssaysSection.svelte';
 	import FaqSection from '$lib/components/home/FaqSection.svelte';
 	import HomeFooter from '$lib/components/home/HomeFooter.svelte';
 	import { ArrowRight, Sparkles, Terminal, Compass } from '@lucide/svelte';
@@ -48,7 +49,10 @@
 		<!-- Movement 7A: 2-Minute Interactive Taste & Calibration Test -->
 		<SensibilityDiagnostic />
 
-		<!-- Movement 7B: Long-Form Ogilvy Editorial Close -->
+		<!-- Movement 7B: Field Essays & Critical Dispatches (SEO Discovery Spine) -->
+		<FieldEssaysSection />
+
+		<!-- Movement 8: Long-Form Ogilvy Editorial Close -->
 		<section class="py-20 md:py-28 bg-neutral-900/30 border-y border-neutral-800/80">
 			<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
 				<div class="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">

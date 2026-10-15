@@ -44,13 +44,17 @@
 
 		<!-- Navigation Links -->
 		<nav class="hidden lg:flex items-center gap-6 text-xs font-medium text-neutral-300">
-			<a href="#contrast" class="hover:text-amber-400 transition">Prompt vs. Direct</a>
-			<a href="#linter" class="hover:text-amber-400 transition">Live Linter</a>
-			<a href="#theses" class="hover:text-amber-400 transition">The 5 Theses</a>
-			<a href="#studios" class="hover:text-amber-400 transition">8 Studios</a>
-			<a href="#syllabus" class="hover:text-amber-400 transition">Syllabus & Projects</a>
-			<a href="#diagnostic" class="hover:text-amber-400 transition">Diagnostic Test</a>
-			<a href="#faq" class="hover:text-amber-400 transition">FAQ</a>
+			<a href="/blog" class="text-amber-400 font-semibold transition hover:text-amber-300 flex items-center gap-1.5">
+				<BookOpen class="w-3.5 h-3.5" />
+				<span>Field Essays</span>
+			</a>
+			<a href="/#contrast" class="hover:text-amber-400 transition">Prompt vs. Direct</a>
+			<a href="/#linter" class="hover:text-amber-400 transition">Live Linter</a>
+			<a href="/#theses" class="hover:text-amber-400 transition">The 5 Theses</a>
+			<a href="/#studios" class="hover:text-amber-400 transition">8 Studios</a>
+			<a href="/#syllabus" class="hover:text-amber-400 transition">Syllabus & Projects</a>
+			<a href="/#diagnostic" class="hover:text-amber-400 transition">Diagnostic Test</a>
+			<a href="/#faq" class="hover:text-amber-400 transition">FAQ</a>
 		</nav>
 
 		<!-- Right Side CTAs -->
@@ -103,13 +107,17 @@
 	{#if mobileMenuOpen}
 		<div class="lg:hidden px-4 pt-3 pb-6 border-t border-neutral-800 bg-neutral-950/95 space-y-3">
 			<nav class="flex flex-col space-y-2 text-sm font-medium text-neutral-300">
-				<a href="#contrast" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Prompt vs. Direct</a>
-				<a href="#linter" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Live Zero-Adjective Linter</a>
-				<a href="#theses" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">The 5 Theses</a>
-				<a href="#studios" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">8 Studio Modalities</a>
-				<a href="#syllabus" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">18-Week Syllabus & Projects</a>
-				<a href="#diagnostic" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Sensibility Diagnostic Test</a>
-				<a href="#faq" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Dispatches & FAQ</a>
+				<a href="/blog" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg bg-amber-500/10 text-amber-400 font-bold transition flex items-center gap-2">
+					<BookOpen class="w-4 h-4" />
+					<span>Field Essays & Dispatches</span>
+				</a>
+				<a href="/#contrast" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Prompt vs. Direct</a>
+				<a href="/#linter" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Live Zero-Adjective Linter</a>
+				<a href="/#theses" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">The 5 Theses</a>
+				<a href="/#studios" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">8 Studio Modalities</a>
+				<a href="/#syllabus" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">18-Week Syllabus & Projects</a>
+				<a href="/#diagnostic" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Sensibility Diagnostic Test</a>
+				<a href="/#faq" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 hover:text-amber-400 transition">Dispatches & FAQ</a>
 				<a href="/logs" onclick={closeMobileMenu} class="px-3 py-2 rounded-lg hover:bg-neutral-900 text-amber-400 transition font-mono text-xs">Open Studio Logbook</a>
 			</nav>
 		</div>
