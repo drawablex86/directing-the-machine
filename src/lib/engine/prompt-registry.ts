@@ -1,4 +1,4 @@
-import type { PromptConfig, PromptTemplateId, CritiqueResult, SurgicalPatch, TensionReframe, PositionVerdict } from '../types/llm-prompts';
+import type { PromptConfig, PromptTemplateId, CritiqueResult, SurgicalPatch, TensionReframe, PositionVerdict, PremiseTriangulation, BriefRedline } from '../types/llm-prompts';
 import type { InferenceRequest } from '../types/inference';
 import { runInference } from './inference';
 import { practiceStore } from '../state/practice.svelte';
@@ -196,24 +196,36 @@ Audit this positionality standing and emit the verdict block at the end.
 	'm3-premise-triangulation': {
 		id: 'm3-premise-triangulation',
 		name: 'Premise Triangulation & Rejection Logic',
-		persona: 'Executive Creative Director',
+		persona: 'Dialectical Dramaturg & Premise Architect',
 		role: 'auditor',
 		modalityId: 'm3',
-		description: 'Tests candidate premises and validates the structural logic of rejected alternatives.',
+		description: 'Audits 3 rival candidate premises for authentic divergence, tests rejection soundness, and sharpens tensions.',
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Executive Creative Director.
-A viable creative premise makes a specific, testable claim with inherent aesthetic or cognitive friction.
+ROLE: You are the Dialectical Dramaturg & Premise Architect.
+A topic ("Loneliness in cities") is not a premise. A premise is a proposition with inherent friction and testable causal stakes ("Physical proximity and psychological isolation increase together").
 A student must formulate 3 candidate premises and provide rigorous structural justifications for the 2 they choose to reject.
 
 INSTRUCTIONS:
-1. Evaluate the selected premise: Is it distinct, risky, and structurally generative, or is it a safe cliché?
-2. Scrutinize the rejection rationales for the other 2 premises: Are they genuine structural rejections, or lazy dismissals?
-3. Pinpoint the primary risk if the selected premise is executed without tight constraints.
+1. Evaluate Divergence: Do the 3 candidate premises genuinely explore distinct tensions, or are they minor stylistic variations of one safe idea?
+2. Evaluate Selection: Is the selected candidate risky, distinct, and structurally generative?
+3. Scrutinize Rejection Logic: Are the stated rejection reasons principled structural choices, or lazy, vague dismissals?
+4. Identify Execution Risk: What is the single biggest trap if the chosen premise is pursued?
+5. Provide sharpened, tension-bearing propositions for all 3 candidates.
+6. At the very end of your response, output a machine-readable block:
+[PREMISE_TRIANGULATION]
+RECOMMENDED_PREMISE: [1|2|3]
+DIVERGENCE_RATING: [HIGH | MEDIUM | LOW_COLLAPSED]
+REJECTION_SOUNDNESS: [SOUND | ARBITRARY | UNEXAMINED]
+SHARPENED_PREMISE_1: [Sharpened proposition with authentic counter-force]
+SHARPENED_PREMISE_2: [Sharpened proposition with authentic counter-force]
+SHARPENED_PREMISE_3: [Sharpened proposition with authentic counter-force]
+RISK_ANALYSIS: [1-sentence explanation of primary execution risk]
+[/PREMISE_TRIANGULATION]
 `.trim(),
-		defaultTemperature: 0.4,
-		defaultMaxTokens: 850,
+		defaultTemperature: 0.3,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: {
 			selected: number;
 			candidates: string[];
@@ -223,10 +235,10 @@ Candidate 1: "${ctx.candidates[0] || 'N/A'}"
 Candidate 2: "${ctx.candidates[1] || 'N/A'}"
 Candidate 3: "${ctx.candidates[2] || 'N/A'}"
 Selected Premise: Candidate ${ctx.selected}
-Rejection Justification for unselected premises:
-"${ctx.rejectionReasons.join(' | ')}"
+Stated Rejection Justifications for unselected alternatives:
+"${ctx.rejectionReasons.filter(Boolean).join(' | ') || 'None provided'}"
 
-Audit this premise selection and the validity of the rejection logic.
+Audit this premise selection and the validity of the rejection logic. Emit the triangulation block at the end.
 `.trim()
 	},
 
@@ -246,13 +258,26 @@ Prompt-slop specifications use decorative adjectives ("make it striking and cine
 Directorial specifications use operational, verifiable constraints ("single light source at 80 degrees; zero center-weighted elements").
 
 INSTRUCTIONS:
-1. Redline any vague or decorative adjectives in the Intention or Constraints.
+1. Redline decorative adjectives in Intention or Constraints (e.g. "cinematic", "striking", "moody", "atmospheric", "dynamic").
 2. Verify Acceptance Criteria: Can a third-party observe whether each criterion passed or failed with binary certainty?
 3. Verify Rejection Conditions: Are negative constraints clear enough to immediately stop and discard a bad generation?
-4. Output specific, hardened rewrites for the weakest constraints.
+4. Output specific, hardened operational rewrites for constraints and negative rejection conditions.
+5. At the very end of your response, output a machine-readable block:
+[BRIEF_REDLINE]
+VERDICT: [OPERATIONAL | LOOPHOLED | AMBIGUOUS | DEFICIENT]
+HARDENED_INTENTION: [Concrete psychological or physiological cause on viewer]
+SUGGESTED_CONSTRAINTS:
+- [Hardened operational constraint 1]
+- [Hardened operational constraint 2]
+SUGGESTED_NEGATIVE_REJECTIONS:
+- [Binary disqualifying condition 1]
+- [Binary disqualifying condition 2]
+FLAGGED_WEAKNESSES:
+- [Specific vague adjective or loophole]
+[/BRIEF_REDLINE]
 `.trim(),
 		defaultTemperature: 0.2,
-		defaultMaxTokens: 900,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: {
 			title: string;
 			premise: string;
@@ -271,7 +296,7 @@ ${ctx.acceptanceCriteria.map((a) => `- ${a}`).join('\n')}
 Rejection Conditions:
 ${ctx.rejectionConditions.map((r) => `- ${r}`).join('\n')}
 
-Redline this 7-layer creative brief.
+Redline this 7-layer creative brief and emit the structured redline block at the end.
 `.trim()
 	},
 
@@ -1014,6 +1039,82 @@ export function parsePositionVerdict(text: string): PositionVerdict | undefined 
 }
 
 /**
+ * Parses machine-readable premise triangulation from Dialectical Dramaturg response.
+ */
+export function parsePremiseTriangulation(text: string): PremiseTriangulation | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[PREMISE_TRIANGULATION\]([\s\S]*?)(\[\/PREMISE_TRIANGULATION\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const recMatch = target.match(/RECOMMENDED_PREMISE:\s*(?:Candidate\s*|Premise\s*)?(\d)/i);
+	const divMatch = target.match(/DIVERGENCE_RATING:\s*(HIGH|MEDIUM|LOW_COLLAPSED)/i);
+	const rejMatch = target.match(/REJECTION_SOUNDNESS:\s*(SOUND|ARBITRARY|UNEXAMINED)/i);
+	const p1Match = target.match(/SHARPENED_PREMISE_1:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const p2Match = target.match(/SHARPENED_PREMISE_2:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const p3Match = target.match(/SHARPENED_PREMISE_3:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const riskMatch = target.match(/RISK_ANALYSIS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!recMatch && !divMatch && !rejMatch && !p1Match) {
+		return undefined;
+	}
+
+	const recommendedPremise = recMatch ? parseInt(recMatch[1], 10) : 1;
+
+	return {
+		recommendedPremise: recommendedPremise >= 1 && recommendedPremise <= 3 ? recommendedPremise : 1,
+		divergenceRating: (divMatch ? divMatch[1].toUpperCase() : 'MEDIUM') as any,
+		rejectionSoundness: (rejMatch ? rejMatch[1].toUpperCase() : 'SOUND') as any,
+		sharpenedPremises: {
+			premise1: p1Match ? p1Match[1].trim() : undefined,
+			premise2: p2Match ? p2Match[1].trim() : undefined,
+			premise3: p3Match ? p3Match[1].trim() : undefined
+		},
+		riskAnalysis: riskMatch ? riskMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable brief redline from Chief Specification Inquisitor response.
+ */
+export function parseBriefRedline(text: string): BriefRedline | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[BRIEF_REDLINE\]([\s\S]*?)(\[\/BRIEF_REDLINE\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(OPERATIONAL|LOOPHOLED|AMBIGUOUS|DEFICIENT)/i);
+	const intentMatch = target.match(/HARDENED_INTENTION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	// Extract lists
+	const constraintsMatch = target.match(/SUGGESTED_CONSTRAINTS:([\s\S]*?)(?=\n\s*[A-Z_]+:|$)/i);
+	const rejectionsMatch = target.match(/SUGGESTED_NEGATIVE_REJECTIONS:([\s\S]*?)(?=\n\s*[A-Z_]+:|$)/i);
+	const weaknessesMatch = target.match(/FLAGGED_WEAKNESSES:([\s\S]*?)(?=\n\s*[A-Z_]+:|$)/i);
+
+	function parseList(content?: string): string[] {
+		if (!content) return [];
+		return content
+			.split('\n')
+			.map((line) => line.replace(/^[\s*\-•\d.)]+/, '').trim())
+			.filter((line) => line.length > 0 && !line.startsWith('['));
+	}
+
+	const suggestedConstraints = parseList(constraintsMatch ? constraintsMatch[1] : undefined);
+	const suggestedNegativeRejections = parseList(rejectionsMatch ? rejectionsMatch[1] : undefined);
+	const flaggedWeaknesses = parseList(weaknessesMatch ? weaknessesMatch[1] : undefined);
+
+	if (!verdictMatch && !intentMatch && suggestedConstraints.length === 0 && suggestedNegativeRejections.length === 0) {
+		return undefined;
+	}
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'LOOPHOLED') as any,
+		hardenedIntention: intentMatch ? intentMatch[1].trim() : undefined,
+		suggestedConstraints: suggestedConstraints.length > 0 ? suggestedConstraints : undefined,
+		suggestedNegativeRejections: suggestedNegativeRejections.length > 0 ? suggestedNegativeRejections : undefined,
+		flaggedWeaknesses: flaggedWeaknesses.length > 0 ? flaggedWeaknesses : undefined
+	};
+}
+
+/**
  * Central prompt execution pipeline.
  * Formats context into user prompt, applies system prompt and defaults, calls runInference,
  * and packages the result into a typed CritiqueResult with thoughts and parsed directives.
@@ -1070,6 +1171,16 @@ export async function executePrompt<T = any>(
 		const verdict = parsePositionVerdict(response.text);
 		if (verdict) {
 			critique.positionVerdict = verdict;
+		}
+	} else if (promptId === 'm3-premise-triangulation') {
+		const triangulation = parsePremiseTriangulation(response.text);
+		if (triangulation) {
+			critique.premiseTriangulation = triangulation;
+		}
+	} else if (promptId === 'm3-brief-redline') {
+		const redline = parseBriefRedline(response.text);
+		if (redline) {
+			critique.briefRedline = redline;
 		}
 	}
 

@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import type { Brief } from '$lib/schemas/course.schema';
-	import { FileText, Sliders, ShieldCheck, CheckCircle2, ArrowRight, Target, Sparkles } from '@lucide/svelte';
+	import { FileText, Sliders, ShieldCheck, CheckCircle2, ArrowRight, Target, Sparkles, Wand2, AlertTriangle, Plus } from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
 	import { getDrillById } from '$lib/data/drills';
+	import { LlmTriggerButton, LlmCritiqueCard } from '$lib/components/llm';
+	import { executePrompt } from '$lib/engine/prompt-registry';
+	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
 
 	let activeTab = $state<'drill' | 'premise' | 'brief' | 'constraints' | 'provenance'>('brief');
 	let briefSavedNotice = $state(false);
@@ -21,6 +24,7 @@
 	let selectedPremise = $state(1);
 	let rejectionReason1 = $state('');
 	let rejectionReason2 = $state('');
+	let rejectionReason3 = $state('');
 
 	// 7-Layer Brief Builder state
 	let briefTitle = $state('');
@@ -31,6 +35,7 @@
 	let rejectionConditionsList = $state(['Symmetrical framing', 'Generic atmospheric haze without structural function']);
 	let newConstraint = $state('');
 	let newAcceptance = $state('');
+	let newRejectionCondition = $state('');
 
 	// Provenance Stamp (Module 7)
 	let provOrigin = $state('Noticed during transit walk in commercial center');
@@ -51,6 +56,163 @@
 			newAcceptance = '';
 		}
 	}
+
+	function addRejectionCondition() {
+		if (newRejectionCondition.trim()) {
+			rejectionConditionsList.push(newRejectionCondition.trim());
+			newRejectionCondition = '';
+		}
+	}
+
+	// Premise Triangulation LLM state
+	let premiseCritique = $state<CritiqueResult | null>(null);
+	let premiseLoading = $state(false);
+	let premiseError = $state<string | null>(null);
+
+	async function runPremiseTriangulation() {
+		if (!candidate1.trim() && !candidate2.trim() && !candidate3.trim()) return;
+		premiseLoading = true;
+		premiseError = null;
+		try {
+			const res = await executePrompt('m3-premise-triangulation', {
+				selected: selectedPremise,
+				candidates: [candidate1.trim(), candidate2.trim(), candidate3.trim()],
+				rejectionReasons: [rejectionReason1.trim(), rejectionReason2.trim(), rejectionReason3.trim()]
+			});
+			premiseCritique = res;
+		} catch (err: any) {
+			premiseError = err.message || 'Premise triangulation failed';
+		} finally {
+			premiseLoading = false;
+		}
+	}
+
+	let premiseActions = $derived.by<LlmAction[]>(() => {
+		const actions: LlmAction[] = [];
+		const tri = premiseCritique?.premiseTriangulation;
+		if (!tri) return actions;
+
+		if (tri.recommendedPremise) {
+			const recIdx = tri.recommendedPremise;
+			const candidateMap = [candidate1, candidate2, candidate3];
+			const chosenText = candidateMap[recIdx - 1];
+			actions.push({
+				id: 'adopt-recommended-premise',
+				label: `Adopt Recommended Premise (Candidate ${recIdx})`,
+				primary: true,
+				icon: Target,
+				onClick: () => {
+					selectedPremise = recIdx;
+					if (chosenText?.trim()) {
+						briefPremise = chosenText.trim();
+					}
+				}
+			});
+		}
+
+		if (tri.sharpenedPremises && (tri.sharpenedPremises.premise1 || tri.sharpenedPremises.premise2 || tri.sharpenedPremises.premise3)) {
+			actions.push({
+				id: 'apply-sharpened-trio',
+				label: 'Apply Sharpened Premise Trio',
+				variant: 'secondary',
+				icon: Wand2,
+				onClick: () => {
+					if (tri.sharpenedPremises?.premise1) candidate1 = tri.sharpenedPremises.premise1;
+					if (tri.sharpenedPremises?.premise2) candidate2 = tri.sharpenedPremises.premise2;
+					if (tri.sharpenedPremises?.premise3) candidate3 = tri.sharpenedPremises.premise3;
+					const updatedMap = [candidate1, candidate2, candidate3];
+					if (updatedMap[selectedPremise - 1]?.trim()) {
+						briefPremise = updatedMap[selectedPremise - 1].trim();
+					}
+				}
+			});
+		}
+
+		return actions;
+	});
+
+	// 7-Layer Brief Redline LLM state
+	let briefCritique = $state<CritiqueResult | null>(null);
+	let briefLoading = $state(false);
+	let briefError = $state<string | null>(null);
+
+	async function runBriefRedline() {
+		briefLoading = true;
+		briefError = null;
+		try {
+			const res = await executePrompt('m3-brief-redline', {
+				title: briefTitle.trim() || 'Untitled Creative Project',
+				premise: briefPremise.trim() || (candidate1 || candidate2 || candidate3 || 'Unstated premise'),
+				intention: freeformMode ? freeformBriefText.slice(0, 300) : (briefIntention.trim() || 'Unstated intention'),
+				constraints: freeformMode ? [freeformBriefText] : constraintsList,
+				acceptanceCriteria: acceptanceList,
+				rejectionConditions: rejectionConditionsList
+			});
+			briefCritique = res;
+		} catch (err: any) {
+			briefError = err.message || 'Brief redline audit failed';
+		} finally {
+			briefLoading = false;
+		}
+	}
+
+	let briefActions = $derived.by<LlmAction[]>(() => {
+		const actions: LlmAction[] = [];
+		const redline = briefCritique?.briefRedline;
+		if (!redline) return actions;
+
+		if (redline.suggestedConstraints?.length || redline.suggestedNegativeRejections?.length) {
+			actions.push({
+				id: 'inject-hardened-items',
+				label: `Inject Hardened Constraints & Rejections (${(redline.suggestedConstraints?.length || 0) + (redline.suggestedNegativeRejections?.length || 0)})`,
+				primary: true,
+				icon: Wand2,
+				onClick: () => {
+					if (freeformMode) {
+						let additions = '\n\n### Hardened Specifications (From Editorial Redline)\n';
+						if (redline.suggestedConstraints?.length) {
+							additions += '\n#### Injected Operational Constraints:\n' + redline.suggestedConstraints.map(c => `- ${c}`).join('\n');
+						}
+						if (redline.suggestedNegativeRejections?.length) {
+							additions += '\n#### Injected Negative Rejection Conditions:\n' + redline.suggestedNegativeRejections.map(r => `- ${r}`).join('\n');
+						}
+						freeformBriefText += additions;
+					} else {
+						if (redline.suggestedConstraints?.length) {
+							for (const c of redline.suggestedConstraints) {
+								if (!constraintsList.includes(c)) {
+									constraintsList.push(c);
+								}
+							}
+						}
+						if (redline.suggestedNegativeRejections?.length) {
+							for (const r of redline.suggestedNegativeRejections) {
+								if (!rejectionConditionsList.includes(r)) {
+									rejectionConditionsList.push(r);
+								}
+							}
+						}
+					}
+				}
+			});
+		}
+
+		if (redline.hardenedIntention && !freeformMode) {
+			actions.push({
+				id: 'adopt-hardened-intention',
+				label: 'Adopt Hardened Intention',
+				variant: 'secondary',
+				icon: ShieldCheck,
+				onClick: () => {
+					if (redline.hardenedIntention) {
+						briefIntention = redline.hardenedIntention;
+					}
+				}
+			});
+		}
+
+		return actions;
+	});
 
 	function saveBrief() {
 		if (freeformMode) {
@@ -236,7 +398,7 @@
 						<button
 							type="button"
 							onclick={() => selectedPremise = 2}
-							class="text-xs px-2.5 py-1 rounded-md transition {selectedPremise === 2 ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-900 text-neutral-400'}"
+							class="text-xs px-2.5 py-1 rounded-md transition cursor-pointer {selectedPremise === 2 ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-900 text-neutral-400'}"
 						>
 							{selectedPremise === 2 ? 'Selected' : 'Select'}
 						</button>
@@ -255,6 +417,60 @@
 							class="w-full bg-neutral-900/50 border border-neutral-800/60 rounded-lg px-2.5 py-1 text-[11px] text-neutral-400"
 						/>
 					{/if}
+				</div>
+
+				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2">
+					<div class="flex items-center justify-between">
+						<span class="text-xs font-bold text-neutral-200">Candidate Premise 3</span>
+						<button
+							type="button"
+							onclick={() => selectedPremise = 3}
+							class="text-xs px-2.5 py-1 rounded-md transition cursor-pointer {selectedPremise === 3 ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-900 text-neutral-400'}"
+						>
+							{selectedPremise === 3 ? 'Selected' : 'Select'}
+						</button>
+					</div>
+					<input
+						type="text"
+						bind:value={candidate3}
+						placeholder="Proposition with tension..."
+						class="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-neutral-100"
+					/>
+					{#if selectedPremise !== 3}
+						<input
+							type="text"
+							bind:value={rejectionReason3}
+							placeholder="Rejection reason: What did this premise lack?"
+							class="w-full bg-neutral-900/50 border border-neutral-800/60 rounded-lg px-2.5 py-1 text-[11px] text-neutral-400"
+						/>
+					{/if}
+				</div>
+
+				<!-- Premise Triangulation LLM Panel -->
+				<div class="space-y-3 pt-3 border-t border-neutral-800">
+					<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+						<div class="text-[11px] text-neutral-400 font-mono">
+							<span>Triangulation: {candidate1 || candidate2 || candidate3 ? 'Ready to evaluate 3 rivals' : 'Enter 3 candidate premises'}</span>
+						</div>
+
+						<LlmTriggerButton
+							label="Triangulate 3 Rivals & Rejection Logic"
+							onclick={runPremiseTriangulation}
+							loading={premiseLoading}
+							disabled={!candidate1.trim() && !candidate2.trim() && !candidate3.trim()}
+							title="Audit divergence, validate rejection soundness, and sharpen propositions"
+						/>
+					</div>
+
+					<LlmCritiqueCard
+						result={premiseCritique}
+						loading={premiseLoading}
+						error={premiseError}
+						title="Dialectical Dramaturg (Premise Triangulation)"
+						actions={premiseActions}
+						onDismiss={() => { premiseCritique = null; }}
+						onRetry={runPremiseTriangulation}
+					/>
 				</div>
 			</div>
 		</div>
@@ -376,7 +592,58 @@
 						</button>
 					</div>
 				</div>
+
+				<!-- Rejection conditions list (Negative constraints) -->
+				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
+					<div class="font-bold text-neutral-200">6. Negative Rejection Conditions ({rejectionConditionsList.length}):</div>
+					<div class="flex flex-wrap gap-1.5">
+						{#each rejectionConditionsList as r, i}
+							<span class="px-2 py-0.5 rounded bg-red-950/40 border border-red-800/60 text-red-300 flex items-center gap-1.5">
+								{r}
+								<button type="button" onclick={() => rejectionConditionsList.splice(i, 1)} class="text-neutral-500 hover:text-red-400">×</button>
+							</span>
+						{/each}
+					</div>
+					<div class="flex gap-2 pt-1">
+						<input
+							type="text"
+							bind:value={newRejectionCondition}
+							placeholder="Add disqualifying condition (e.g. symmetrical framing, decorative haze)..."
+							class="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-200"
+						/>
+						<button type="button" onclick={addRejectionCondition} class="px-3 py-1 rounded-lg text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 cursor-pointer">
+							Add
+						</button>
+					</div>
+				</div>
 			{/if}
+
+			<!-- 7-Layer Creative Brief Redliner LLM Panel -->
+			<div class="space-y-3 pt-3 border-t border-neutral-800">
+				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+					<div class="text-[11px] text-neutral-400 font-mono">
+						<span>Specification check: {briefTitle.trim() || freeformBriefText.trim() ? 'Ready to redline' : 'Enter brief details'}</span>
+					</div>
+
+					<LlmTriggerButton
+						label="Redline 7-Layer Creative Brief"
+						onclick={runBriefRedline}
+						loading={briefLoading}
+						disabled={freeformMode ? !freeformBriefText.trim() : (!briefTitle.trim() && !briefPremise.trim())}
+						title="Redline decorative adjectives, test binary acceptance criteria, and harden constraints"
+					/>
+				</div>
+
+				<LlmCritiqueCard
+					result={briefCritique}
+					loading={briefLoading}
+					error={briefError}
+					title="Chief Specification Inquisitor (7-Layer Brief Redline)"
+					actions={briefActions}
+					onDismiss={() => { briefCritique = null; }}
+					onRetry={runBriefRedline}
+				/>
+			</div>
 
 			<div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
 				<button

@@ -169,10 +169,15 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Added 1-click **"Shift to Position '[X]'"**, **"Switch to Positional Refusal"**, and **"Confirm Standing"** in-place actions.
   - Verified 0 TypeScript errors with `pnpm run check`, verified production build with `pnpm run build`, and passed all unit test assertions.
 
-- [ ] **Task 21: M3 Studio — Premise Matrix Triangulator & 7-Layer Brief Reviewer**
-  - Integrate 3-premise viability scoring and rejection logic auditing in `M3PremiseBriefLab.svelte`.
-  - Implement 7-layer creative brief redliner detecting ambiguous adjectives, loophole constraints, and missing rejection conditions.
-  - Add "Premise Viability Matrix" comparison and "Brief Redline" drawer with one-click revision injection.
+- [x] **Task 21: M3 Studio — Premise Matrix Triangulator & 7-Layer Brief Reviewer**
+  - Integrated Dialectical Dramaturg & Premise Architect (`m3-premise-triangulation`) into `M3PremiseBriefLab.svelte` Tab 1 (Premise Forge) evaluating 3 rival premises for dialectical divergence, anti-parallelism, and rejection soundness.
+  - Implemented `parsePremiseTriangulation` helper in `prompt-registry.ts` parsing machine-readable `[PREMISE_TRIANGULATION]` blocks (`RECOMMENDED_PREMISE`, `DIVERGENCE_RATING`, `REJECTION_SOUNDNESS`, `SHARPENED_PREMISE_1/2/3`, `RISK_ANALYSIS`).
+  - Added 1-click **"Adopt Recommended Premise (Candidate X)"** and **"Apply Sharpened Premise Trio"** in-place actions in Premise Forge.
+  - Integrated Chief Specification Inquisitor (`m3-brief-redline`) into Tab 2 (7-Layer Brief) auditing all 7 layers (Intention, Directorial Position, Aesthetic Lineage, Hard Constraints, Negative Space, Rejection Conditions, Acceptance Threshold).
+  - Implemented `parseBriefRedline` helper in `prompt-registry.ts` parsing machine-readable `[BRIEF_REDLINE]` blocks (`VERDICT`, `HARDENED_INTENTION`, `SUGGESTED_CONSTRAINTS`, `SUGGESTED_NEGATIVE_REJECTIONS`, `FLAGGED_WEAKNESSES`).
+  - Added 1-click **"Inject Hardened Constraints & Rejections"** and **"Adopt Hardened Intention"** in-place actions in 7-Layer Brief.
+  - Completed missing UI state rendering for Candidate Premise 3 and Layer 6 Negative Rejection Conditions list.
+  - Verified 0 TypeScript errors with `pnpm run check`, verified production build with `pnpm run build`, and passed all unit test assertions.
 
 - [ ] **Task 22: M4 Studio — Causal Calibration Coach & Taste-Narrowness Detector**
   - Integrate pre-run reality check in `M4PipelineCalibration.svelte` evaluating causal hypotheses and stated confidence percentages prior to execution.

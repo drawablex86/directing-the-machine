@@ -73,6 +73,26 @@ export interface PositionVerdict {
 	primaryRisk?: string;
 }
 
+export interface PremiseTriangulation {
+	recommendedPremise: number;
+	divergenceRating: 'HIGH' | 'MEDIUM' | 'LOW_COLLAPSED';
+	rejectionSoundness: 'SOUND' | 'ARBITRARY' | 'UNEXAMINED';
+	sharpenedPremises?: {
+		premise1?: string;
+		premise2?: string;
+		premise3?: string;
+	};
+	riskAnalysis?: string;
+}
+
+export interface BriefRedline {
+	verdict: 'OPERATIONAL' | 'LOOPHOLED' | 'AMBIGUOUS' | 'DEFICIENT';
+	hardenedIntention?: string;
+	suggestedConstraints?: string[];
+	suggestedNegativeRejections?: string[];
+	flaggedWeaknesses?: string[];
+}
+
 export interface CritiqueResult {
 	id: string;
 	timestamp: string;
@@ -94,6 +114,8 @@ export interface CritiqueResult {
 	recommendedLevel?: number;
 	tensionReframe?: TensionReframe;
 	positionVerdict?: PositionVerdict;
+	premiseTriangulation?: PremiseTriangulation;
+	briefRedline?: BriefRedline;
 }
 
 export interface LlmAction {
