@@ -15,18 +15,18 @@
 
 	<div class="relative z-10 space-y-4">
 		<div class="flex items-center gap-2">
-			<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-400 font-mono text-xs font-bold uppercase tracking-wider">
+			<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-500 font-mono text-xs font-bold uppercase tracking-wider">
 				<Sparkles class="w-3.5 h-3.5" />
 				<span>{hook.label}</span>
 			</span>
 			<span class="text-xs font-mono text-neutral-400">Deliberate Practice Studio</span>
 		</div>
 
-		<h3 class="text-xl sm:text-2xl font-serif font-black text-white tracking-tight">
+		<h3 class="text-xl sm:text-2xl font-serif font-bold text-neutral-100 tracking-tight">
 			Translate this essay into active creative muscle.
 		</h3>
 
-		<p class="text-sm font-serif text-neutral-300 max-w-2xl leading-relaxed">
+		<p class="text-sm text-neutral-300 max-w-2xl leading-relaxed">
 			{hook.description}
 		</p>
 

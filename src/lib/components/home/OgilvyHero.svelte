@@ -8,25 +8,25 @@
 
 	<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8 relative z-10">
 		<!-- Product Identification Eyebrow -->
-		<div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 text-amber-400 text-xs font-mono uppercase tracking-widest font-semibold shadow-inner">
-			<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+		<div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 text-amber-500 text-xs font-mono uppercase tracking-widest font-semibold shadow-inner">
+			<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
 			<span>Open-Access Curriculum & Deliberate Practice Studio</span>
 		</div>
 
 		<!-- Ogilvy Headline (Arresting, Specific, High-Intellect) -->
-		<h1 class="text-3xl sm:text-5xl lg:text-6xl font-serif font-black tracking-tight text-white leading-[1.12] sm:leading-[1.14] max-w-5xl mx-auto">
+		<h1 class="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold tracking-tight text-neutral-100 leading-[1.14] max-w-5xl mx-auto">
 			When Any Machine Can Render a Masterpiece in Three Seconds,
-			<span class="block mt-2 italic text-amber-400 font-serif font-medium">
+			<span class="block mt-2 italic text-amber-500 font-serif font-medium">
 				The Only Thing That Matters Is Knowing What to Ask For—and When to Throw It Away.
 			</span>
 		</h1>
 
 		<!-- Unmistakable Plain-English Definition & Core Pitch -->
-		<div class="max-w-3xl mx-auto space-y-4 text-base sm:text-lg text-neutral-300 font-serif leading-relaxed text-justify sm:text-center">
-			<p class="font-medium text-amber-200/90 text-sm sm:text-base font-sans">
+		<div class="max-w-3xl mx-auto space-y-4 text-base sm:text-lg text-neutral-300 leading-relaxed text-center">
+			<p class="font-medium text-amber-500/90 text-sm sm:text-base">
 				A comprehensive 9-month curriculum and in-browser workbench designed to transition creative practitioners from prompt-dependent operators to sovereign creative directors.
 			</p>
-			<p class="text-neutral-400 font-serif text-sm sm:text-base leading-relaxed">
+			<p class="text-neutral-400 text-sm sm:text-base leading-relaxed">
 				Generative AI has driven execution cost to zero, flooding the world with frictionless mediocrity. The true bottleneck has moved upstream—to diagnostic vision, non-instrumental attention, 7-layer structural constraints, predictive calibration, and the moral courage of refusal.
 			</p>
 		</div>
@@ -64,7 +64,7 @@
 				<div class="flex items-center justify-between pb-3 border-b border-neutral-800">
 					<div class="flex items-center gap-2 text-xs font-mono">
 						<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-						<span class="text-white font-bold">Studio Active</span>
+						<span class="text-neutral-100 font-semibold">Studio Active</span>
 						<span class="text-neutral-500">•</span>
 						<span class="text-neutral-400">Day 1: Part I (Find & Observe)</span>
 					</div>
@@ -77,19 +77,19 @@
 				<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 					<div class="p-3 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-1">
 						<div class="text-[10px] font-mono uppercase text-amber-500 font-bold">Today's Reading</div>
-						<div class="text-xs font-serif font-bold text-white truncate">Module 01: The Diagnostic Ladder</div>
+						<div class="text-xs font-semibold text-neutral-100 truncate">Module 01: The Diagnostic Ladder</div>
 						<div class="text-[11px] text-neutral-400">Top-down visual & textual hierarchies</div>
 					</div>
 
 					<div class="p-3 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-1">
 						<div class="text-[10px] font-mono uppercase text-amber-500 font-bold">Active Drill</div>
-						<div class="text-xs font-serif font-bold text-white truncate">5-Second Flash Massing</div>
+						<div class="text-xs font-semibold text-neutral-100 truncate">5-Second Flash Massing</div>
 						<div class="text-[11px] text-neutral-400">Reconstruct focal planes without adjectives</div>
 					</div>
 
 					<div class="p-3 rounded-xl bg-neutral-950/80 border border-neutral-800 space-y-1">
 						<div class="text-[10px] font-mono uppercase text-amber-500 font-bold">Studio Engine</div>
-						<div class="text-xs font-serif font-bold text-white truncate">Zero-Adjective Regex Linter</div>
+						<div class="text-xs font-semibold text-neutral-100 truncate">Zero-Adjective Regex Linter</div>
 						<div class="text-[11px] text-emerald-400 font-mono font-medium">Active • 0% Adjective Bias</div>
 					</div>
 				</div>

@@ -48,10 +48,10 @@
 			<Clock class="w-3.5 h-3.5 text-amber-500" />
 			<span>The Daily Architecture</span>
 		</div>
-		<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight">
+		<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 			The Non-Negotiable Daily Practice Loop
 		</h2>
-		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base font-serif leading-relaxed">
+		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base leading-relaxed">
 			Deliberate practice is not passive video watching. Every day follows a disciplined, time-bounded cadence designed to build instinct without degenerating into productivity theatre.
 		</p>
 	</div>
@@ -64,29 +64,29 @@
 				<div class="space-y-4">
 					<!-- Step Number & Duration Badge -->
 					<div class="flex items-center justify-between pb-3 border-b border-neutral-800/70">
-						<span class="font-mono text-xl font-black text-amber-500">
+						<span class="font-mono text-xl font-bold text-amber-500">
 							{step.number}
 						</span>
 						<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-1 rounded-full bg-neutral-950 border border-neutral-800 text-neutral-300">
-							<Clock class="w-3 h-3 text-amber-400" />
+							<Clock class="w-3 h-3 text-amber-500" />
 							<span>{step.duration}</span>
 						</span>
 					</div>
 
 					<!-- Icon & Title -->
 					<div class="space-y-1">
-						<div class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-center text-amber-400 group-hover:border-amber-500/40 group-hover:scale-105 transition">
+						<div class="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-center text-amber-500 group-hover:border-amber-500/40 group-hover:scale-105 transition">
 							<StepIcon class="w-5 h-5" />
 						</div>
-						<h3 class="text-lg font-serif font-bold text-white pt-2">
+						<h3 class="text-lg font-serif font-bold text-neutral-100 pt-2">
 							{step.name}
 						</h3>
-						<div class="text-xs font-mono uppercase text-amber-400/90 font-semibold tracking-wider">
+						<div class="text-xs font-mono uppercase text-amber-500 font-semibold tracking-wider">
 							{step.tagline}
 						</div>
 					</div>
 
-					<p class="text-xs sm:text-sm text-neutral-400 font-serif leading-relaxed">
+					<p class="text-xs sm:text-sm text-neutral-400 leading-relaxed">
 						{step.description}
 					</p>
 				</div>

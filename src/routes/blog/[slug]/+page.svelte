@@ -101,25 +101,25 @@
 	{@html `<script type="application/ld+json">${JSON.stringify(structuredData)}</script>`}
 </svelte:head>
 
-<div class="min-h-screen flex flex-col bg-neutral-950 text-neutral-100 selection:bg-amber-500 selection:text-neutral-950 antialiased font-sans">
+<div class="flex flex-col min-h-screen">
 	<BlogHeader title={post.title} />
 
 	<main id="main-content" class="flex-1 py-10 md:py-16">
 		<article class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<!-- Breadcrumb Navigation -->
 			<nav class="flex items-center gap-2 text-xs font-mono text-neutral-400 mb-8 overflow-x-auto whitespace-nowrap" aria-label="Breadcrumb">
-				<a href="/" class="hover:text-amber-400 transition">Home</a>
+				<a href="/" class="hover:text-amber-500 transition">Home</a>
 				<ChevronRight class="w-3.5 h-3.5 text-neutral-600 shrink-0" />
-				<a href="/blog" class="hover:text-amber-400 transition">Field Essays</a>
+				<a href="/blog" class="hover:text-amber-500 transition">Field Essays</a>
 				<ChevronRight class="w-3.5 h-3.5 text-neutral-600 shrink-0" />
 				<span class="text-neutral-300 truncate max-w-xs">{post.title}</span>
 			</nav>
 
 			<!-- Header Matter -->
-			<header class="max-w-3xl space-y-6 pb-10 border-b border-neutral-900">
+			<header class="max-w-3xl space-y-6 pb-10 border-b border-neutral-800">
 				<!-- Category & Read Time -->
 				<div class="flex flex-wrap items-center gap-3 text-xs font-mono">
-					<span class="px-2.5 py-1 rounded-md border text-amber-400 bg-amber-500/10 border-amber-500/30 font-semibold uppercase tracking-wider">
+					<span class="px-2.5 py-1 rounded-md border text-amber-500 bg-amber-500/10 border-amber-500/30 font-semibold uppercase tracking-wider">
 						{post.category}
 					</span>
 
@@ -137,7 +137,7 @@
 				</div>
 
 				<!-- Main Headline -->
-				<h1 class="text-3xl sm:text-5xl font-serif font-black text-white tracking-tight leading-tight">
+				<h1 class="text-3xl sm:text-5xl font-serif font-bold text-neutral-100 tracking-tight leading-tight">
 					{post.title}
 				</h1>
 
@@ -178,7 +178,7 @@
 				<!-- Left Prose Column -->
 				<div class="lg:col-span-8 space-y-8">
 					<!-- Rendered Markdown Body -->
-					<div class="prose prose-invert max-w-none font-serif text-neutral-200 text-base sm:text-lg leading-relaxed selection:bg-amber-500 selection:text-neutral-950">
+					<div class="reader-prose max-w-none font-serif text-neutral-200 text-base sm:text-lg leading-relaxed">
 						{@html rendered.html}
 					</div>
 
@@ -188,11 +188,11 @@
 					<!-- Author Biographical Box / Attribution Colophon -->
 					<section class="p-6 sm:p-8 rounded-2xl border border-neutral-800 bg-neutral-900/40 space-y-4">
 						<div class="flex items-center gap-3">
-							<div class="w-12 h-12 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center font-serif font-black text-amber-500 text-lg">
+							<div class="w-12 h-12 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center font-serif font-bold text-amber-500 text-lg">
 								RR
 							</div>
 							<div>
-								<h3 class="font-serif font-bold text-base text-white">
+								<h3 class="font-serif font-bold text-base text-neutral-100">
 									About Rahul Rajeev
 								</h3>
 								<p class="text-xs font-mono text-neutral-400">
@@ -225,7 +225,7 @@
 					<!-- Related Articles -->
 					{#if relatedPosts.length > 0}
 						<div class="pt-10 border-t border-neutral-900 space-y-6">
-							<h3 class="text-xl font-serif font-bold text-white tracking-tight">
+							<h3 class="text-xl font-serif font-bold text-neutral-100 tracking-tight">
 								Continue Reading Field Essays
 							</h3>
 

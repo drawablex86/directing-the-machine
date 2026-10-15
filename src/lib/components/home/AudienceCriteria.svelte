@@ -47,10 +47,10 @@
 			<ShieldAlert class="w-3.5 h-3.5 text-amber-500" />
 			<span>Honest Qualification</span>
 		</div>
-		<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight">
+		<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 			Who Directing the Machine Is For—And Who Should Turn Back
 		</h2>
-		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base font-serif leading-relaxed">
+		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base leading-relaxed">
 			We respect your time too much to pretend this curriculum is for everyone. It was designed from the ground up for practitioners with existing discipline who want to direct tools rather than be directed by them.
 		</p>
 	</div>
@@ -58,7 +58,7 @@
 	<!-- 2-Column Split Matrix -->
 	<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
 		<!-- Column 1: Who This Is For -->
-		<div class="p-6 sm:p-8 rounded-3xl bg-neutral-900/30 border border-emerald-500/30 flex flex-col justify-between space-y-6">
+		<div class="p-6 sm:p-8 rounded-3xl bg-neutral-900/40 border border-emerald-500/30 flex flex-col justify-between space-y-6">
 			<div class="space-y-6">
 				<div class="flex items-center gap-2.5 pb-4 border-b border-emerald-500/20 text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider">
 					<CheckCircle2 class="w-4 h-4 text-emerald-400 shrink-0" />
@@ -68,11 +68,11 @@
 				<div class="space-y-5">
 					{#each forYou as item}
 						<div class="space-y-1">
-							<h3 class="text-base font-serif font-bold text-white flex items-center gap-2">
+							<h3 class="text-base font-semibold text-neutral-100 flex items-center gap-2">
 								<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
 								<span>{item.title}</span>
 							</h3>
-							<p class="text-xs sm:text-sm text-neutral-300 font-serif leading-relaxed pl-3.5">
+							<p class="text-xs sm:text-sm text-neutral-300 leading-relaxed pl-3.5">
 								{item.description}
 							</p>
 						</div>
@@ -83,7 +83,7 @@
 			<div class="pt-4 border-t border-neutral-800">
 				<a
 					href="/app?tab=today"
-					class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-bold text-xs transition cursor-pointer"
+					class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-semibold text-xs transition cursor-pointer"
 				>
 					<span>I Meet the Criteria — Enter Practice Studio</span>
 					<ArrowRight class="w-3.5 h-3.5" />
@@ -92,7 +92,7 @@
 		</div>
 
 		<!-- Column 2: Who Should Turn Back -->
-		<div class="p-6 sm:p-8 rounded-3xl bg-neutral-900/30 border border-rose-500/30 flex flex-col justify-between space-y-6">
+		<div class="p-6 sm:p-8 rounded-3xl bg-neutral-900/40 border border-rose-500/30 flex flex-col justify-between space-y-6">
 			<div class="space-y-6">
 				<div class="flex items-center gap-2.5 pb-4 border-b border-rose-500/20 text-rose-400 font-mono text-xs font-bold uppercase tracking-wider">
 					<XCircle class="w-4 h-4 text-rose-400 shrink-0" />
@@ -102,11 +102,11 @@
 				<div class="space-y-5">
 					{#each notForYou as item}
 						<div class="space-y-1">
-							<h3 class="text-base font-serif font-bold text-neutral-200 flex items-center gap-2">
+							<h3 class="text-base font-semibold text-neutral-100 flex items-center gap-2">
 								<span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>
 								<span>{item.title}</span>
 							</h3>
-							<p class="text-xs sm:text-sm text-neutral-400 font-serif leading-relaxed pl-3.5">
+							<p class="text-xs sm:text-sm text-neutral-400 leading-relaxed pl-3.5">
 								{item.description}
 							</p>
 						</div>
@@ -115,7 +115,7 @@
 			</div>
 
 			<div class="pt-4 border-t border-neutral-800">
-				<div class="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-[11px] font-mono text-neutral-400 text-center">
+				<div class="p-3 rounded-xl bg-neutral-900/60 border border-neutral-800 text-[11px] font-mono text-neutral-400 text-center">
 					High standards protect your focus. We encourage choosing a program that fits your goals.
 				</div>
 			</div>

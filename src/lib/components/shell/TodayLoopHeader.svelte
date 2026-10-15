@@ -25,11 +25,8 @@
 
 	let showFullLoop = $state(false);
 
-	function cycleTheme() {
-		const current = practiceStore.learnerPreferences.theme;
-		const order: Array<typeof current> = ['dark', 'light', 'sepia', 'midnight', 'high-contrast'];
-		const nextIndex = (order.indexOf(current) + 1) % order.length;
-		practiceStore.learnerPreferences.theme = order[nextIndex];
+	function toggleTheme() {
+		practiceStore.learnerPreferences.theme = practiceStore.learnerPreferences.theme === 'dark' ? 'light' : 'dark';
 		practiceStore.saveToStorage();
 	}
 
@@ -149,13 +146,13 @@
 			<!-- Quick Theme Switcher Pill -->
 			<button
 				type="button"
-				onclick={cycleTheme}
+				onclick={toggleTheme}
 				class="px-2.5 py-1.5 rounded-xl text-xs bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-300 hover:text-white flex items-center gap-1.5 transition cursor-pointer"
-				title="Cycle Color Palette: {practiceStore.learnerPreferences.theme.toUpperCase()}"
-				aria-label="Cycle visual palette (currently {practiceStore.learnerPreferences.theme})"
+				title="Theme: {practiceStore.learnerPreferences.theme === 'dark' ? 'Switch to Paper (Light)' : 'Switch to Stone (Dark)'}"
+				aria-label="Toggle visual palette (currently {practiceStore.learnerPreferences.theme === 'dark' ? 'Stone' : 'Paper'})"
 			>
 				<Palette class="w-3.5 h-3.5 text-amber-400" />
-				<span class="capitalize hidden lg:inline text-[11px] font-mono">{practiceStore.learnerPreferences.theme}</span>
+				<span class="capitalize hidden lg:inline text-[11px] font-mono">{practiceStore.learnerPreferences.theme === 'dark' ? 'Stone' : 'Paper'}</span>
 			</button>
 
 			<!-- Preferences & Inclusivity Dialog Trigger -->

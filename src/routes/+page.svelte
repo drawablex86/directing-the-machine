@@ -18,7 +18,7 @@
 
 <SeoHead />
 
-<div class="min-h-screen flex flex-col bg-neutral-950 text-neutral-100 selection:bg-amber-500 selection:text-neutral-950 antialiased font-sans">
+<div class="flex flex-col min-h-screen">
 	<HomeNavbar />
 
 	<main id="main-content" class="flex-1">
@@ -59,14 +59,14 @@
 					<Sparkles class="w-6 h-6" />
 				</div>
 
-				<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight leading-snug">
+				<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight leading-snug">
 					“The master does not fear the machine’s speed.
-					<span class="block italic text-amber-400 font-serif font-medium mt-1">
+					<span class="block italic text-amber-500 font-serif font-medium mt-1">
 						The master fears having nothing singular to ask of it.”
 					</span>
 				</h2>
 
-				<p class="text-sm sm:text-base font-serif text-neutral-300 max-w-2xl mx-auto leading-relaxed">
+				<p class="text-sm sm:text-base text-neutral-300 max-w-2xl mx-auto leading-relaxed">
 					Stop consuming ephemeral prompt swipe files. Begin deliberate training in non-instrumental attention, diagnostic ladders, blind curation, mathematical calibration, and blank-sheet authorship today.
 				</p>
 

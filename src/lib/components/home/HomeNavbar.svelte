@@ -28,11 +28,8 @@
 	let themeDropdownOpen = $state(false);
 
 	const themes = [
-		{ id: 'dark', label: 'Obsidian', icon: Moon, desc: 'Deep slate & amber glow' },
-		{ id: 'light', label: 'Ivory Paper', icon: Sun, desc: 'Editorial warm parchment' },
-		{ id: 'sepia', label: 'Warm Sepia', icon: Coffee, desc: 'Low-glare reading hue' },
-		{ id: 'midnight', label: 'Midnight', icon: Compass, desc: 'OLED circadian navy' },
-		{ id: 'high-contrast', label: 'AAA 21:1', icon: Shield, desc: 'Maximum accessibility' }
+		{ id: 'dark', label: 'Stone', icon: Moon, desc: 'Volcanic slate & amber glow' },
+		{ id: 'light', label: 'Paper', icon: Sun, desc: 'Archival paper & carbon ink' }
 	] as const;
 
 	function setTheme(themeId: (typeof themes)[number]['id']) {
@@ -41,11 +38,8 @@
 		themeDropdownOpen = false;
 	}
 
-	function cycleTheme() {
-		const current = practiceStore.learnerPreferences.theme;
-		const order: Array<typeof current> = ['dark', 'light', 'sepia', 'midnight', 'high-contrast'];
-		const nextIndex = (order.indexOf(current) + 1) % order.length;
-		practiceStore.learnerPreferences.theme = order[nextIndex];
+	function toggleTheme() {
+		practiceStore.learnerPreferences.theme = practiceStore.learnerPreferences.theme === 'dark' ? 'light' : 'dark';
 		practiceStore.saveToStorage();
 	}
 
@@ -257,47 +251,22 @@
 
 		<!-- Right Side CTAs & Utilities -->
 		<div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
-			<!-- Visual Theme Palette Switcher Dropdown -->
-			<div class="relative dropdown-container">
-				<button
-					type="button"
-					onclick={() => (themeDropdownOpen = !themeDropdownOpen)}
-					aria-expanded={themeDropdownOpen}
-					aria-label="Change color palette (Current: {currentThemeInfo.label})"
-					class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-mono text-neutral-300 hover:text-white bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
-				>
-					<currentThemeInfo.icon class="w-3.5 h-3.5 text-amber-400 transition-transform duration-200" />
-					<span class="capitalize hidden sm:inline text-[11px] font-medium">{currentThemeInfo.label}</span>
-					<ChevronDown class="w-3 h-3 text-neutral-400 hidden sm:inline transition-transform duration-200 {themeDropdownOpen ? 'rotate-180' : ''}" />
-				</button>
-
-				{#if themeDropdownOpen}
-					<div
-						class="absolute right-0 mt-1.5 w-52 p-1.5 rounded-2xl bg-neutral-950/95 backdrop-blur-2xl border border-neutral-800 shadow-2xl z-50 animate-in fade-in duration-100"
-					>
-						<div class="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-semibold border-b border-neutral-800/80 mb-1">
-							Color Palette
-						</div>
-						<div class="space-y-0.5">
-							{#each themes as t}
-								<button
-									type="button"
-									onclick={() => setTheme(t.id)}
-									class="w-full text-left px-2.5 py-1.5 rounded-xl text-xs flex items-center justify-between transition cursor-pointer {practiceStore.learnerPreferences.theme === t.id ? 'bg-amber-500/15 text-amber-400 font-semibold' : 'text-neutral-300 hover:bg-neutral-900 hover:text-white'}"
-								>
-									<div class="flex items-center gap-2">
-										<t.icon class="w-3.5 h-3.5 {practiceStore.learnerPreferences.theme === t.id ? 'text-amber-400' : 'text-neutral-400'}" />
-										<span>{t.label}</span>
-									</div>
-									{#if practiceStore.learnerPreferences.theme === t.id}
-										<CheckCircle2 class="w-3.5 h-3.5 text-amber-400" />
-									{/if}
-								</button>
-							{/each}
-						</div>
-					</div>
+			<!-- 1-Click Stone / Paper Theme Toggle -->
+			<button
+				type="button"
+				onclick={toggleTheme}
+				aria-label="Toggle visual theme (Current: {practiceStore.learnerPreferences.theme === 'dark' ? 'Stone' : 'Paper'})"
+				title="Toggle theme: {practiceStore.learnerPreferences.theme === 'dark' ? 'Switch to Paper (Light)' : 'Switch to Stone (Dark)'}"
+				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono text-neutral-300 hover:text-white bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+			>
+				{#if practiceStore.learnerPreferences.theme === 'dark'}
+					<Moon class="w-3.5 h-3.5 text-amber-400" />
+					<span class="hidden sm:inline text-[11px] font-medium">Stone</span>
+				{:else}
+					<Sun class="w-3.5 h-3.5 text-amber-500" />
+					<span class="hidden sm:inline text-[11px] font-medium">Paper</span>
 				{/if}
-			</div>
+			</button>
 
 			<!-- Logbook Button -->
 			<a
@@ -445,14 +414,14 @@
 					<div class="text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-semibold mb-1.5">
 						Select Visual Theme
 					</div>
-					<div class="grid grid-cols-3 gap-1.5">
+					<div class="grid grid-cols-2 gap-2">
 						{#each themes as t}
 							<button
 								type="button"
 								onclick={() => { setTheme(t.id); closeMobileMenu(); }}
-								class="px-2 py-1.5 rounded-lg border text-[11px] font-mono flex items-center justify-center gap-1.5 transition {practiceStore.learnerPreferences.theme === t.id ? 'bg-amber-500/20 border-amber-500/50 text-amber-300' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+								class="px-3 py-2 rounded-xl border text-xs font-mono flex items-center justify-center gap-2 transition {practiceStore.learnerPreferences.theme === t.id ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 font-semibold' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
 							>
-								<t.icon class="w-3 h-3" />
+								<t.icon class="w-3.5 h-3.5" />
 								<span>{t.label}</span>
 							</button>
 						{/each}

@@ -107,14 +107,14 @@
 <section id="contrast" class="py-20 md:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-neutral-800/80">
 	<!-- Section Header -->
 	<div class="space-y-4 mb-14 text-center sm:text-left">
-		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono uppercase tracking-widest font-semibold">
+		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono uppercase tracking-widest font-semibold">
 			<Scale class="w-3.5 h-3.5 text-amber-500" />
 			<span>The Paradigm Shift</span>
 		</div>
-		<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight">
+		<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 			Prompt Engineering vs. Creative Direction
 		</h2>
-		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base font-serif leading-relaxed">
+		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base leading-relaxed">
 			Prompting is an ephemeral trick that loses value with every model release. Creative direction is a durable discipline grounded in diagnostic perception, structural constraints, and moral standing.
 		</p>
 	</div>
@@ -149,10 +149,10 @@
 				</div>
 
 				<div>
-					<h3 class="text-xl font-serif font-bold text-white tracking-tight">
+					<h3 class="text-xl font-semibold text-neutral-100 tracking-tight">
 						{comparisons[activeIdx].amateur.title}
 					</h3>
-					<p class="text-xs sm:text-sm text-neutral-400 mt-2 font-sans leading-relaxed">
+					<p class="text-xs sm:text-sm text-neutral-400 mt-2 leading-relaxed">
 						{comparisons[activeIdx].amateur.mindset}
 					</p>
 				</div>
@@ -189,10 +189,10 @@
 				</div>
 
 				<div>
-					<h3 class="text-xl font-serif font-bold text-white tracking-tight">
+					<h3 class="text-xl font-semibold text-neutral-100 tracking-tight">
 						{comparisons[activeIdx].director.title}
 					</h3>
-					<p class="text-xs sm:text-sm text-neutral-300 mt-2 font-sans leading-relaxed">
+					<p class="text-xs sm:text-sm text-neutral-300 mt-2 leading-relaxed">
 						{comparisons[activeIdx].director.mindset}
 					</p>
 				</div>
@@ -209,7 +209,7 @@
 				<div class="text-[11px] font-mono uppercase text-emerald-400 font-bold tracking-wider">
 					The Creative Advantage:
 				</div>
-				<p class="text-xs sm:text-sm text-neutral-200 font-serif leading-relaxed">
+				<p class="text-xs sm:text-sm text-neutral-200 leading-relaxed">
 					{comparisons[activeIdx].director.advantage}
 				</p>
 			</div>
@@ -220,7 +220,7 @@
 	<div class="mt-8 p-4 sm:p-5 rounded-2xl bg-neutral-900/40 border border-neutral-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 		<div class="flex items-center gap-3">
 			<div class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></div>
-			<p class="text-xs sm:text-sm font-serif text-neutral-300">
+			<p class="text-xs sm:text-sm text-neutral-300">
 				Want to systematically replace prompt hacking with structural direction in your own work?
 			</p>
 		</div>

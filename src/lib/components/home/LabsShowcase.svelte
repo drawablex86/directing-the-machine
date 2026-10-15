@@ -115,14 +115,14 @@
 <section id="studios" class="py-20 md:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-neutral-800/80">
 	<!-- Section Header -->
 	<div class="space-y-4 mb-14 text-center sm:text-left">
-		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono uppercase tracking-widest font-semibold">
+		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono uppercase tracking-widest font-semibold">
 			<Cpu class="w-3.5 h-3.5 text-amber-500" />
 			<span>The Specialized Workbench</span>
 		</div>
-		<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight">
+		<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 			Eight Deliberate Studios Built to Train Judgment, Not Speed
 		</h2>
-		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base font-serif leading-relaxed">
+		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base leading-relaxed">
 			Every lab targets a specific cognitive breakdown point where human operators typically surrender intent to machine defaults. Select any studio to inspect its underlying engine.
 		</p>
 	</div>
@@ -139,7 +139,7 @@
 				<ModIcon class="w-5 h-5 {selectedModalityId === mod.id ? 'text-neutral-950' : 'text-amber-500'}" />
 				<div>
 					<div class="text-[10px] font-mono uppercase tracking-wider font-bold">{mod.code}</div>
-					<div class="text-[11px] font-serif leading-tight truncate w-16 sm:w-20">{mod.name.split(' ')[0]}</div>
+					<div class="text-[11px] font-sans font-medium leading-tight truncate w-16 sm:w-20">{mod.name.split(' ')[0]}</div>
 				</div>
 			</button>
 		{/each}
@@ -161,7 +161,7 @@
 							</span>
 							<span class="text-xs font-mono text-neutral-400">Core Studio Workbench</span>
 						</div>
-						<h3 class="text-xl sm:text-2xl font-serif font-bold text-white mt-1">
+						<h3 class="text-xl sm:text-2xl font-serif font-bold text-neutral-100 mt-1">
 							{activeMod.name}
 						</h3>
 				</div>
@@ -184,18 +184,18 @@
 					<AlertTriangle class="w-3.5 h-3.5" />
 					<span>Cognitive Trap Solved</span>
 				</div>
-				<p class="text-neutral-300 font-serif leading-relaxed">
+				<p class="text-neutral-300 leading-relaxed">
 					{activeMod.trap}
 				</p>
 			</div>
 
 			<!-- Col 2: Embedded Engine -->
 			<div class="p-4 rounded-2xl bg-neutral-950/70 border border-neutral-800/80 space-y-2">
-				<div class="flex items-center gap-1.5 text-amber-400 font-mono uppercase font-bold text-[11px] tracking-wider">
+				<div class="flex items-center gap-1.5 text-amber-500 font-mono uppercase font-bold text-[11px] tracking-wider">
 					<Cpu class="w-3.5 h-3.5" />
 					<span>Mathematical / Structural Engine</span>
 				</div>
-				<p class="text-neutral-300 font-serif leading-relaxed">
+				<p class="text-neutral-300 leading-relaxed">
 					{activeMod.engine}
 				</p>
 			</div>
@@ -206,7 +206,7 @@
 					<CheckCircle2 class="w-3.5 h-3.5" />
 					<span>Production Artifact Required</span>
 				</div>
-				<p class="text-neutral-300 font-serif leading-relaxed">
+				<p class="text-neutral-300 leading-relaxed">
 					{activeMod.deliverable}
 				</p>
 			</div>

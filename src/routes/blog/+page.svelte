@@ -59,27 +59,27 @@
 	{@html `<script type="application/ld+json">${JSON.stringify(structuredData)}</script>`}
 </svelte:head>
 
-<div class="min-h-screen flex flex-col bg-neutral-950 text-neutral-100 selection:bg-amber-500 selection:text-neutral-950 antialiased font-sans">
+<div class="flex flex-col min-h-screen">
 	<HomeNavbar />
 
 	<main id="main-content" class="flex-1 py-12 md:py-20">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
 			<!-- Header / Editorial Statement -->
 			<div class="max-w-3xl space-y-5">
-				<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 text-xs font-mono font-semibold">
+				<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-500 text-xs font-mono font-semibold">
 					<BookOpen class="w-3.5 h-3.5" />
 					<span>Field Essays & Critical Dispatches</span>
 				</div>
 
-				<h1 class="text-3xl sm:text-5xl font-serif font-black tracking-tight text-white leading-tight">
+				<h1 class="text-3xl sm:text-5xl font-serif font-bold tracking-tight text-neutral-100 leading-tight">
 					"The master does not fear the machine’s speed.  
-					<span class="block italic text-amber-400 font-serif font-medium mt-1">
+					<span class="block italic text-amber-500 font-serif font-medium mt-1">
 						The master fears having nothing singular to ask of it."
 					</span>
 				</h1>
 
-				<p class="text-base sm:text-lg font-serif text-neutral-300 leading-relaxed">
-					Long-form inquiry into creative direction, negative constraints, diagnostic taste, and blank-sheet authorship in an AI-augmented world. Written and curated by <strong class="text-white font-medium">Rahul Rajeev</strong>.
+				<p class="text-base sm:text-lg text-neutral-300 leading-relaxed">
+					Long-form inquiry into creative direction, negative constraints, diagnostic taste, and blank-sheet authorship in an AI-augmented world. Written and curated by <strong class="text-neutral-100 font-semibold">Rahul Rajeev</strong>.
 				</p>
 			</div>
 
@@ -95,7 +95,7 @@
 							<span class="text-neutral-400">{featuredPost.readingTimeMinutes} min read</span>
 						</div>
 
-						<h2 class="text-2xl sm:text-4xl font-serif font-black text-white group-hover:text-amber-400 transition tracking-tight leading-snug">
+						<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 group-hover:text-amber-500 transition tracking-tight leading-snug">
 							<a href="/blog/{featuredPost.slug}">
 								{featuredPost.title}
 							</a>
@@ -184,7 +184,7 @@
 					<Compass class="w-6 h-6" />
 				</div>
 
-				<h3 class="text-2xl sm:text-3xl font-serif font-black text-white tracking-tight">
+				<h3 class="text-2xl sm:text-3xl font-serif font-bold text-neutral-100 tracking-tight">
 					Ready to practice what you read?
 				</h3>
 

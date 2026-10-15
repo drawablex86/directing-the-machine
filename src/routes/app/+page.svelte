@@ -159,7 +159,7 @@
 	<meta name="description" content="Interactive 8-modality deliberate practice workbench, daily curriculum roadmap, and evaluation loops." />
 </svelte:head>
 
-<div class="min-h-screen flex flex-col bg-neutral-950 text-neutral-100 selection:bg-amber-500 selection:text-neutral-950">
+<div class="flex flex-col min-h-screen">
 	<TodayLoopHeader
 		onOpenDrawer={() => isDrawerOpen = true}
 		onOpenFailure={() => isFailureModalOpen = true}

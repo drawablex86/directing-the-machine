@@ -123,14 +123,14 @@
 <section id="diagnostic" class="py-20 md:py-28 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-neutral-800/80">
 	<!-- Section Header -->
 	<div class="space-y-4 mb-12 text-center sm:text-left">
-		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono uppercase tracking-widest font-semibold">
+		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono uppercase tracking-widest font-semibold">
 			<Scale class="w-3.5 h-3.5 text-amber-500" />
 			<span>2-Minute Interactive Taste & Calibration Test</span>
 		</div>
-		<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight">
+		<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 			Test Your Sensibility: Prompt Monkeying vs. True Direction
 		</h2>
-		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base font-serif leading-relaxed">
+		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base leading-relaxed">
 			Can you spot the difference between lazy adjective-laden prompting and rigorous structural intent? Take this 4-part diagnostic.
 		</p>
 	</div>
@@ -145,13 +145,13 @@
 				</div>
 
 				<div class="space-y-2">
-					<span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-bold">
+					<span class="text-xs font-mono uppercase tracking-widest text-amber-500 font-bold">
 						Diagnostic Evaluation Complete
 					</span>
-					<h3 class="text-2xl sm:text-3xl font-serif font-bold text-white">
+					<h3 class="text-2xl sm:text-3xl font-serif font-bold text-neutral-100">
 						Your Sensibility Score: {structuralCount} / {questions.length} Structural Intent
 					</h3>
-					<p class="text-sm font-serif text-neutral-300 max-w-xl mx-auto leading-relaxed">
+					<p class="text-sm text-neutral-300 max-w-xl mx-auto leading-relaxed">
 						{#if structuralCount === 4}
 							Master Director Instincts — You naturally distinguish between lazy adjectives, retrospective rationalization, and structural authorship. You are primed for Week 1 Studio.
 						{:else if structuralCount >= 2}
@@ -211,7 +211,7 @@
 
 			<!-- Question Context -->
 			<div class="space-y-2">
-				<p class="text-sm sm:text-base font-serif text-neutral-200 leading-relaxed">
+				<p class="text-sm sm:text-base text-neutral-200 leading-relaxed">
 					{questions[activeIdx].context}
 				</p>
 				<p class="text-xs font-mono uppercase text-neutral-500">
@@ -237,7 +237,7 @@
 					</div>
 
 					{#if answers[questions[activeIdx].id] === 'A'}
-						<div class="mt-4 pt-3 border-t border-current/20 text-xs font-serif leading-relaxed">
+						<div class="mt-4 pt-3 border-t border-current/20 text-xs leading-relaxed">
 							{questions[activeIdx].optionA.feedback}
 						</div>
 					{/if}
@@ -259,7 +259,7 @@
 					</div>
 
 					{#if answers[questions[activeIdx].id] === 'B'}
-						<div class="mt-4 pt-3 border-t border-current/20 text-xs font-serif leading-relaxed">
+						<div class="mt-4 pt-3 border-t border-current/20 text-xs leading-relaxed">
 							{questions[activeIdx].optionB.feedback}
 						</div>
 					{/if}
@@ -268,7 +268,7 @@
 
 			<!-- Explanation Banner when selected -->
 			{#if answers[questions[activeIdx].id]}
-				<div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 font-serif leading-relaxed flex items-start justify-between gap-3">
+				<div class="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-500 leading-relaxed flex items-start justify-between gap-3">
 					<div class="flex items-start gap-3">
 						<Sparkles class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
 						<div>

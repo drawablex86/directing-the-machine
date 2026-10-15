@@ -11,11 +11,11 @@
 					<div class="w-8 h-8 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center font-serif font-black text-amber-500">
 						D
 					</div>
-					<span class="font-serif font-bold text-lg text-white tracking-tight">
+					<span class="font-serif font-bold text-lg text-neutral-100 tracking-tight">
 						Directing the Machine
 					</span>
 				</div>
-				<p class="text-xs sm:text-sm font-serif text-neutral-400 max-w-xl leading-relaxed">
+				<p class="text-xs sm:text-sm text-neutral-400 max-w-xl leading-relaxed">
 					A complete meta-curriculum and deliberate practice studio for creative authorship, judgment, and intent in the age of generative intelligence. The execution layer has fallen; sensibility is the only durable moat.
 				</p>
 			</div>
@@ -23,7 +23,7 @@
 			<div class="lg:col-span-5 flex flex-col sm:flex-row items-start sm:items-center justify-end gap-3">
 				<a
 					href="/app"
-					class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow-lg shadow-amber-500/10 transition cursor-pointer"
+					class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-semibold text-xs shadow-lg shadow-amber-500/10 transition cursor-pointer"
 				>
 					<span>Open Studio Workbench</span>
 					<ArrowRight class="w-3.5 h-3.5" />

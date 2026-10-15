@@ -39,12 +39,12 @@
 
 		<!-- Title & Subtitle -->
 		<div class="space-y-2">
-			<h2 class="text-xl sm:text-2xl font-serif font-bold text-white group-hover:text-amber-400 transition tracking-tight leading-snug">
+			<h2 class="text-xl sm:text-2xl font-serif font-bold text-neutral-100 group-hover:text-amber-500 transition tracking-tight leading-snug">
 				<a href="/blog/{post.slug}" class="focus:outline-none focus:ring-2 focus:ring-amber-500 rounded-sm">
 					{post.title}
 				</a>
 			</h2>
-			<p class="text-sm font-serif text-neutral-300 line-clamp-3 leading-relaxed">
+			<p class="text-sm text-neutral-300 line-clamp-3 leading-relaxed">
 				{post.summary}
 			</p>
 		</div>

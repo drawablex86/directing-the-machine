@@ -37,7 +37,7 @@
 	}
 
 	// 1-Click Archetype Presets
-	function applyPreset(name: 'adhd' | 'dyslexia' | 'high-contrast' | 'default') {
+	function applyPreset(name: 'adhd' | 'dyslexia' | 'paper' | 'default') {
 		if (name === 'adhd') {
 			practiceStore.learnerPreferences = {
 				fontFamily: 'sans',
@@ -53,22 +53,22 @@
 			practiceStore.learnerPreferences = {
 				fontFamily: 'dyslexic',
 				fontSize: 'lg',
-				theme: 'sepia',
+				theme: 'light',
 				reducedMotion: true,
 				focusMode: false,
 				plainLanguageHelp: true,
 				soundEnabled: false,
 				lineSpacing: 'loose'
 			};
-		} else if (name === 'high-contrast') {
+		} else if (name === 'paper') {
 			practiceStore.learnerPreferences = {
-				fontFamily: 'mono',
+				fontFamily: 'sans',
 				fontSize: 'lg',
-				theme: 'high-contrast',
-				reducedMotion: true,
+				theme: 'light',
+				reducedMotion: false,
 				focusMode: false,
 				plainLanguageHelp: false,
-				soundEnabled: true,
+				soundEnabled: false,
 				lineSpacing: 'relaxed'
 			};
 		} else {
@@ -179,10 +179,10 @@
 					Dyslexia & Low Glare
 				</button>
 				<button
-					onclick={() => applyPreset('high-contrast')}
+					onclick={() => applyPreset('paper')}
 					class="text-xs px-3 py-1 rounded-xl bg-neutral-800/80 hover:bg-amber-500/20 hover:text-amber-300 border border-neutral-700/60 text-neutral-300 transition"
 				>
-					High Contrast (WCAG AAA)
+					Archival Paper Reading
 				</button>
 				<button
 					onclick={() => applyPreset('default')}
@@ -300,91 +300,41 @@
 				{:else if currentTab === 'theme'}
 					<!-- Themes -->
 					<div class="space-y-3">
-						<div class="font-semibold text-neutral-200 block" id="label-contrast">Visual Contrast & Colorway</div>
-						<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" role="radiogroup" aria-labelledby="label-contrast">
-							<!-- 1. Dark (Obsidian) -->
+						<div class="font-semibold text-neutral-200 block" id="label-contrast">Visual Contrast & Colorway (Kepano Stone & Paper)</div>
+						<p class="text-xs text-neutral-400">Two curated, high-legibility palettes inspired by Obsidian's Minimal aesthetic. Optimized for focused study and long-form reading.</p>
+						<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1" role="radiogroup" aria-labelledby="label-contrast">
+							<!-- 1. Dark (Studio Stone) -->
 							<button
 								type="button"
 								onclick={() => updatePref('theme', 'dark')}
-								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'dark' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
+								class="p-5 rounded-2xl border text-left transition {prefs.theme === 'dark' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
 							>
-								<div class="w-full h-8 rounded-lg bg-[#0c0d0e] border border-[#272a30] mb-2.5 flex items-center justify-between px-3">
-									<div class="flex items-center gap-1.5">
-										<div class="w-3 h-3 rounded-full bg-[#f59e0b]"></div>
-										<span class="text-[10px] font-mono text-[#f8fafc]">Aa</span>
+								<div class="w-full h-10 rounded-xl bg-[#161615] border border-[#2e2c29] mb-3 flex items-center justify-between px-3.5">
+									<div class="flex items-center gap-2">
+										<div class="w-3.5 h-3.5 rounded-full bg-[#f59e0b]"></div>
+										<span class="text-xs font-mono font-bold text-[#edeae3]">Aa Stone</span>
 									</div>
-									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#272a30] text-amber-400">WCAG AA</span>
+									<span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#252422] text-[#f59e0b] border border-[#3d3a36]">WCAG AA</span>
 								</div>
-								<div class="font-bold text-neutral-100 text-sm">Studio Obsidian</div>
-								<div class="text-xs text-neutral-400 mt-0.5">Calibrated dark neutral with warm amber accents.</div>
+								<div class="font-bold text-neutral-100 text-sm">Studio Stone (Dark)</div>
+								<div class="text-xs text-neutral-400 mt-1 leading-relaxed">Deep volcanic slate with warm parchment ink and amber glow accents. Low eye fatigue.</div>
 							</button>
 
-							<!-- 2. Light (Crisp Canvas) -->
+							<!-- 2. Light (Archival Paper) -->
 							<button
 								type="button"
 								onclick={() => updatePref('theme', 'light')}
-								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'light' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
+								class="p-5 rounded-2xl border text-left transition {prefs.theme === 'light' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
 							>
-								<div class="w-full h-8 rounded-lg bg-[#fbfaf8] border border-[#ded8cb] mb-2.5 flex items-center justify-between px-3">
-									<div class="flex items-center gap-1.5">
-										<div class="w-3 h-3 rounded-full bg-[#b45309]"></div>
-										<span class="text-[10px] font-mono font-bold text-[#171717]">Aa</span>
+								<div class="w-full h-10 rounded-xl bg-[#fbf9f5] border border-[#ded7cb] mb-3 flex items-center justify-between px-3.5">
+									<div class="flex items-center gap-2">
+										<div class="w-3.5 h-3.5 rounded-full bg-[#b45309]"></div>
+										<span class="text-xs font-mono font-bold text-[#1f1e1c]">Aa Paper</span>
 									</div>
-									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#eae6de] text-[#b45309]">WCAG AAA</span>
+									<span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#ece6dc] text-[#b45309] border border-[#cec4b2]">WCAG AAA</span>
 								</div>
-								<div class="font-bold text-neutral-100 text-sm">Crisp Canvas (Light)</div>
-								<div class="text-xs text-neutral-400 mt-0.5">Editorial ivory paper with deep carbon ink and bronze details.</div>
-							</button>
-
-							<!-- 3. Sepia (Warm Paper) -->
-							<button
-								type="button"
-								onclick={() => updatePref('theme', 'sepia')}
-								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'sepia' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
-							>
-								<div class="w-full h-8 rounded-lg bg-[#fbf7ee] border border-[#dacbaf] mb-2.5 flex items-center justify-between px-3">
-									<div class="flex items-center gap-1.5">
-										<div class="w-3 h-3 rounded-full bg-[#92400e]"></div>
-										<span class="text-[10px] font-mono font-bold text-[#2b2318]">Aa</span>
-									</div>
-									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#e6dac3] text-[#92400e]">Low Glare</span>
-								</div>
-								<div class="font-bold text-neutral-100 text-sm">Warm Paper (Sepia)</div>
-								<div class="text-xs text-neutral-400 mt-0.5">Natural unbleached tone to minimize photophobia & fatigue.</div>
-							</button>
-
-							<!-- 4. Midnight Navy (OLED) -->
-							<button
-								type="button"
-								onclick={() => updatePref('theme', 'midnight')}
-								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'midnight' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
-							>
-								<div class="w-full h-8 rounded-lg bg-[#080c14] border border-[#1e293b] mb-2.5 flex items-center justify-between px-3">
-									<div class="flex items-center gap-1.5">
-										<div class="w-3 h-3 rounded-full bg-[#38bdf8]"></div>
-										<span class="text-[10px] font-mono text-[#f1f5f9]">Aa</span>
-									</div>
-									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#1e293b] text-[#38bdf8]">Circadian</span>
-								</div>
-								<div class="font-bold text-neutral-100 text-sm">Midnight Navy</div>
-								<div class="text-xs text-neutral-400 mt-0.5">Deep indigo OLED dark mode with calming cyan accents.</div>
-							</button>
-
-							<!-- 5. High Contrast (WCAG AAA) -->
-							<button
-								type="button"
-								onclick={() => updatePref('theme', 'high-contrast')}
-								class="p-4 rounded-2xl border text-left transition {prefs.theme === 'high-contrast' ? 'border-amber-400 bg-amber-500/10 ring-1 ring-amber-400/30' : 'border-neutral-800 bg-neutral-950/60 hover:border-neutral-700'}"
-							>
-								<div class="w-full h-8 rounded-lg bg-black border border-white mb-2.5 flex items-center justify-between px-3">
-									<div class="flex items-center gap-1.5">
-										<div class="w-3 h-3 rounded-full bg-[#ffff00]"></div>
-										<span class="text-[10px] font-mono font-bold text-white">Aa</span>
-									</div>
-									<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-black text-[#ffff00] border border-[#ffff00]">21:1 AAA</span>
-								</div>
-								<div class="font-bold text-neutral-100 text-sm">High Contrast (AAA)</div>
-								<div class="text-xs text-neutral-400 mt-0.5">Pure black & white contrast with high-visibility target indicators.</div>
+								<div class="font-bold text-neutral-100 text-sm">Archival Paper (Light)</div>
+								<div class="text-xs text-neutral-400 mt-1 leading-relaxed">Warm unbleached ivory paper with deep carbon ink and warm bronze details. High clarity.</div>
 							</button>
 						</div>
 					</div>

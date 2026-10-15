@@ -16,11 +16,11 @@
 					<span>Field Essays & Critical Dispatches</span>
 				</div>
 
-				<h2 class="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight">
+				<h2 class="text-3xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 					Beyond Prompting: The Theoretical Spine
 				</h2>
 
-				<p class="text-sm sm:text-base font-serif text-neutral-400 leading-relaxed">
+				<p class="text-sm sm:text-base text-neutral-400 leading-relaxed">
 					Long-form frameworks on the death of prompt tricks, the mathematics of aesthetic homogenization, negative constraints, and blank-sheet authorship.
 				</p>
 			</div>

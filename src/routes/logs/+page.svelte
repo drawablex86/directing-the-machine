@@ -41,7 +41,7 @@
 	}
 </script>
 
-<div class="min-h-screen flex flex-col bg-neutral-950 text-neutral-100">
+<div class="flex flex-col min-h-screen">
 	<TodayLoopHeader
 		onOpenDrawer={() => isDrawerOpen = true}
 		onOpenFailure={() => isFailureModalOpen = true}

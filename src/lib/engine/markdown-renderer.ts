@@ -83,9 +83,9 @@ export function renderMarkdownReading(rawMarkdown: string): RenderedReading {
 		const langBadge = (lang || 'code').toUpperCase();
 
 		const blockHtml = `
-		<div class="code-block-container my-5 rounded-2xl border border-neutral-800 bg-neutral-950 overflow-hidden shadow-lg group">
-			<div class="px-4 py-2 border-b border-neutral-800/80 bg-neutral-900/60 flex items-center justify-between text-[11px] font-mono">
-				<span class="text-amber-400 font-bold uppercase tracking-wider">${langBadge}</span>
+		<div class="code-block-container my-5 rounded-2xl border border-neutral-800 bg-neutral-900/50 overflow-hidden shadow-lg group">
+			<div class="px-4 py-2 border-b border-neutral-800 bg-neutral-900/80 flex items-center justify-between text-[11px] font-mono">
+				<span class="text-amber-500 font-bold uppercase tracking-wider">${langBadge}</span>
 				<button
 					type="button"
 					onclick="navigator.clipboard.writeText(this.closest('.code-block-container').querySelector('code').innerText); const orig = this.innerHTML; this.innerHTML = '<span class=\\'text-emerald-400 font-bold\\'>Copied!</span>'; setTimeout(() => this.innerHTML = orig, 2000);"
@@ -96,7 +96,7 @@ export function renderMarkdownReading(rawMarkdown: string): RenderedReading {
 					<span>Copy</span>
 				</button>
 			</div>
-			<pre class="p-4 overflow-x-auto text-neutral-200 font-mono text-xs leading-relaxed selection:bg-amber-500 selection:text-neutral-950"><code>${escaped}</code></pre>
+			<pre class="p-4 overflow-x-auto text-neutral-200 font-mono text-xs leading-relaxed"><code>${escaped}</code></pre>
 		</div>`;
 		codeBlocks.push(blockHtml);
 		return placeholder;
@@ -153,20 +153,20 @@ export function renderMarkdownReading(rawMarkdown: string): RenderedReading {
 			let badgeClass = 'text-neutral-400 bg-neutral-800/60 border-neutral-700';
 
 			if (alertType === 'important' || alertType === 'rule') {
-				themeClass = 'border-amber-500/40 bg-gradient-to-br from-amber-950/20 to-neutral-950 text-neutral-100 shadow-amber-950/10 shadow-lg';
-				badgeClass = 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+				themeClass = 'border-amber-500/30 bg-amber-500/5 text-neutral-100 shadow-sm';
+				badgeClass = 'text-amber-500 bg-amber-500/10 border-amber-500/30';
 			} else if (alertType === 'tip') {
-				themeClass = 'border-emerald-500/40 bg-gradient-to-br from-emerald-950/20 to-neutral-950 text-neutral-100';
-				badgeClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+				themeClass = 'border-emerald-500/30 bg-emerald-500/5 text-neutral-100';
+				badgeClass = 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
 			} else if (alertType === 'warning') {
-				themeClass = 'border-orange-500/40 bg-gradient-to-br from-orange-950/20 to-neutral-950 text-neutral-100';
-				badgeClass = 'text-orange-400 bg-orange-500/10 border-orange-500/30';
+				themeClass = 'border-orange-500/30 bg-orange-500/5 text-neutral-100';
+				badgeClass = 'text-orange-500 bg-orange-500/10 border-orange-500/30';
 			} else if (alertType === 'caution') {
-				themeClass = 'border-rose-500/40 bg-gradient-to-br from-rose-950/20 to-neutral-950 text-neutral-100';
-				badgeClass = 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+				themeClass = 'border-rose-500/30 bg-rose-500/5 text-neutral-100';
+				badgeClass = 'text-rose-500 bg-rose-500/10 border-rose-500/30';
 			} else if (alertType === 'example') {
-				themeClass = 'border-sky-500/40 bg-gradient-to-br from-sky-950/20 to-neutral-950 text-neutral-100';
-				badgeClass = 'text-sky-400 bg-sky-500/10 border-sky-500/30';
+				themeClass = 'border-sky-500/30 bg-sky-500/5 text-neutral-100';
+				badgeClass = 'text-sky-500 bg-sky-500/10 border-sky-500/30';
 			}
 
 			const cleanedBody = body
@@ -174,7 +174,7 @@ export function renderMarkdownReading(rawMarkdown: string): RenderedReading {
 				.split(/\n\s*\n/)
 				.map((p: string) => p.trim())
 				.filter(Boolean)
-				.map((p: string) => `<p class="mt-2 text-xs md:text-sm text-neutral-300 leading-relaxed font-sans">${p}</p>`)
+				.map((p: string) => `<p class="mt-2 text-xs md:text-sm text-neutral-300 leading-relaxed">${p}</p>`)
 				.join('');
 
 			const headerTitle = title.trim() || type.toUpperCase();
@@ -197,7 +197,7 @@ export function renderMarkdownReading(rawMarkdown: string): RenderedReading {
 	// 6. Standard Single-line Blockquotes
 	text = text.replace(
 		/^>\s+(.+)$/gm,
-		'<blockquote class="border-l-2 border-amber-500/80 bg-neutral-950/60 rounded-r-xl pl-4 py-3 my-4 text-neutral-300 italic text-xs md:text-sm leading-relaxed">$1</blockquote>'
+		'<blockquote class="border-l-2 border-amber-500 bg-neutral-900/40 rounded-r-xl pl-4 py-3 my-4 text-neutral-300 italic text-xs md:text-sm leading-relaxed">$1</blockquote>'
 	);
 
 	// 7. Headings with Slug Anchors & TOC collection
@@ -205,28 +205,28 @@ export function renderMarkdownReading(rawMarkdown: string): RenderedReading {
 		const cleanTitle = title.trim();
 		const slug = makeUniqueSlug(cleanTitle);
 		toc.push({ id: slug, title: cleanTitle, level: 4 });
-		return `<h4 id="${slug}" class="scroll-mt-24 text-xs font-mono font-bold text-amber-400/90 uppercase tracking-wider mt-6 mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-500/40"></span>${cleanTitle}</h4>`;
+		return `<h4 id="${slug}" class="scroll-mt-24 text-xs font-mono font-bold text-amber-500 uppercase tracking-wider mt-6 mb-2 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>${cleanTitle}</h4>`;
 	});
 
 	text = text.replace(/^### (.*$)/gim, (_match, title) => {
 		const cleanTitle = title.trim();
 		const slug = makeUniqueSlug(cleanTitle);
 		toc.push({ id: slug, title: cleanTitle, level: 3 });
-		return `<h3 id="${slug}" class="scroll-mt-24 text-base md:text-lg font-bold text-neutral-100 mt-8 mb-3 flex items-center gap-2.5 pb-1 border-b border-neutral-800/40"><span class="w-2 h-2 rounded-full bg-amber-400"></span>${cleanTitle}</h3>`;
+		return `<h3 id="${slug}" class="scroll-mt-24 text-base md:text-lg font-serif font-semibold text-neutral-100 mt-8 mb-3 flex items-center gap-2.5 pb-1 border-b border-neutral-800/40"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>${cleanTitle}</h3>`;
 	});
 
 	text = text.replace(/^## (.*$)/gim, (_match, title) => {
 		const cleanTitle = title.trim();
 		const slug = makeUniqueSlug(cleanTitle);
 		toc.push({ id: slug, title: cleanTitle, level: 2 });
-		return `<h2 id="${slug}" class="scroll-mt-24 text-lg md:text-xl font-black text-amber-400 mt-10 mb-4 pb-2 border-b border-neutral-800 flex items-center justify-between"><span>${cleanTitle}</span><a href="#${slug}" class="text-neutral-600 hover:text-amber-400 text-xs font-mono font-normal transition" title="Direct link to section">#</a></h2>`;
+		return `<h2 id="${slug}" class="scroll-mt-24 text-xl md:text-2xl font-serif font-bold text-neutral-100 mt-10 mb-4 pb-2 border-b border-neutral-800 flex items-center justify-between"><span>${cleanTitle}</span><a href="#${slug}" class="text-neutral-500 hover:text-amber-500 text-xs font-mono font-normal transition" title="Direct link to section">#</a></h2>`;
 	});
 
 	// Top level H1 (if inside content)
 	text = text.replace(/^# (.*$)/gim, (_match, title) => {
 		const cleanTitle = title.trim();
 		const slug = makeUniqueSlug(cleanTitle);
-		return `<h1 id="${slug}" class="scroll-mt-24 text-xl md:text-2xl font-black text-white mt-8 mb-4">${cleanTitle}</h1>`;
+		return `<h1 id="${slug}" class="scroll-mt-24 text-2xl md:text-3xl font-serif font-bold text-neutral-100 mt-8 mb-4">${cleanTitle}</h1>`;
 	});
 
 	// 8. Ordered Lists (group consecutive items in <ol>)

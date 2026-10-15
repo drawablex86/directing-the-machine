@@ -55,7 +55,7 @@
 	let readerFont = $state<'sans' | 'serif' | 'mono' | 'dyslexic'>('sans');
 	let readerSize = $state<'sm' | 'base' | 'lg' | 'xl'>('base');
 	let readerWidth = $state<'compact' | 'comfortable' | 'full'>('comfortable');
-	let readerTheme = $state<'dark' | 'sepia' | 'light' | 'midnight' | 'contrast'>('dark');
+	let readerTheme = $state<'dark' | 'light'>('dark');
 
 	// Reflection hook input
 	let reflectionInput = $state('');
@@ -222,34 +222,22 @@
 		}
 	});
 
-	// Color theme CSS mapping
+	// Color theme CSS mapping (Stone & Paper)
 	let themeContainerClass = $derived.by(() => {
 		switch (readerTheme) {
-			case 'sepia':
-				return 'bg-[#fbf7ee] text-[#2b2318] border-[#dacbaf]';
 			case 'light':
-				return 'bg-[#fbfaf8] text-[#171717] border-[#ded8cb]';
-			case 'midnight':
-				return 'bg-[#080c14] text-[#f1f5f9] border-[#1e293b]';
-			case 'contrast':
-				return 'bg-black text-white border-white';
+				return 'theme-light bg-[#fbf9f5] text-[#1f1e1c] border-[#ded7cb]';
 			default:
-				return 'bg-neutral-900 text-neutral-100 border-neutral-800';
+				return 'theme-dark bg-[#1e1d1b] text-[#edeae3] border-[#2e2c29]';
 		}
 	});
 
 	let themeHeaderClass = $derived.by(() => {
 		switch (readerTheme) {
-			case 'sepia':
-				return 'bg-[#f3ebd9] border-[#dacbaf] text-[#2b2318]';
 			case 'light':
-				return 'bg-[#f4f2ee] border-[#ded8cb] text-[#171717]';
-			case 'midnight':
-				return 'bg-[#0f172a] border-[#1e293b] text-[#f1f5f9]';
-			case 'contrast':
-				return 'bg-black border-white text-white';
+				return 'bg-[#f4f0e8] border-[#ded7cb] text-[#1f1e1c]';
 			default:
-				return 'bg-neutral-950/90 border-neutral-800 text-neutral-100';
+				return 'bg-[#161615] border-[#2e2c29] text-[#edeae3]';
 		}
 	});
 </script>
@@ -411,18 +399,15 @@
 								<!-- Theme Switcher -->
 								<div class="space-y-1.5">
 									<div class="text-[10px] font-mono uppercase text-neutral-400">Color Surface</div>
-									<div class="grid grid-cols-3 gap-1.5 text-center">
+									<div class="grid grid-cols-2 gap-1.5 text-center">
 										{#each [
-											{ id: 'dark', label: 'Obsidian' },
-											{ id: 'sepia', label: 'Sepia' },
-											{ id: 'light', label: 'Light' },
-											{ id: 'midnight', label: 'Midnight' },
-											{ id: 'contrast', label: 'Contrast' }
+											{ id: 'dark', label: 'Stone (Dark)' },
+											{ id: 'light', label: 'Paper (Light)' }
 										] as t}
 											<button
 												type="button"
 												onclick={() => readerTheme = t.id as any}
-												class="p-1.5 rounded-lg border transition cursor-pointer {readerTheme === t.id ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-950 border-neutral-800 text-neutral-300'}"
+												class="p-1.5 rounded-lg border text-xs transition cursor-pointer {readerTheme === t.id ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-950 border-neutral-800 text-neutral-300'}"
 											>
 												{t.label}
 											</button>

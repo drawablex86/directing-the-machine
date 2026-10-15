@@ -15,7 +15,7 @@
 <svelte:head>
 	<link rel="icon" href="/favicon.svg" />
 	<title>Directing the Machine — Studio</title>
-	<meta name="color-scheme" content={practiceStore.learnerPreferences.theme === 'light' || practiceStore.learnerPreferences.theme === 'sepia' ? 'light' : 'dark'} />
+	<meta name="color-scheme" content={practiceStore.learnerPreferences.theme === 'light' ? 'light' : 'dark'} />
 </svelte:head>
 
 <a href="#main-content" class="skip-to-content focus:outline-none">

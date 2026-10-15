@@ -44,14 +44,14 @@
 <section id="syllabus" class="py-20 md:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-neutral-800/80">
 	<!-- Section Header -->
 	<div class="space-y-4 mb-10 text-center sm:text-left">
-		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono uppercase tracking-widest font-semibold">
+		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono uppercase tracking-widest font-semibold">
 			<Compass class="w-3.5 h-3.5 text-amber-500" />
 			<span>The Complete Curriculum Arc</span>
 		</div>
-		<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight">
+		<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 			A Real Curriculum Has Verifiable Deliverables, Not Just Video Lectures.
 		</h2>
-		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base font-serif leading-relaxed">
+		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base leading-relaxed">
 			Every week is structured around non-negotiable daily loops: 20m mental model reading, deliberate drills, neutral diagnosis, 10-minute reflection logs, and concrete project milestones.
 		</p>
 	</div>

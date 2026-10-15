@@ -52,7 +52,7 @@ export interface ScaffoldingState {
 export interface LearnerPreferences {
 	fontFamily: 'sans' | 'dyslexic' | 'mono';
 	fontSize: 'sm' | 'base' | 'lg' | 'xl';
-	theme: 'dark' | 'light' | 'sepia' | 'midnight' | 'high-contrast';
+	theme: 'dark' | 'light';
 	reducedMotion: boolean;
 	focusMode: boolean; // Single-Task Horizon (ADHD / focus mode)
 	plainLanguageHelp: boolean;
@@ -496,7 +496,8 @@ export class PracticeEngine {
 			if (!raw) return;
 			const data = JSON.parse(raw);
 			if (data.learnerPreferences) {
-				this.learnerPreferences = { ...this.learnerPreferences, ...data.learnerPreferences };
+				const theme = data.learnerPreferences.theme === 'light' || data.learnerPreferences.theme === 'sepia' ? 'light' : 'dark';
+				this.learnerPreferences = { ...this.learnerPreferences, ...data.learnerPreferences, theme };
 			}
 			if (data.intensityPath) this.intensityPath = data.intensityPath;
 			if (typeof data.showDeepening === 'boolean') this.showDeepening = data.showDeepening;

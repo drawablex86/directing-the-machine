@@ -65,14 +65,14 @@
 <section id="theses" class="py-20 md:py-28 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-neutral-800/80">
 	<!-- Section Header -->
 	<div class="space-y-4 mb-14 text-center sm:text-left">
-		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono uppercase tracking-widest font-semibold">
+		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono uppercase tracking-widest font-semibold">
 			<BookOpen class="w-3.5 h-3.5 text-amber-500" />
 			<span>Foundational Epistemology</span>
 		</div>
-		<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight">
+		<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 			The Five Theses of Creative Authorship
 		</h2>
-		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base font-serif leading-relaxed">
+		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base leading-relaxed">
 			Why prompting is an ephemeral commodity, and why the human director must master diagnostic vision, negative constraints, and moral standing.
 		</p>
 	</div>
@@ -93,10 +93,10 @@
 						</span>
 						<div class="space-y-1">
 							<div class="flex items-center gap-2 flex-wrap">
-								<h3 class="text-lg sm:text-xl font-serif font-bold text-white tracking-tight">
+								<h3 class="text-lg sm:text-xl font-serif font-bold text-neutral-100 tracking-tight">
 									{thesis.title}
 								</h3>
-								<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
+								<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500">
 									{thesis.moduleLink}
 								</span>
 							</div>
@@ -106,18 +106,18 @@
 						</div>
 					</div>
 
-					<div class="text-neutral-500 transition-transform duration-200 mt-1 {openTheses[idx] ? 'rotate-90 text-amber-400' : ''}">
+					<div class="text-neutral-500 transition-transform duration-200 mt-1 {openTheses[idx] ? 'rotate-90 text-amber-500' : ''}">
 						<ChevronRight class="w-5 h-5" />
 					</div>
 				</button>
 
 				<!-- Expanded Content -->
 				{#if openTheses[idx]}
-					<div class="px-6 pb-6 pt-2 border-t border-neutral-800/60 space-y-4 text-sm sm:text-base font-serif text-neutral-300 leading-relaxed">
-						<p class="font-medium text-amber-200/90 italic">
+					<div class="px-6 pb-6 pt-2 border-t border-neutral-800/60 space-y-4 text-sm sm:text-base text-neutral-300 leading-relaxed">
+						<p class="font-medium text-amber-500/90 italic font-serif">
 							{thesis.lead}
 						</p>
-						<p class="text-neutral-300 text-justify sm:text-left font-sans text-sm sm:text-base leading-relaxed">
+						<p class="text-neutral-300 text-justify sm:text-left text-sm sm:text-base leading-relaxed">
 							{thesis.body}
 						</p>
 						<blockquote class="p-4 rounded-xl bg-neutral-950 border-l-2 border-amber-500 text-neutral-200 italic font-serif text-sm">
@@ -127,7 +127,7 @@
 						<div class="pt-2 flex items-center justify-end">
 							<a
 								href="/app?tab=curriculum"
-								class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-amber-400 hover:text-amber-300 transition"
+								class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-amber-500 hover:text-amber-400 transition"
 							>
 								<span>Read Full Module in Studio</span>
 								<ArrowRight class="w-3.5 h-3.5" />

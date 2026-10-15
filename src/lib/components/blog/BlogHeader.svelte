@@ -17,11 +17,8 @@
 		scrollProgress = height > 0 ? (winScroll / height) * 100 : 0;
 	}
 
-	function cycleTheme() {
-		const current = practiceStore.learnerPreferences.theme;
-		const order: Array<typeof current> = ['dark', 'light', 'sepia', 'midnight', 'high-contrast'];
-		const nextIndex = (order.indexOf(current) + 1) % order.length;
-		practiceStore.learnerPreferences.theme = order[nextIndex];
+	function toggleTheme() {
+		practiceStore.learnerPreferences.theme = practiceStore.learnerPreferences.theme === 'dark' ? 'light' : 'dark';
 		practiceStore.saveToStorage();
 	}
 </script>
@@ -59,13 +56,13 @@
 			<!-- Theme Quick Switcher -->
 			<button
 				type="button"
-				onclick={cycleTheme}
+				onclick={toggleTheme}
 				class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-medium text-neutral-300 hover:text-white bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 transition cursor-pointer"
-				aria-label="Cycle visual palette"
-				title="Cycle Color Palette: {practiceStore.learnerPreferences.theme.toUpperCase()}"
+				aria-label="Toggle visual theme"
+				title="Theme: {practiceStore.learnerPreferences.theme === 'dark' ? 'Switch to Paper (Light)' : 'Switch to Stone (Dark)'}"
 			>
 				<Palette class="w-3.5 h-3.5 text-amber-400" />
-				<span class="capitalize hidden sm:inline">{practiceStore.learnerPreferences.theme}</span>
+				<span class="capitalize hidden sm:inline">{practiceStore.learnerPreferences.theme === 'dark' ? 'Stone' : 'Paper'}</span>
 			</button>
 
 			<a

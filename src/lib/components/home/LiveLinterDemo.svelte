@@ -85,14 +85,14 @@
 <section id="linter" class="py-20 md:py-28 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 border-b border-neutral-800/80">
 	<!-- Section Header -->
 	<div class="space-y-4 mb-12 text-center sm:text-left">
-		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono uppercase tracking-widest font-semibold">
+		<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-mono uppercase tracking-widest font-semibold">
 			<Eye class="w-3.5 h-3.5 text-amber-500" />
 			<span>Interactive Studio Tool Preview</span>
 		</div>
-		<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight">
+		<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 			Try the Zero-Adjective Discipline Live
 		</h2>
-		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base font-serif leading-relaxed">
+		<p class="text-neutral-400 max-w-3xl text-sm sm:text-base leading-relaxed">
 			When you ask an AI model for “beauty” or “cinematic drama,” you surrender control to training medians. True direction describes geometry, elevation, massing, and negative exclusions. Test any brief below.
 		</p>
 	</div>
@@ -187,7 +187,7 @@
 		</div>
 
 		<!-- Explanatory Insight Box -->
-		<div class="p-4 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-start gap-3 text-xs sm:text-sm text-neutral-300 font-serif leading-relaxed">
+		<div class="p-4 rounded-xl bg-neutral-950/60 border border-neutral-800 flex items-start gap-3 text-xs sm:text-sm text-neutral-300 leading-relaxed">
 			<Sparkles class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
 			<div>
 				{#if lintResults.clean}

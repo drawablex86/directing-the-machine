@@ -49,10 +49,10 @@
 			<HelpCircle class="w-3.5 h-3.5 text-amber-500" />
 			<span>Dispatches, Inquiries & Clarifications</span>
 		</div>
-		<h2 class="text-2xl sm:text-4xl font-serif font-black text-white tracking-tight">
+		<h2 class="text-2xl sm:text-4xl font-serif font-bold text-neutral-100 tracking-tight">
 			Frequently Addressed Questions & Objections
 		</h2>
-		<p class="text-neutral-400 text-sm sm:text-base font-serif leading-relaxed">
+		<p class="text-neutral-400 text-sm sm:text-base leading-relaxed">
 			Everything you need to know about the pedagogical rationale, technical privacy, and curriculum philosophy.
 		</p>
 	</div>
@@ -60,13 +60,13 @@
 	<!-- Accordion List -->
 	<div class="space-y-3">
 		{#each faqs as item, idx}
-			<div class="rounded-2xl border border-neutral-800/80 bg-neutral-900/30 overflow-hidden transition hover:border-neutral-700">
+			<div class="rounded-2xl border border-neutral-800/80 bg-neutral-900/40 overflow-hidden transition hover:border-neutral-700">
 				<button
 					type="button"
 					onclick={() => toggleFaq(idx)}
 					class="w-full p-5 text-left flex items-center justify-between gap-4 cursor-pointer focus:outline-none"
 				>
-					<span class="text-sm sm:text-base font-serif font-bold text-white">
+					<span class="text-sm sm:text-base font-semibold text-neutral-100">
 						{item.q}
 					</span>
 					<div class="text-neutral-500 transition-transform duration-200 shrink-0 {openIndex === idx ? 'rotate-180 text-amber-400' : ''}">
