@@ -24,7 +24,12 @@
 		HelpCircle,
 		BookMarked,
 		ExternalLink,
-		Target
+		Target,
+		Send,
+		RotateCcw,
+		AlertTriangle,
+		ChevronDown,
+		ChevronUp
 	} from '@lucide/svelte';
 	import { getReadingByCode, type CoreReading } from '$lib/data/core-readings';
 	import { getAppendixById } from '$lib/data/appendices';
@@ -135,8 +140,37 @@
 	let readingCritique = $state<CritiqueResult | null>(null);
 	let isCheckingReading = $state(false);
 	let readingError = $state<string | null>(null);
+	let studentReadingAnswer = $state('');
+	let activeSocraticDilemma = $state('');
+	let isEditingReadingAnswer = $state(true);
+	let isSocraticPanelOpen = $state(true);
 
-	async function runReadingCheck() {
+	let defaultSocraticDilemma = $derived.by(() => {
+		const km = currentDayData.assignedReading.keyMentalModel;
+		return `Given that "${km}", how will you apply this mechanical distinction in today's studio session? What default generation or unearned habit will you actively refuse?`;
+	});
+
+	let currentSocraticDilemma = $derived.by(() => {
+		return (
+			activeSocraticDilemma ||
+			readingCritique?.readingFriction?.socraticDilemma ||
+			readingCritique?.readingFriction?.frictionQuestion1 ||
+			defaultSocraticDilemma
+		);
+	});
+
+	$effect(() => {
+		// Reset day-scoped reading inputs when active day or week changes
+		const _day = practiceStore.activeDay;
+		const _week = practiceStore.activeWeek;
+		studentReadingAnswer = '';
+		activeSocraticDilemma = '';
+		readingCritique = null;
+		readingError = null;
+		isEditingReadingAnswer = true;
+	});
+
+	async function generateSocraticProbe() {
 		isCheckingReading = true;
 		readingError = null;
 		try {
@@ -147,16 +181,70 @@
 				keyThesis: currentAssignedCoreReading?.summary || currentDayData.assignedReading.keyMentalModel
 			});
 			readingCritique = result;
+			if (result.readingFriction?.socraticDilemma) {
+				activeSocraticDilemma = result.readingFriction.socraticDilemma;
+			} else if (result.readingFriction?.frictionQuestion1) {
+				activeSocraticDilemma = result.readingFriction.frictionQuestion1;
+			}
+			isEditingReadingAnswer = true;
 		} catch (err: any) {
-			readingError = err?.message || 'Failed to generate Socratic reading check.';
+			readingError = err?.message || 'Failed to generate Socratic probe.';
 		} finally {
 			isCheckingReading = false;
 		}
 	}
 
+	async function submitReadingAnswer() {
+		if (!studentReadingAnswer.trim()) return;
+		isCheckingReading = true;
+		readingError = null;
+		try {
+			const result = await executePrompt('daily-reading-friction', {
+				readingTitle: currentDayData.assignedReading.title,
+				readingCode: currentDayData.assignedReading.moduleCode,
+				keyMentalModel: currentDayData.assignedReading.keyMentalModel,
+				keyThesis: currentAssignedCoreReading?.summary || currentDayData.assignedReading.keyMentalModel,
+				socraticDilemma: currentSocraticDilemma,
+				studentAnswer: studentReadingAnswer.trim()
+			});
+			readingCritique = result;
+			isEditingReadingAnswer = false;
+
+			// If comprehended, automatically mark Step 1 (Read) as completed!
+			if (result.readingEvaluation?.verdict === 'COMPREHENDED') {
+				const readTask = currentDayData.tasks.find((t) => t.stepId === 'read');
+				if (readTask && !practiceStore.isTaskCompleted(readTask.id)) {
+					toggleTaskWithSound(readTask.id);
+				}
+				if (currentAssignedCoreReading && !practiceStore.isReadingCompleted(currentAssignedCoreReading.code)) {
+					practiceStore.toggleReadingCompleted(currentAssignedCoreReading.code);
+				}
+			}
+		} catch (err: any) {
+			readingError = err?.message || 'Failed to evaluate reading comprehension.';
+		} finally {
+			isCheckingReading = false;
+		}
+	}
+
+	async function runReadingCheck() {
+		if (studentReadingAnswer.trim()) {
+			await submitReadingAnswer();
+		} else {
+			await generateSocraticProbe();
+		}
+	}
+
+	function proceedToStep2() {
+		practiceStore.currentStepIndex = 1;
+		practiceStore.saveToStorage();
+		if (typeof document !== 'undefined') {
+			const hero = document.getElementById('step-focus-hero');
+			if (hero) hero.scrollIntoView({ behavior: 'smooth' });
+		}
+	}
+
 	let readingActions = $derived.by<LlmAction[]>(() => {
-		if (!readingCritique?.readingFriction) return [];
-		const rf = readingCritique.readingFriction;
 		const actions: LlmAction[] = [];
 
 		const readTask = currentDayData.tasks.find((t) => t.stepId === 'read');
@@ -179,6 +267,17 @@
 					if (currentAssignedCoreReading) {
 						practiceStore.toggleReadingCompleted(currentAssignedCoreReading.code);
 					}
+				}
+			});
+		}
+
+		if (isTodayReadingDone || readingCritique?.readingEvaluation?.verdict === 'COMPREHENDED') {
+			actions.push({
+				label: 'Proceed to Step 2: Micro-Drill →',
+				primary: true,
+				variant: 'primary',
+				onClick: () => {
+					proceedToStep2();
 				}
 			});
 		}
@@ -415,12 +514,17 @@
 
 			<!-- Quick Day Switcher and Reading Trigger -->
 			<div class="flex items-center gap-2 flex-wrap">
-				<LlmTriggerButton
-					label="Socratic Reading Check"
-					onclick={runReadingCheck}
-					loading={isCheckingReading}
-					title="Test operational comprehension of today's assigned reading"
-				/>
+				<button
+					type="button"
+					onclick={() => (isSocraticPanelOpen = !isSocraticPanelOpen)}
+					class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer {isTodayReadingDone || readingCritique?.readingEvaluation?.verdict === 'COMPREHENDED'
+						? 'bg-emerald-950/40 text-emerald-300 border-emerald-800 hover:bg-emerald-900/50'
+						: 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'}"
+					title="Toggle Socratic Reading Comprehension Check"
+				>
+					<Brain class="w-3.5 h-3.5 text-amber-400" />
+					<span>{isTodayReadingDone || readingCritique?.readingEvaluation?.verdict === 'COMPREHENDED' ? 'Socratic Check: Verified ✓' : 'Socratic Concept Check'}</span>
+				</button>
 				<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
 					{#each currentWeekData.days as d}
 						<button
@@ -475,59 +579,272 @@
 			</div>
 		</div>
 
-		<!-- Socratic Reading Check Critique Card -->
-		{#if readingCritique || isCheckingReading || readingError}
-			<div class="pt-2">
-				<LlmCritiqueCard
-					result={readingCritique}
-					loading={isCheckingReading}
-					error={readingError}
-					title="Socratic Seminar Leader: Reading Comprehension Check"
-					actions={readingActions}
-					onDismiss={() => (readingCritique = null)}
-					onRetry={runReadingCheck}
-				/>
+		<!-- Socratic Reading Comprehension Check Workbench -->
+		<div class="mt-4 pt-4 border-t border-neutral-800/80 space-y-4">
+			<!-- Section Header Bar with Toggle & Dilemma Generator -->
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+				<div class="flex items-center gap-2">
+					<div class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+						<Brain class="w-4 h-4" />
+					</div>
+					<div>
+						<div class="text-xs font-bold text-white flex items-center gap-2">
+							<span>Socratic Concept Comprehension Check</span>
+							{#if readingCritique?.readingEvaluation?.verdict === 'COMPREHENDED'}
+								<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/30">
+									Verified ✓
+								</span>
+							{:else if isTodayReadingDone}
+								<span class="px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-300 text-[10px] font-mono">
+									Reading Done
+								</span>
+							{/if}
+						</div>
+						<div class="text-[11px] text-neutral-400">
+							Prove mechanical understanding of today's distinction before advancing to practice drills.
+						</div>
+					</div>
+				</div>
 
-				{#if readingCritique?.readingFriction}
-					{@const rf = readingCritique.readingFriction}
-					<div class="mt-2.5 p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2.5 text-xs">
-						{#if rf.coreDistinction}
-							<div class="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300">
-								<strong class="text-amber-400 block mb-0.5 text-[11px] uppercase tracking-wider font-mono">Core Operational Distinction:</strong>
-								<span class="leading-relaxed">{rf.coreDistinction}</span>
-							</div>
+				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						onclick={generateSocraticProbe}
+						disabled={isCheckingReading}
+						class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-neutral-300 hover:text-white text-xs font-mono transition cursor-pointer disabled:opacity-50"
+						title="Generate a custom AI dilemma testing this mental model"
+					>
+						{#if isCheckingReading && !studentReadingAnswer.trim()}
+							<Clock class="w-3.5 h-3.5 animate-spin text-amber-400" />
+							<span>Formulating Dilemma...</span>
+						{:else}
+							<Sparkles class="w-3.5 h-3.5 text-amber-400" />
+							<span>Generate AI Dilemma</span>
 						{/if}
+					</button>
 
-						<div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px]">
-							<div class="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 space-y-1">
-								<div class="font-bold font-mono text-[10px] uppercase text-amber-400">Friction Probe 1 (Edge Case):</div>
-								<p class="text-neutral-300 leading-relaxed italic">"{rf.frictionQuestion1}"</p>
+					<button
+						type="button"
+						onclick={() => (isSocraticPanelOpen = !isSocraticPanelOpen)}
+						class="p-1.5 rounded-xl bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-white transition cursor-pointer"
+						aria-label={isSocraticPanelOpen ? 'Collapse Socratic Panel' : 'Expand Socratic Panel'}
+					>
+						{#if isSocraticPanelOpen}
+							<ChevronUp class="w-3.5 h-3.5" />
+						{:else}
+							<ChevronDown class="w-3.5 h-3.5" />
+						{/if}
+					</button>
+				</div>
+			</div>
+
+			{#if isSocraticPanelOpen}
+				<div class="space-y-3.5 animate-in fade-in duration-150">
+					<!-- Stage 1: The Socratic Dilemma Probe -->
+					<div class="p-3.5 rounded-xl bg-neutral-950 border border-amber-500/20 space-y-2 text-xs">
+						<div class="flex items-center justify-between text-[11px] font-mono uppercase text-amber-400 font-bold">
+							<span class="flex items-center gap-1.5">
+								<HelpCircle class="w-3.5 h-3.5" />
+								Today's Socratic Challenge Probe:
+							</span>
+							{#if readingCritique?.readingFriction?.diagnosticTrap}
+								<span class="text-[10px] text-rose-400/90 font-normal lowercase tracking-normal">
+									trap: {readingCritique.readingFriction.diagnosticTrap}
+								</span>
+							{/if}
+						</div>
+						<p class="text-neutral-200 text-xs sm:text-[13px] leading-relaxed italic font-serif pl-2 border-l-2 border-amber-500/50">
+							"{currentSocraticDilemma}"
+						</p>
+					</div>
+
+					<!-- Stage 2: Student Response & Directorial Defense -->
+					{#if !readingCritique?.readingEvaluation || isEditingReadingAnswer}
+						<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2.5">
+							<div class="flex items-center justify-between">
+								<label for="student-reading-answer" class="text-xs font-bold text-neutral-200 flex items-center gap-1.5">
+									<Target class="w-3.5 h-3.5 text-amber-400" />
+									<span>Your Directorial Synthesis & Defense:</span>
+								</label>
+								<span class="text-[11px] font-mono text-neutral-500">
+									{studentReadingAnswer.length} chars
+								</span>
 							</div>
-							<div class="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 space-y-1">
-								<div class="font-bold font-mono text-[10px] uppercase text-amber-400">Friction Probe 2 (Today's Decision):</div>
-								<p class="text-neutral-300 leading-relaxed italic">"{rf.frictionQuestion2}"</p>
+
+							<p class="text-[11px] text-neutral-400 leading-normal">
+								In 1–2 sentences, articulate how you will apply this distinction today. What specific default habit or lazy prompt shortcut will you actively refuse?
+							</p>
+
+							<textarea
+								id="student-reading-answer"
+								bind:value={studentReadingAnswer}
+								rows={3}
+								placeholder="e.g. In today's session, I will refuse to accept the model's default balanced lighting. I will enforce a high-contrast binary shadow boundary and reject any generation that attempts to soften the edges."
+								class="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/40 transition resize-y font-sans leading-relaxed"
+							></textarea>
+
+							<div class="flex items-center justify-between pt-1 flex-wrap gap-2">
+								<div class="text-[11px] text-neutral-500 font-mono">
+									Passing standard: explicit refusal + concrete structural decision.
+								</div>
+
+								<button
+									type="button"
+									disabled={!studentReadingAnswer.trim() || isCheckingReading}
+									onclick={submitReadingAnswer}
+									class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 transition disabled:opacity-50 disabled:cursor-not-allowed shadow cursor-pointer font-sans"
+								>
+									{#if isCheckingReading && studentReadingAnswer.trim()}
+										<Clock class="w-3.5 h-3.5 animate-spin" />
+										<span>Auditing Comprehension...</span>
+									{:else}
+										<Send class="w-3.5 h-3.5" />
+										<span>Submit for Socratic Evaluation</span>
+									{/if}
+								</button>
 							</div>
 						</div>
+					{/if}
 
-						{#if rf.diagnosticTrap}
-							<div class="text-[11px] text-rose-300/90 leading-relaxed">
-								<strong class="text-rose-400 font-mono text-[10px] uppercase">Common Trap:</strong> {rf.diagnosticTrap}
+					<!-- Error State -->
+					{#if readingError}
+						<div class="p-3 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs flex items-center justify-between gap-2">
+							<div class="flex items-center gap-2">
+								<AlertCircle class="w-4 h-4 text-rose-400 shrink-0" />
+								<span>{readingError}</span>
 							</div>
-						{/if}
+							<button
+								type="button"
+								onclick={runReadingCheck}
+								class="text-xs font-mono text-rose-200 underline hover:text-white"
+							>
+								Retry
+							</button>
+						</div>
+					{/if}
 
-						{#if rf.suggestedSynthesis}
-							<div class="text-[11px] text-emerald-300/90 font-mono pt-1 border-t border-neutral-800">
-								<strong class="text-emerald-400">Directorial Rule of Thumb:</strong> {rf.suggestedSynthesis}
+					<!-- Stage 3: Evaluated Socratic Result -->
+					{#if readingCritique?.readingEvaluation}
+						{@const ev = readingCritique.readingEvaluation}
+						<div
+							class="p-4 rounded-xl border space-y-3.5 shadow-lg {ev.verdict === 'COMPREHENDED'
+								? 'bg-emerald-950/20 border-emerald-500/40'
+								: ev.verdict === 'SUPERFICIAL_SUMMARY'
+								? 'bg-amber-950/20 border-amber-500/40'
+								: 'bg-rose-950/20 border-rose-500/40'}"
+						>
+							<!-- Verdict Header -->
+							<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-2.5 {ev.verdict === 'COMPREHENDED' ? 'border-emerald-900/40' : ev.verdict === 'SUPERFICIAL_SUMMARY' ? 'border-amber-900/40' : 'border-rose-900/40'}">
+								<div class="flex items-center gap-2">
+									{#if ev.verdict === 'COMPREHENDED'}
+										<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono text-xs font-bold">
+											<CheckCircle2 class="w-3.5 h-3.5 text-emerald-400" />
+											COMPREHENSION CERTIFIED
+										</span>
+									{:else if ev.verdict === 'SUPERFICIAL_SUMMARY'}
+										<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-xs font-bold">
+											<AlertTriangle class="w-3.5 h-3.5 text-amber-400" />
+											SUPERFICIAL SUMMARY — MECHANISM MISSING
+										</span>
+									{:else}
+										<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 font-mono text-xs font-bold">
+											<AlertCircle class="w-3.5 h-3.5 text-rose-400" />
+											DISTINCTION INVERTED OR MISUNDERSTOOD
+										</span>
+									{/if}
+								</div>
+
+								{#if !isEditingReadingAnswer}
+									<button
+										type="button"
+										onclick={() => (isEditingReadingAnswer = true)}
+										class="inline-flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 font-mono underline cursor-pointer"
+									>
+										<RotateCcw class="w-3 h-3" />
+										<span>Edit / Refine Answer</span>
+									</button>
+								{/if}
 							</div>
-						{/if}
-					</div>
-				{/if}
-			</div>
-		{/if}
+
+							<!-- Student's Evaluated Defense -->
+							{#if !isEditingReadingAnswer && studentReadingAnswer}
+								<div class="p-2.5 rounded-lg bg-neutral-950/80 border border-neutral-800 text-xs space-y-1">
+									<div class="text-[10px] uppercase font-mono text-neutral-400">Your Submitted Directorial Defense:</div>
+									<p class="text-neutral-200 font-mono text-[11px] italic">"{studentReadingAnswer}"</p>
+								</div>
+							{/if}
+
+							<!-- Socratic Seminar Leader Diagnostic Feedback -->
+							<div class="space-y-1">
+								<div class="text-[10px] uppercase font-mono text-neutral-400 font-bold">
+									Seminar Leader Diagnostic Feedback:
+								</div>
+								<p class="text-xs text-neutral-200 leading-relaxed font-sans">
+									{ev.feedback}
+								</p>
+							</div>
+
+							<!-- Directorial Rule of Thumb -->
+							{#if ev.directorialRuleOfThumb}
+								<div class="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 text-xs">
+									<strong class="text-amber-400 font-mono text-[10px] uppercase block mb-0.5">Directorial Rule of Thumb for Today:</strong>
+									<span class="text-neutral-300 font-serif italic text-xs">"{ev.directorialRuleOfThumb}"</span>
+								</div>
+							{/if}
+
+							<!-- Counter-Probe if needed -->
+							{#if ev.counterProbe}
+								<div class="p-2.5 rounded-lg bg-neutral-900 border border-rose-900/40 text-xs space-y-1">
+									<strong class="text-rose-400 font-mono text-[10px] uppercase block">Counter-Challenge:</strong>
+									<p class="text-neutral-300 italic">"{ev.counterProbe}"</p>
+								</div>
+							{/if}
+
+							<!-- Clear Progression Action Banner -->
+							{#if ev.verdict === 'COMPREHENDED' || isTodayReadingDone}
+								<div class="pt-3 border-t border-emerald-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-950/40 p-3 rounded-xl border border-emerald-500/20">
+									<div class="space-y-0.5">
+										<div class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+											<CheckCircle2 class="w-4 h-4 text-emerald-400" />
+											<span>Step 1 (Read) Certified! Ready for Deliberate Practice.</span>
+										</div>
+										<p class="text-[11px] text-neutral-300">
+											Advance to Step 2 to calibrate difficulty in the 70–80% learning zone.
+										</p>
+									</div>
+
+									<button
+										type="button"
+										onclick={proceedToStep2}
+										class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer shrink-0"
+									>
+										<span>Proceed to Step 2: Micro-Drill (15 min)</span>
+										<ArrowRight class="w-4 h-4" />
+									</button>
+								</div>
+							{/if}
+						</div>
+					{/if}
+
+					<!-- Optional Prose Critique Card from AI (if commentary returned) -->
+					{#if readingCritique && !readingCritique.readingEvaluation && readingCritique.rawText}
+						<LlmCritiqueCard
+							result={readingCritique}
+							loading={isCheckingReading}
+							error={readingError}
+							title="Socratic Seminar Leader: Reading Comprehension Check"
+							actions={readingActions}
+							onDismiss={() => (readingCritique = null)}
+							onRetry={runReadingCheck}
+						/>
+					{/if}
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	<!-- Step-by-Step Task Pipeline: Focus Hero -->
-	<div class="rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-xl space-y-6">
+	<div id="step-focus-hero" class="rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-xl space-y-6">
 		<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800/80 pb-5">
 			<div class="space-y-1">
 				<div class="flex items-center gap-2">
@@ -569,11 +886,21 @@
 
 				<!-- Context-Specific Primary Action Buttons -->
 				{#if currentStep.id === 'read'}
+					{#if isTodayReadingDone || readingCritique?.readingEvaluation?.verdict === 'COMPREHENDED'}
+						<button
+							type="button"
+							onclick={proceedToStep2}
+							class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+						>
+							<span>Proceed to Step 2: Micro-Drill</span>
+							<ArrowRight class="w-4 h-4" />
+						</button>
+					{/if}
 					{#if currentAssignedCoreReading}
 						<button
 							type="button"
 							onclick={openCurrentReading}
-							class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+							class="px-4 py-2.5 rounded-xl text-xs font-bold bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 flex items-center gap-2 shadow transition cursor-pointer"
 						>
 							<BookOpen class="w-4 h-4" />
 							<span>{isTodayReadingDone ? 'Review Reading' : 'Start Reading'} ({currentDayData.assignedReading.moduleCode})</span>

@@ -15,6 +15,7 @@ import type {
 	RefusalAudit,
 	RebriefArbitration,
 	ReadingFriction,
+	ReadingEvaluation,
 	DrillDiagnostic,
 	HemingwayAudit,
 	AttentionPurity,
@@ -945,48 +946,74 @@ Evaluate milestone completion for Step ${ctx.stepNumber}, audit directorial auto
 		name: 'Socratic Concept Comprehension Check',
 		persona: 'Socratic Seminar Leader',
 		role: 'interlocutor',
-		description: 'Formulates friction questions that test deep understanding of the assigned reading.',
+		description: 'Formulates Socratic friction probes and evaluates student comprehension of the assigned reading.',
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are the Socratic Seminar Leader in "Directing the Machine".
-Your task is to conduct an active comprehension check on the student's assigned module reading.
+Your mission is to conduct a genuine, rigorous reading comprehension check on the student's assigned module reading.
 Students often skim theory passively, nodding along to abstractions without understanding the mechanical distinction that governs studio practice.
+A reading is ONLY comprehended when the student can state what specific default they will refuse and what concrete structural decision they will make differently.
 
-INSTRUCTIONS:
+MODES OF OPERATION:
+
+MODE A: SOCRATIC PROBE FORMULATION (when studentAnswer is empty or omitted)
 1. Extract the single primary OPERATIONAL DISTINCTION of the reading (e.g. Practice vs Production; Directing vs Prompting; Tension vs Subject).
-2. Formulate 2 sharp, friction-laden Socratic questions:
-   - Question 1: Test edge-case understanding where the concept breaks down or is commonly misunderstood.
-   - Question 2: Challenge the student to cite a concrete structural decision they will make differently today because of this concept.
-3. Identify the primary DIAGNOSTIC TRAP students fall into when attempting to apply this concept.
-4. Provide a 1-sentence synthesis of how to hold this distinction in mind during today's working session.
+2. Formulate a sharp SOCRATIC_DILEMMA: a concrete studio conflict or edge case where this concept breaks down or tests true intent.
+3. Formulate 2 sharp friction questions.
+4. Identify the primary DIAGNOSTIC TRAP students fall into (e.g. superficial compliance, aestheticizing the mistake).
+5. Provide a 1-sentence memorable directorial rule of thumb.
 
 Output the machine-readable block:
 [READING_FRICTION]
 CORE_DISTINCTION: <The central mechanical distinction in 1 concise sentence>
+SOCRATIC_DILEMMA: <Sharp concrete edge-case dilemma testing true comprehension>
 FRICTION_QUESTION_1: <Sharp Socratic edge-case question testing true understanding>
 FRICTION_QUESTION_2: <Concrete application question linking concept to today's studio action>
 DIAGNOSTIC_TRAP: <The subtle false equivalence or lazy habit students use to bypass this concept>
 SUGGESTED_SYNTHESIS: <A 1-sentence memorable directorial rule of thumb>
 [/READING_FRICTION]
 
-Followed by your concise diagnostic Socratic guidance.
+MODE B: STUDENT ANSWER COMPREHENSION EVALUATION (when studentAnswer is provided)
+Evaluate the student's actual response against the core operational distinction and diagnostic trap.
+- Determine Verdict:
+  - COMPREHENDED: The student articulates a concrete directorial commitment or refusal, demonstrates understanding of the mechanical distinction, and avoids empty jargon.
+  - SUPERFICIAL_SUMMARY: The student merely restates the theory or summarized the reading without demonstrating what they will physically/directionally do differently today.
+  - MISUNDERSTOOD_DISTINCTION: The student confused the two sides of the distinction (e.g. treated practice as production, or prompt-engineering as directing) or walked directly into the diagnostic trap.
+- Provide FEEDBACK: 1-2 surgical sentences diagnosing the strength or gap in their reasoning.
+- Provide DIRECTORIAL_RULE_OF_THUMB: A crisp, authoritative rule of thumb for today's studio session.
+- Provide COUNTER_PROBE: If SUPERFICIAL or MISUNDERSTOOD, a sharp counter-question to force deeper revision. If COMPREHENDED, write "None".
+
+Output the machine-readable block:
+[READING_EVALUATION]
+VERDICT: <COMPREHENDED | SUPERFICIAL_SUMMARY | MISUNDERSTOOD_DISTINCTION>
+FEEDBACK: <1-2 sentences surgical diagnosis of their answer>
+DIRECTORIAL_RULE_OF_THUMB: <Memorable actionable studio principle for today>
+COUNTER_PROBE: <Sharp follow-up challenge if not comprehended, otherwise None>
+[/READING_EVALUATION]
+
+Followed by your concise, diagnostic Socratic feedback.
 `.trim(),
-		defaultTemperature: 0.4,
+		defaultTemperature: 0.3,
 		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: {
 			readingTitle: string;
 			readingCode: string;
 			keyThesis?: string;
 			keyMentalModel?: string;
+			socraticDilemma?: string;
+			studentAnswer?: string;
 			studentReflection?: string;
 		}) => `
 Assigned Module: ${ctx.readingCode} — ${ctx.readingTitle}
 ${ctx.keyMentalModel ? `Key Mental Model: "${ctx.keyMentalModel}"` : ''}
 ${ctx.keyThesis ? `Key Thesis: "${ctx.keyThesis}"` : ''}
-${ctx.studentReflection ? `Student Reflection / Notes: "${ctx.studentReflection}"` : ''}
+${ctx.socraticDilemma ? `Socratic Probe / Dilemma: "${ctx.socraticDilemma}"` : ''}
+${ctx.studentAnswer || ctx.studentReflection ? `Student Response / Defense: "${ctx.studentAnswer || ctx.studentReflection}"` : ''}
 
-Generate the Socratic reading comprehension check and emit the [READING_FRICTION] block.
+${ctx.studentAnswer || ctx.studentReflection
+	? 'TASK: Evaluate the student\'s response against the core distinction and diagnostic trap. Output the [READING_EVALUATION] block followed by your Socratic evaluation.'
+	: 'TASK: Formulate the Socratic comprehension probe and dilemma. Output the [READING_FRICTION] block followed by your guidance.'}
 `.trim()
 	},
 
@@ -1732,21 +1759,51 @@ export function parseReadingFriction(text: string): ReadingFriction | undefined 
 	const target = blockMatch ? blockMatch[1] : text;
 
 	const distMatch = target.match(/CORE_DISTINCTION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const dilemmaMatch = target.match(/SOCRATIC_DILEMMA:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
 	const q1Match = target.match(/FRICTION_QUESTION_1:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
 	const q2Match = target.match(/FRICTION_QUESTION_2:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
 	const trapMatch = target.match(/DIAGNOSTIC_TRAP:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
 	const synthMatch = target.match(/SUGGESTED_SYNTHESIS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
 
-	if (!distMatch && !q1Match && !q2Match) {
+	if (!distMatch && !dilemmaMatch && !q1Match && !q2Match) {
 		return undefined;
 	}
 
 	return {
 		coreDistinction: distMatch ? distMatch[1].trim() : 'Core mechanical distinction',
-		frictionQuestion1: q1Match ? q1Match[1].trim() : 'How does this distinction affect your next decision?',
-		frictionQuestion2: q2Match ? q2Match[1].trim() : 'Where does this rule break down in practice?',
+		socraticDilemma: dilemmaMatch ? dilemmaMatch[1].trim() : undefined,
+		frictionQuestion1: q1Match ? q1Match[1].trim() : (dilemmaMatch ? dilemmaMatch[1].trim() : 'How does this distinction affect your next decision?'),
+		frictionQuestion2: q2Match ? q2Match[1].trim() : undefined,
 		diagnosticTrap: trapMatch ? trapMatch[1].trim() : undefined,
 		suggestedSynthesis: synthMatch ? synthMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable Socratic reading comprehension evaluation from Seminar Leader response.
+ */
+export function parseReadingEvaluation(text: string): ReadingEvaluation | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[READING_EVALUATION\]([\s\S]*?)(\[\/READING_EVALUATION\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(COMPREHENDED|SUPERFICIAL_SUMMARY|MISUNDERSTOOD_DISTINCTION)/i);
+	const fbMatch = target.match(/FEEDBACK:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const rotMatch = target.match(/DIRECTORIAL_RULE_OF_THUMB:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const cpMatch = target.match(/COUNTER_PROBE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!verdictMatch && !fbMatch && !rotMatch) {
+		return undefined;
+	}
+
+	const rawCounterProbe = cpMatch ? cpMatch[1].trim() : undefined;
+	const counterProbe = rawCounterProbe && !rawCounterProbe.toLowerCase().startsWith('none') ? rawCounterProbe : undefined;
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'COMPREHENDED') as any,
+		feedback: fbMatch ? fbMatch[1].trim() : 'Directorial comprehension evaluated.',
+		directorialRuleOfThumb: rotMatch ? rotMatch[1].trim() : 'Refuse defaults; enforce explicit structural boundaries.',
+		counterProbe
 	};
 }
 
@@ -1934,6 +1991,10 @@ export async function executePrompt<T = any>(
 		const reading = parseReadingFriction(response.text);
 		if (reading) {
 			critique.readingFriction = reading;
+		}
+		const evaluation = parseReadingEvaluation(response.text);
+		if (evaluation) {
+			critique.readingEvaluation = evaluation;
 		}
 	} else if (promptId === 'drill-rep-diagnostic') {
 		const drillDiag = parseDrillDiagnostic(response.text);

@@ -151,10 +151,18 @@ export interface RebriefArbitration {
 
 export interface ReadingFriction {
 	coreDistinction: string;
+	socraticDilemma?: string;
 	frictionQuestion1: string;
-	frictionQuestion2: string;
+	frictionQuestion2?: string;
 	diagnosticTrap?: string;
 	suggestedSynthesis?: string;
+}
+
+export interface ReadingEvaluation {
+	verdict: 'COMPREHENDED' | 'SUPERFICIAL_SUMMARY' | 'MISUNDERSTOOD_DISTINCTION';
+	feedback: string;
+	directorialRuleOfThumb: string;
+	counterProbe?: string;
 }
 
 export interface DrillDiagnostic {
@@ -231,6 +239,7 @@ export interface CritiqueResult {
 	refusalAudit?: RefusalAudit;
 	rebriefArbitration?: RebriefArbitration;
 	readingFriction?: ReadingFriction;
+	readingEvaluation?: ReadingEvaluation;
 	drillDiagnostic?: DrillDiagnostic;
 	hemingwayAudit?: HemingwayAudit;
 	attentionPurity?: AttentionPurity;

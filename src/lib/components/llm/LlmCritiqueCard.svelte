@@ -40,7 +40,9 @@
 
 	let rendered = $derived.by(() => {
 		if (!result?.rawText) return { html: '', wordCount: 0 };
-		return renderMarkdownReading(result.rawText);
+		// Strip machine-readable protocol blocks e.g. [READING_FRICTION]...[/READING_FRICTION] or unclosed [TAG]...
+		const cleanText = result.rawText.replace(/\[[A-Z0-9_]+\][\s\S]*?(\[\/[A-Z0-9_]+\]|$)/g, '').trim();
+		return renderMarkdownReading(cleanText);
 	});
 
 	async function copyToClipboard() {
@@ -208,9 +210,11 @@
 		{/if}
 
 		<!-- Markdown Content Area -->
-		<div class="prose prose-invert prose-xs max-w-none text-neutral-200 leading-relaxed font-sans selection:bg-amber-500/20 selection:text-amber-200 space-y-2">
-			{@html rendered.html}
-		</div>
+		{#if rendered.html}
+			<div class="prose prose-invert prose-xs max-w-none text-neutral-200 leading-relaxed font-sans selection:bg-amber-500/20 selection:text-amber-200 space-y-2">
+				{@html rendered.html}
+			</div>
+		{/if}
 
 		<!-- Reasoning Monologue Drawer (for models like Nemotron, DeepSeek R1, o1) -->
 		{#if result.thought}
