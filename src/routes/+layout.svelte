@@ -10,6 +10,15 @@
 	let sizeClass = $derived(`size-${practiceStore.learnerPreferences.fontSize}`);
 	let spacingClass = $derived(`spacing-${practiceStore.learnerPreferences.lineSpacing}`);
 	let motionClass = $derived(practiceStore.learnerPreferences.reducedMotion ? 'reduce-motion' : '');
+
+	$effect(() => {
+		if (typeof document !== 'undefined') {
+			const theme = practiceStore.learnerPreferences.theme;
+			document.documentElement.classList.remove('theme-dark', 'theme-light');
+			document.documentElement.classList.add(`theme-${theme}`);
+			document.documentElement.style.colorScheme = theme === 'light' ? 'light' : 'dark';
+		}
+	});
 </script>
 
 <svelte:head>

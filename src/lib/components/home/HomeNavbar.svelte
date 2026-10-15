@@ -33,14 +33,12 @@
 	] as const;
 
 	function setTheme(themeId: (typeof themes)[number]['id']) {
-		practiceStore.learnerPreferences.theme = themeId;
-		practiceStore.saveToStorage();
+		practiceStore.setTheme(themeId);
 		themeDropdownOpen = false;
 	}
 
 	function toggleTheme() {
-		practiceStore.learnerPreferences.theme = practiceStore.learnerPreferences.theme === 'dark' ? 'light' : 'dark';
-		practiceStore.saveToStorage();
+		practiceStore.toggleTheme();
 	}
 
 	const currentThemeInfo = $derived(

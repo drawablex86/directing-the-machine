@@ -23,6 +23,7 @@
 
 /* 1. Stone (Dark Mode) - Volcanic slate, warm unbleached parchment, amber glow */
 :root,
+html.theme-dark,
 .theme-dark {
 	color-scheme: dark;
 	--bg-primary: #161615;
@@ -50,9 +51,25 @@
 	--badge-text: #edeae3;
 	--selection-bg: rgba(245, 158, 11, 0.3);
 	--selection-text: #edeae3;
+
+	/* Direct Tailwind tokens for Stone mode */
+	--color-neutral-950: #161615;
+	--color-neutral-900: #1e1d1b;
+	--color-neutral-850: #252422;
+	--color-neutral-800: #2e2c29;
+	--color-neutral-700: #3d3a36;
+	--color-neutral-600: #57544c;
+	--color-neutral-500: #7d796e;
+	--color-neutral-400: #7d796e;
+	--color-neutral-300: #b5b0a2;
+	--color-neutral-200: #b5b0a2;
+	--color-neutral-100: #edeae3;
+	--color-amber-500: #f59e0b;
+	--color-amber-400: #fbbf24;
 }
 
 /* 2. Paper (Light Mode) - Archival unbleached paper, carbon ink, warm bronze */
+html.theme-light,
 .theme-light {
 	color-scheme: light;
 	--bg-primary: #fbf9f5;
@@ -80,6 +97,31 @@
 	--badge-text: #1f1e1c;
 	--selection-bg: rgba(180, 83, 9, 0.18);
 	--selection-text: #1f1e1c;
+
+	/* Direct Tailwind tokens for Paper mode */
+	--color-neutral-950: #fbf9f5;
+	--color-neutral-900: #f4f0e8;
+	--color-neutral-850: #ece6dc;
+	--color-neutral-800: #ded7cb;
+	--color-neutral-700: #cec4b2;
+	--color-neutral-600: #a19b90;
+	--color-neutral-500: #78746c;
+	--color-neutral-400: #78746c;
+	--color-neutral-300: #4a4742;
+	--color-neutral-200: #4a4742;
+	--color-neutral-100: #1f1e1c;
+	--color-amber-500: #b45309;
+	--color-amber-400: #92400e;
+	--color-amber-300: #b45309;
+	--color-emerald-400: #047857;
+	--color-rose-400: #b91c1c;
+}
+
+/* Base HTML & Body Styles */
+html,
+body {
+	background-color: var(--bg-primary);
+	color: var(--text-primary);
 }
 
 /* ==========================================================================
@@ -114,8 +156,24 @@
 	color: var(--text-primary) !important;
 }
 
+.theme-light .hover\:text-white:hover {
+	color: var(--text-primary) !important;
+}
+
 .theme-light .bg-black {
 	background-color: var(--bg-primary) !important;
+}
+
+.theme-light .bg-neutral-950\/95,
+.theme-light .bg-neutral-950\/90,
+.theme-light .bg-neutral-950\/80 {
+	background-color: rgba(251, 249, 245, 0.95) !important;
+}
+
+.theme-light .shadow-black\/80,
+.theme-light .shadow-black\/50,
+.theme-light .shadow-black\/20 {
+	--tw-shadow-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 /* ==========================================================================

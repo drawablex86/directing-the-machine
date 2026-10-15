@@ -18,8 +18,7 @@
 	}
 
 	function toggleTheme() {
-		practiceStore.learnerPreferences.theme = practiceStore.learnerPreferences.theme === 'dark' ? 'light' : 'dark';
-		practiceStore.saveToStorage();
+		practiceStore.toggleTheme();
 	}
 </script>
 

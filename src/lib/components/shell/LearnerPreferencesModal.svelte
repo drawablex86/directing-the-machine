@@ -28,8 +28,12 @@
 	let prefs = $derived(practiceStore.learnerPreferences);
 
 	function updatePref<K extends keyof LearnerPreferences>(key: K, value: LearnerPreferences[K]) {
-		practiceStore.learnerPreferences[key] = value;
-		practiceStore.saveToStorage();
+		if (key === 'theme') {
+			practiceStore.setTheme(value as 'dark' | 'light');
+		} else {
+			practiceStore.learnerPreferences[key] = value;
+			practiceStore.saveToStorage();
+		}
 	}
 
 	function testChime() {
@@ -49,6 +53,7 @@
 				soundEnabled: true,
 				lineSpacing: 'relaxed'
 			};
+			practiceStore.setTheme('dark');
 		} else if (name === 'dyslexia') {
 			practiceStore.learnerPreferences = {
 				fontFamily: 'dyslexic',
@@ -60,6 +65,7 @@
 				soundEnabled: false,
 				lineSpacing: 'loose'
 			};
+			practiceStore.setTheme('light');
 		} else if (name === 'paper') {
 			practiceStore.learnerPreferences = {
 				fontFamily: 'sans',
@@ -71,6 +77,7 @@
 				soundEnabled: false,
 				lineSpacing: 'relaxed'
 			};
+			practiceStore.setTheme('light');
 		} else {
 			practiceStore.learnerPreferences = {
 				fontFamily: 'sans',
@@ -82,8 +89,8 @@
 				soundEnabled: false,
 				lineSpacing: 'normal'
 			};
+			practiceStore.setTheme('dark');
 		}
-		practiceStore.saveToStorage();
 	}
 
 	// Backup & Restore

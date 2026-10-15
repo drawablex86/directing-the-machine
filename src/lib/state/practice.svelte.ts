@@ -197,6 +197,21 @@ export class PracticeEngine {
 		}
 	}
 
+	// Theme Management
+	setTheme(theme: 'dark' | 'light') {
+		this.learnerPreferences.theme = theme;
+		if (isBrowser) {
+			document.documentElement.classList.remove('theme-dark', 'theme-light');
+			document.documentElement.classList.add(`theme-${theme}`);
+			document.documentElement.style.colorScheme = theme === 'light' ? 'light' : 'dark';
+		}
+		this.saveToStorage();
+	}
+
+	toggleTheme() {
+		this.setTheme(this.learnerPreferences.theme === 'dark' ? 'light' : 'dark');
+	}
+
 	// Two-Axis Assessment Matrix Classifier
 	classifyQuadrant(outcomeScore: number, decisionScore: number): Quadrant {
 		const strongOutcome = outcomeScore >= 3;
@@ -498,6 +513,11 @@ export class PracticeEngine {
 			if (data.learnerPreferences) {
 				const theme = data.learnerPreferences.theme === 'light' || data.learnerPreferences.theme === 'sepia' ? 'light' : 'dark';
 				this.learnerPreferences = { ...this.learnerPreferences, ...data.learnerPreferences, theme };
+				if (isBrowser) {
+					document.documentElement.classList.remove('theme-dark', 'theme-light');
+					document.documentElement.classList.add(`theme-${theme}`);
+					document.documentElement.style.colorScheme = theme === 'light' ? 'light' : 'dark';
+				}
 			}
 			if (data.intensityPath) this.intensityPath = data.intensityPath;
 			if (typeof data.showDeepening === 'boolean') this.showDeepening = data.showDeepening;
