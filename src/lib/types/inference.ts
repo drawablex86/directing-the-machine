@@ -5,6 +5,7 @@ export interface ModelOption {
 	name: string;
 	description?: string;
 	contextLength?: number;
+	isFree?: boolean;
 	pricing?: {
 		prompt?: string;
 		completion?: string;
@@ -41,6 +42,8 @@ export interface InferenceRequest {
 
 export interface InferenceResponse {
 	text: string;
+	thought?: string;
+	isTruncated?: boolean;
 	provider: InferenceProviderId;
 	model: string;
 	latencyMs: number;

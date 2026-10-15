@@ -1,4 +1,4 @@
-import type { PromptConfig, PromptTemplateId, CritiqueResult } from '../types/llm-prompts';
+import type { PromptConfig, PromptTemplateId, CritiqueResult, SurgicalPatch } from '../types/llm-prompts';
 import type { InferenceRequest } from '../types/inference';
 import { runInference } from './inference';
 import { practiceStore } from '../state/practice.svelte';
@@ -27,29 +27,38 @@ export const PROMPT_REGISTRY: Record<PromptTemplateId, PromptConfig> = {
 		persona: 'Classical Anatomist & Structural Purist',
 		role: 'auditor',
 		modalityId: 'm2',
-		description: 'Detects covert evaluative judgments masked as descriptions and provides structural replacements.',
+		description: 'Surgical diagnostic scan for covert evaluative vocabulary with in-place structural patches.',
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are the Classical Anatomist.
-Your task is to audit an observation passage written by a student.
+Your task is to conduct a surgical structural audit of a creative observation or essay passage.
 The student must describe ONLY structural properties (masses, proportions, edges, rhythms, spatial relationships, sentence lengths, syntax, hedge counts) without any evaluative shortcuts.
 
-INSTRUCTIONS:
-1. Identify any covert evaluative adjectives or subjective judgments (e.g. "striking", "subtle", "dynamic", "mysterious", "cluttered", "powerful", "compelling", "dramatic").
-2. For each violation, explain specifically WHY it is an evaluative judgment rather than an objective structural property.
-3. Provide a concrete structural rewrite of that specific sentence that isolates only what is physically or syntactically present.
-4. Output a summary: PASS (0 covert judgments) or FAIL (1+ covert judgments).
+SURGICAL EFFICIENCY RULES:
+1. DO NOT echo or rewrite passing sentences or clean paragraphs. Conserve tokens and pinpoint defects.
+2. Identify covert evaluative adjectives or subjective judgments (e.g. "striking", "subtle", "dynamic", "mysterious", "cluttered", "powerful", "compelling", "dramatic").
+3. For each sentence containing violations:
+   - Cite the exact original sentence.
+   - Explain specifically WHY it is an evaluative judgment rather than an objective structural property.
+   - Provide the targeted structural replacement for THAT sentence only.
+4. Output a summary verdict: PASS (0 covert judgments) or FAIL (1+ covert judgments).
+5. At the very end of your response, output a machine-readable patch block:
+[PATCHES]
+ORIGINAL: [exact sentence from text]
+REPLACEMENT: [structural rewrite of that sentence]
+[/PATCHES]
 `.trim(),
 		defaultTemperature: 0.2,
-		defaultMaxTokens: 800,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: { text: string; subject?: string }) => `
-Subject: ${ctx.subject || 'Creative artifact observation'}
-Student Written Observation:
+Subject: ${ctx.subject || 'Observation passage'}
+Text under audit (${ctx.text.split(/\s+/).length} words):
 """
 ${ctx.text}
 """
-Audit this observation for covert evaluative vocabulary and output your structural diagnosis.
+
+Audit this text for covert evaluative vocabulary. Emphasize physical and syntactic properties. Output your diagnosis and surgical patch block.
 `.trim()
 	},
 
@@ -77,17 +86,23 @@ CORE RULE: Never optimize lower levels while higher levels are broken. If Level 
 
 INSTRUCTIONS:
 1. Examine the user's diagnosed defect and chosen ladder level.
-2. Determine if the diagnosed defect actually originates at a HIGHER level on the ladder.
-3. Formulate the single test that proves whether the higher level is resolved before permitting lower-level execution.
+2. Determine if the diagnosed defect actually originates at a HIGHER level on the ladder (Level 1 is highest, Level 7 is lowest).
+3. If the user chose Level 6 or 7, but the underlying issue is lack of structural composition (Level 3) or premise tension (Level 2), flag this as premature polish.
+4. Formulate the single test that proves whether the higher level is resolved before permitting lower-level execution.
+5. At the very end, output a machine-readable verdict block:
+[LADDER_VERDICT]
+RECOMMENDED_LEVEL: [1-7]
+REASON: [1-sentence explanation of why this defect belongs at that level]
+[/LADDER_VERDICT]
 `.trim(),
 		defaultTemperature: 0.2,
-		defaultMaxTokens: 750,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: { selectedLevel: number; causingDecision: string; proposedTest: string }) => `
 User Selected Ladder Level: Level ${ctx.selectedLevel}
 User Causing Decision / Diagnosed Defect: "${ctx.causingDecision}"
 User Proposed Test: "${ctx.proposedTest}"
 
-Audit this diagnosis against the Top-Down Diagnostic Ladder hierarchy.
+Audit this diagnosis against the Top-Down Diagnostic Ladder hierarchy and emit the verdict block.
 `.trim()
 	},
 
@@ -857,9 +872,84 @@ export function isByokReady(): boolean {
 }
 
 /**
+ * Parses machine-readable surgical patches from an LLM audit response.
+ */
+export function parseSurgicalPatches(text: string): SurgicalPatch[] {
+	const patches: SurgicalPatch[] = [];
+	if (!text) return patches;
+
+	// Extract the [PATCHES] block if present, or search through full text
+	const blockMatch = text.match(/\[PATCHES\]([\s\S]*?)(\[\/PATCHES\]|$)/i);
+	const targetContent = blockMatch ? blockMatch[1] : text;
+
+	// Match ORIGINAL: ... and REPLACEMENT: ... pairs
+	const regex = /ORIGINAL:\s*["“']?([\s\S]*?)["”']?\s*\n\s*REPLACEMENT:\s*["“']?([\s\S]*?)["”']?(?=\n\s*ORIGINAL:|$)/gi;
+	let match;
+	while ((match = regex.exec(targetContent)) !== null) {
+		const originalSentence = match[1].trim().replace(/^["“']|["”']$/g, '').trim();
+		const structuralReplacement = match[2].trim().replace(/^["“']|["”']$/g, '').trim();
+		if (originalSentence && structuralReplacement) {
+			patches.push({
+				originalSentence,
+				structuralReplacement
+			});
+		}
+	}
+
+	return patches;
+}
+
+/**
+ * Applies surgical replacements to source text in-place, preserving all other paragraphs and syntax.
+ */
+export function applySurgicalPatches(source: string, patches: SurgicalPatch[]): string {
+	let updated = source;
+	for (const patch of patches) {
+		if (!patch.originalSentence || !patch.structuralReplacement) continue;
+		const orig = patch.originalSentence.trim();
+		const repl = patch.structuralReplacement.trim();
+		if (updated.includes(orig)) {
+			updated = updated.replace(orig, repl);
+		} else {
+			// Try without trailing punctuation mismatch
+			const origNoPunct = orig.replace(/[.,;!?]+$/, '');
+			const index = updated.indexOf(origNoPunct);
+			if (index !== -1) {
+				const sub = updated.substring(index);
+				const sentenceMatch = sub.match(/^[^\n.!?]+[.!?]?/);
+				if (sentenceMatch) {
+					updated = updated.replace(sentenceMatch[0], repl);
+				}
+			}
+		}
+	}
+	return updated;
+}
+
+/**
+ * Parses machine-readable ladder hierarchy verdict.
+ */
+export function parseLadderVerdict(text: string): { recommendedLevel?: number; reason?: string } {
+	if (!text) return {};
+	const blockMatch = text.match(/\[LADDER_VERDICT\]([\s\S]*?)(\[\/LADDER_VERDICT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const levelMatch = target.match(/RECOMMENDED_LEVEL:\s*(?:Level\s*)?(\d)/i);
+	const reasonMatch = target.match(/REASON:\s*(.+)/i);
+
+	const level = levelMatch ? parseInt(levelMatch[1], 10) : undefined;
+	const reason = reasonMatch ? reasonMatch[1].trim() : undefined;
+
+	return {
+		recommendedLevel: level && level >= 1 && level <= 7 ? level : undefined,
+		reason
+	};
+}
+
+/**
  * Central prompt execution pipeline.
  * Formats context into user prompt, applies system prompt and defaults, calls runInference,
- * and packages the result into a typed CritiqueResult.
+ * and packages the result into a typed CritiqueResult with thoughts and parsed directives.
  */
 export async function executePrompt<T = any>(
 	promptId: PromptTemplateId,
@@ -885,11 +975,26 @@ export async function executePrompt<T = any>(
 		promptId: config.id,
 		persona: config.persona,
 		rawText: response.text,
+		thought: response.thought,
+		isTruncated: response.isTruncated,
 		model: response.model,
 		provider: response.provider,
 		latencyMs: response.latencyMs,
 		usage: response.usage
 	};
+
+	// Parse domain-specific output blocks
+	if (promptId === 'm2-semantic-linter') {
+		const patches = parseSurgicalPatches(response.text);
+		if (patches.length > 0) {
+			critique.patches = patches;
+		}
+	} else if (promptId === 'm2-ladder-auditor') {
+		const verdict = parseLadderVerdict(response.text);
+		if (verdict.recommendedLevel) {
+			critique.recommendedLevel = verdict.recommendedLevel;
+		}
+	}
 
 	return critique;
 }

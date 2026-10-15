@@ -11,7 +11,8 @@
 		Bot,
 		Clock,
 		Layers,
-		CheckCircle2
+		CheckCircle2,
+		ChevronDown
 	} from '@lucide/svelte';
 
 	interface Props {
@@ -198,10 +199,34 @@
 			</div>
 		{/if}
 
+		<!-- Truncation Alert (when max tokens limit was reached) -->
+		{#if result.isTruncated}
+			<div class="flex items-center gap-2 p-3 rounded-xl bg-amber-950/40 border border-amber-800/60 text-amber-300 text-xs">
+				<AlertTriangle class="w-4 h-4 shrink-0 text-amber-400" />
+				<span>Response reached output token limit and was cleanly preserved without loss of diagnostic context.</span>
+			</div>
+		{/if}
+
 		<!-- Markdown Content Area -->
 		<div class="prose prose-invert prose-xs max-w-none text-neutral-200 leading-relaxed font-sans selection:bg-amber-500/20 selection:text-amber-200 space-y-2">
 			{@html rendered.html}
 		</div>
+
+		<!-- Reasoning Monologue Drawer (for models like Nemotron, DeepSeek R1, o1) -->
+		{#if result.thought}
+			<details class="group rounded-xl border border-neutral-800/80 bg-neutral-950/70 overflow-hidden text-xs">
+				<summary class="flex items-center justify-between px-3.5 py-2.5 cursor-pointer select-none text-neutral-400 hover:text-neutral-200 transition font-mono text-[11px]">
+					<span class="flex items-center gap-2">
+						<Layers class="w-3.5 h-3.5 text-amber-400/80" />
+						<span class="font-semibold text-neutral-300">Inspect Model Reasoning Monologue</span>
+					</span>
+					<ChevronDown class="w-3.5 h-3.5 text-neutral-500 group-open:rotate-180 transition-transform" />
+				</summary>
+				<div class="px-3.5 pb-3 pt-2 border-t border-neutral-800/60 text-neutral-400 font-mono text-[11px] leading-relaxed whitespace-pre-wrap max-h-60 overflow-y-auto">
+					{result.thought}
+				</div>
+			</details>
+		{/if}
 
 		<!-- Action Buttons Footer -->
 		<div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-neutral-800/80">

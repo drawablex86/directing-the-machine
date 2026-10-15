@@ -52,11 +52,17 @@
 	const currentConfig = $derived(practiceStore.byokSettings.providers[viewedProvider]);
 	const isActiveStudioEngine = $derived(practiceStore.byokSettings.activeProvider === viewedProvider);
 
+	let onlyFreeModels = $state(false);
+
 	const filteredModels = $derived.by<ModelOption[]>(() => {
 		const models = currentConfig?.availableModels || [];
+		let list = models;
+		if (onlyFreeModels) {
+			list = list.filter((m) => m.isFree || m.id.includes(':free') || m.pricing?.prompt?.includes('$0.00'));
+		}
 		const q = modelSearch.trim().toLowerCase();
-		if (!q) return models;
-		return models.filter(
+		if (!q) return list;
+		return list.filter(
 			(m) => m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || (m.description && m.description.toLowerCase().includes(q))
 		);
 	});
@@ -467,31 +473,46 @@
 					</p>
 				</div>
 			{:else}
-				<!-- Search Filter Input -->
+				<!-- Search Filter Input & Free Filter -->
 				<div class="space-y-2">
-					<div class="relative">
-						<Search class="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
-						<input
-							type="text"
-							bind:value={modelSearch}
-							placeholder="Search models by name or id (e.g. claude, flash, gpt, deepseek)..."
-							class="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-9 pr-3 py-2 text-xs text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-amber-400"
-						/>
-						{#if modelSearch}
-							<button
-								type="button"
-								onclick={() => (modelSearch = '')}
-								class="text-[11px] text-neutral-500 hover:text-neutral-300 absolute right-3 top-1/2 -translate-y-1/2"
-							>
-								Clear
-							</button>
-						{/if}
+					<div class="flex items-center justify-between gap-2">
+						<div class="relative flex-1">
+							<Search class="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+							<input
+								type="text"
+								bind:value={modelSearch}
+								placeholder="Search models by name or id (e.g. nemotron, llama, flash, claude)..."
+								class="w-full bg-neutral-950 border border-neutral-800 rounded-xl pl-9 pr-3 py-2 text-xs text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-amber-400"
+							/>
+							{#if modelSearch}
+								<button
+									type="button"
+									onclick={() => (modelSearch = '')}
+									class="text-[11px] text-neutral-500 hover:text-neutral-300 absolute right-3 top-1/2 -translate-y-1/2"
+								>
+									Clear
+								</button>
+							{/if}
+						</div>
+
+						<!-- Free Models Toggle Pill -->
+						<button
+							type="button"
+							onclick={() => (onlyFreeModels = !onlyFreeModels)}
+							class="px-2.5 py-2 rounded-xl text-xs font-mono font-semibold transition shrink-0 flex items-center gap-1.5 cursor-pointer {onlyFreeModels
+								? 'bg-emerald-950/80 text-emerald-400 border border-emerald-700 shadow-sm'
+								: 'bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
+							title="Filter to free-to-use models (e.g. NVIDIA Nemotron, Llama Free)"
+						>
+							<span>Free Models 🎁</span>
+						</button>
 					</div>
 
 					<!-- Model Cards Grid -->
 					<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
 						{#each filteredModels as model}
 							{@const isSelected = currentConfig.selectedModel === model.id}
+							{@const isFreeModel = model.isFree || model.id.includes(':free') || model.pricing?.prompt?.includes('$0.00')}
 							<button
 								type="button"
 								onclick={() => handleSelectModel(model.id)}
@@ -504,6 +525,11 @@
 										<span class="text-xs font-semibold truncate {isSelected ? 'text-amber-400' : 'text-neutral-200'}">
 											{model.name}
 										</span>
+										{#if isFreeModel}
+											<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800 font-bold">
+												FREE
+											</span>
+										{/if}
 										{#if model.contextLength}
 											<span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-neutral-800 text-neutral-400 border border-neutral-700">
 												{model.contextLength >= 1000000
@@ -511,7 +537,7 @@
 													: `${Math.round(model.contextLength / 1000)}k`}
 											</span>
 										{/if}
-										{#if model.pricing?.prompt}
+										{#if model.pricing?.prompt && !isFreeModel}
 											<span class="text-[9px] font-mono text-neutral-500">
 												{model.pricing.prompt}
 											</span>

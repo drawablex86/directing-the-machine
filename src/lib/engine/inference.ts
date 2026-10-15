@@ -8,6 +8,58 @@ import type {
 } from '../types/inference';
 import { practiceStore } from '../state/practice.svelte';
 
+export interface SanitizedInference {
+	cleanText: string;
+	thought?: string;
+	isTruncated: boolean;
+}
+
+/**
+ * Universal response sanitizer for reasoning & standard models.
+ * Strips <think>...</think> and <thought>...</thought> blocks, separates reasoning from clean deliverables,
+ * and detects length truncation without mangling content.
+ */
+export function sanitizeInferenceResponse(
+	rawText: string,
+	apiReasoning?: string,
+	finishReason?: string
+): SanitizedInference {
+	let text = rawText || '';
+	let thought = apiReasoning?.trim() || '';
+	const isTruncated = finishReason === 'length' || finishReason === 'max_tokens';
+
+	// 1. Extract and strip <think>...</think> or <thought>...</thought> tags
+	const thinkRegex = /<(think|thought)>([\s\S]*?)<\/\1>/gi;
+	let match;
+	while ((match = thinkRegex.exec(text)) !== null) {
+		const extracted = match[2].trim();
+		thought = thought ? `${thought}\n\n${extracted}` : extracted;
+	}
+	text = text.replace(thinkRegex, '').trim();
+
+	// 2. Handle unclosed <think> or <thought> tag if model truncated mid-thought
+	const unclosedThinkRegex = /<(think|thought)>([\s\S]*)$/gi;
+	const unclosedMatch = unclosedThinkRegex.exec(text);
+	if (unclosedMatch) {
+		const extracted = unclosedMatch[2].trim();
+		thought = thought ? `${thought}\n\n${extracted}` : extracted;
+		text = text.replace(unclosedThinkRegex, '').trim();
+	}
+
+	// 3. Strip outer markdown codeblock fence if model wrapped entire output in ```markdown ... ```
+	if (text.startsWith('```markdown') && text.endsWith('```')) {
+		text = text.slice(11, -3).trim();
+	} else if (text.startsWith('```') && text.endsWith('```') && !text.includes('\n```\n')) {
+		text = text.slice(3, -3).trim();
+	}
+
+	return {
+		cleanText: text,
+		thought: thought || undefined,
+		isTruncated
+	};
+}
+
 export const PROVIDER_METAS: Record<InferenceProviderId, ProviderMeta> = {
 	openrouter: {
 		id: 'openrouter',
@@ -20,6 +72,8 @@ export const PROVIDER_METAS: Record<InferenceProviderId, ProviderMeta> = {
 		keyHelpText: 'Access Claude, Gemini, GPT-4o, DeepSeek, and Llama with a single API key.',
 		description: 'Unified inference gateway with unified billing, zero CORS restrictions, and access to all state-of-the-art models.',
 		defaultModels: [
+			{ id: 'nvidia/llama-3.1-nemotron-70b-instruct:free', name: 'NVIDIA Nemotron 70B (Free)', contextLength: 131072, description: 'NVIDIA high-performance reasoning model with zero token cost on OpenRouter', isFree: true, pricing: { prompt: '$0.00/M', completion: '$0.00/M' } },
+			{ id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B (Free)', contextLength: 131072, description: 'Open source flagship with zero token cost on OpenRouter', isFree: true, pricing: { prompt: '$0.00/M', completion: '$0.00/M' } },
 			{ id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', contextLength: 200000, description: 'Highest diagnostic vision & craft' },
 			{ id: 'anthropic/claude-3.7-sonnet', name: 'Claude 3.7 Sonnet', contextLength: 200000, description: 'Hybrid reasoning and direction' },
 			{ id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', contextLength: 1048576, description: 'Ultra-fast low latency evaluation' },
@@ -132,18 +186,24 @@ export async function fetchAvailableModels(
 		if (list.length === 0) {
 			return meta.defaultModels;
 		}
-		return list.map((item) => ({
-			id: item.id,
-			name: item.name || item.id,
-			description: item.description || '',
-			contextLength: item.context_length,
-			pricing: item.pricing
-				? {
-						prompt: item.pricing.prompt ? `$${(Number(item.pricing.prompt) * 1000000).toFixed(2)}/M` : undefined,
-						completion: item.pricing.completion ? `$${(Number(item.pricing.completion) * 1000000).toFixed(2)}/M` : undefined
-					}
-				: undefined
-		}));
+		return list.map((item) => {
+			const promptPrice = item.pricing?.prompt ? Number(item.pricing.prompt) : null;
+			const completionPrice = item.pricing?.completion ? Number(item.pricing.completion) : null;
+			const isFree = item.id.includes(':free') || (promptPrice === 0 && completionPrice === 0);
+			return {
+				id: item.id,
+				name: item.name || item.id,
+				description: item.description || '',
+				contextLength: item.context_length,
+				isFree,
+				pricing: item.pricing
+					? {
+							prompt: item.pricing.prompt ? `$${(Number(item.pricing.prompt) * 1000000).toFixed(2)}/M` : '$0.00/M',
+							completion: item.pricing.completion ? `$${(Number(item.pricing.completion) * 1000000).toFixed(2)}/M` : '$0.00/M'
+						}
+					: undefined
+			};
+		});
 	}
 
 	if (provider === 'openai' || provider === 'custom') {
@@ -307,7 +367,7 @@ export async function runInference(request: InferenceRequest): Promise<Inference
 	const model = (request.model || providerConfig.selectedModel || meta.defaultModel).trim();
 	const baseUrl = (providerConfig.baseUrl?.trim() || meta.defaultBaseUrl).replace(/\/+$/, '');
 	const temperature = typeof request.temperature === 'number' ? request.temperature : 0.7;
-	const maxTokens = request.maxTokens || 1024;
+	const maxTokens = request.maxTokens || 8192;
 
 	// Build messages array
 	const messages = request.messages ? [...request.messages] : [];
@@ -349,11 +409,17 @@ export async function runInference(request: InferenceRequest): Promise<Inference
 		}
 
 		const data = await res.json();
-		const text = data?.choices?.[0]?.message?.content || '';
+		const choice = data?.choices?.[0];
+		const rawText = choice?.message?.content || '';
+		const apiReasoning = choice?.message?.reasoning || choice?.message?.reasoning_content || '';
+		const finishReason = choice?.finish_reason;
+		const sanitized = sanitizeInferenceResponse(rawText, apiReasoning, finishReason);
 		const latencyMs = Math.round(performance.now() - startTime);
 
 		return {
-			text,
+			text: sanitized.cleanText,
+			thought: sanitized.thought,
+			isTruncated: sanitized.isTruncated,
 			provider: 'openrouter',
 			model: data.model || model,
 			latencyMs,
@@ -392,11 +458,17 @@ export async function runInference(request: InferenceRequest): Promise<Inference
 		}
 
 		const data = await res.json();
-		const text = data?.choices?.[0]?.message?.content || '';
+		const choice = data?.choices?.[0];
+		const rawText = choice?.message?.content || '';
+		const apiReasoning = choice?.message?.reasoning_content || choice?.message?.reasoning || '';
+		const finishReason = choice?.finish_reason;
+		const sanitized = sanitizeInferenceResponse(rawText, apiReasoning, finishReason);
 		const latencyMs = Math.round(performance.now() - startTime);
 
 		return {
-			text,
+			text: sanitized.cleanText,
+			thought: sanitized.thought,
+			isTruncated: sanitized.isTruncated,
 			provider: activeProviderId,
 			model: data.model || model,
 			latencyMs,
@@ -451,11 +523,23 @@ export async function runInference(request: InferenceRequest): Promise<Inference
 
 		const data = await res.json();
 		const candidate = data?.candidates?.[0];
-		const text = candidate?.content?.parts?.map((p: any) => p.text || '').join('') || '';
+		let rawText = '';
+		let thoughtText = '';
+		for (const part of (candidate?.content?.parts || [])) {
+			if (part.thought) {
+				thoughtText += (thoughtText ? '\n\n' : '') + part.text;
+			} else if (part.text) {
+				rawText += part.text;
+			}
+		}
+		const finishReason = candidate?.finishReason === 'MAX_TOKENS' ? 'length' : candidate?.finishReason;
+		const sanitized = sanitizeInferenceResponse(rawText, thoughtText, finishReason);
 		const latencyMs = Math.round(performance.now() - startTime);
 
 		return {
-			text,
+			text: sanitized.cleanText,
+			thought: sanitized.thought,
+			isTruncated: sanitized.isTruncated,
 			provider: 'google',
 			model: cleanModel,
 			latencyMs,
@@ -507,16 +591,25 @@ export async function runInference(request: InferenceRequest): Promise<Inference
 		}
 
 		const data = await res.json();
-		const text = Array.isArray(data?.content)
-			? data.content
-					.filter((c: any) => c.type === 'text')
-					.map((c: any) => c.text)
-					.join('\n')
-			: '';
+		let rawText = '';
+		let thoughtText = '';
+		if (Array.isArray(data?.content)) {
+			for (const block of data.content) {
+				if (block.type === 'thinking' && block.thinking) {
+					thoughtText += (thoughtText ? '\n\n' : '') + block.thinking;
+				} else if (block.type === 'text' && block.text) {
+					rawText += block.text;
+				}
+			}
+		}
+		const finishReason = data?.stop_reason === 'max_tokens' ? 'length' : data?.stop_reason;
+		const sanitized = sanitizeInferenceResponse(rawText, thoughtText, finishReason);
 		const latencyMs = Math.round(performance.now() - startTime);
 
 		return {
-			text,
+			text: sanitized.cleanText,
+			thought: sanitized.thought,
+			isTruncated: sanitized.isTruncated,
 			provider: 'anthropic',
 			model: data.model || model,
 			latencyMs,

@@ -149,10 +149,16 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Enhanced `PracticeEngine` reactive store with `isByokConfigured` and `activeModelName` status getters.
   - Verified 0 TypeScript errors with `pnpm run check` and verified static pre-rendering build with `pnpm run build`.
 
-- [ ] **Task 19: M2 Studio — Semantic Zero-Adjective Linter & Diagnostic Ladder Auditor**
-  - Integrate semantic zero-adjective auditing in `M2DiagnosticVision.svelte` to catch covert evaluative shortcuts ("striking", "subtle", "dynamic") and suggest purely structural replacements.
-  - Implement Diagnostic Ladder level-locking to enforce Level 1–3 intent/structure resolution before allowing Level 6–7 surface polish.
-  - Add interactive token chips and Level-Lock banner in M2 Studio.
+- [x] **Task 19: M2 Studio — Semantic Zero-Adjective Linter & Diagnostic Ladder Auditor**
+  - Architected the **Surgical Diff Protocol & Large-Context Architecture** for long essays and documents: prompt instructs model to emit targeted `[PATCHES]` pairs instead of rewriting clean text, making token consumption proportional to defects rather than essay size.
+  - Implemented `parseSurgicalPatches` and `applySurgicalPatches` performing client-side string replacements in-place on flagged sentences, leaving clean paragraphs, formatting, and authorial voice 100% intact.
+  - Implemented `sanitizeInferenceResponse` in `src/lib/engine/inference.ts` to automatically strip `<think>...</think>` and `<thought>...</thought>` tags from reasoning models (e.g. `nvidia/llama-3.1-nemotron-70b-instruct:free`, DeepSeek R1, o1) and route internal reasoning monologue into `result.thought`.
+  - Added collapsible Reasoning Monologue Drawer (`<details>`) and truncation warning banners in `LlmCritiqueCard.svelte`.
+  - Added automatic OpenRouter `:free` model detection with green badges and 1-click `onlyFreeModels` filter toggle in BYOK Settings.
+  - Raised default max completion tokens from 1024 to `8192` across all providers to provide ample headroom for reasoning models and long-text audits.
+  - Integrated Semantic Zero-Adjective Linter in `M2DiagnosticVision.svelte` with `LlmTriggerButton` and dynamic action button `Apply Structural Replacements (N)`.
+  - Integrated Diagnostic Ladder Auditor in `M2DiagnosticVision.svelte` with machine-readable `[LADDER_VERDICT]` parsing and dynamic action button `Promote to Level X`.
+  - Verified 0 TypeScript errors with `pnpm run check`, verified production prerender build with `pnpm run build`, and passed all unit test assertions.
 
 - [ ] **Task 20: M1 Studio — Problem Funnel Interrogator & Positionality Compass Auditor**
   - Integrate problem statement stress-testing in `M1ProblemPositionLab.svelte` to differentiate genuine tensions with stakes from passive topics.

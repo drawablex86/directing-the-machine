@@ -43,6 +43,7 @@ export interface PromptConfig<TContext = any> {
 	name: string;
 	persona: string;
 	role: PromptRole;
+	tier?: 'fast' | 'reasoning';
 	modalityId?: string;
 	description: string;
 	systemPrompt: string;
@@ -51,12 +52,21 @@ export interface PromptConfig<TContext = any> {
 	formatPrompt: (context: TContext) => string;
 }
 
+export interface SurgicalPatch {
+	originalSentence: string;
+	structuralReplacement: string;
+	flaggedWord?: string;
+	reason?: string;
+}
+
 export interface CritiqueResult {
 	id: string;
 	timestamp: string;
 	promptId: PromptTemplateId;
 	persona: string;
 	rawText: string;
+	thought?: string;
+	isTruncated?: boolean;
 	model: string;
 	provider: InferenceProviderId;
 	latencyMs: number;
@@ -66,9 +76,12 @@ export interface CritiqueResult {
 		totalTokens?: number;
 	};
 	applied?: boolean;
+	patches?: SurgicalPatch[];
+	recommendedLevel?: number;
 }
 
 export interface LlmAction {
+	id?: string;
 	label: string;
 	icon?: any;
 	primary?: boolean;

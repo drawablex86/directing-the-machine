@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import { lintObservation } from '$lib/engine/adjective-linter';
-	import { Eye, AlertTriangle, CheckCircle, Sliders, ArrowRight, Target } from '@lucide/svelte';
+	import { Eye, AlertTriangle, CheckCircle, Sliders, ArrowRight, Target, Wand2 } from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
 	import { getDrillById } from '$lib/data/drills';
+	import { LlmTriggerButton, LlmCritiqueCard } from '$lib/components/llm';
+	import { executePrompt, applySurgicalPatches } from '$lib/engine/prompt-registry';
+	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
 
 	let activeTool = $state<'drill' | 'linter' | 'ladder' | 'canvas' | 'sixQuestions'>('drill');
 
@@ -19,6 +22,46 @@
 	// Linter text
 	let observationText = $state('');
 	let lintResult = $derived(lintObservation(observationText));
+
+	// Semantic Linter LLM state
+	let linterCritique = $state<CritiqueResult | null>(null);
+	let linterLoading = $state(false);
+	let linterError = $state<string | null>(null);
+
+	async function runSemanticAudit() {
+		if (!observationText.trim()) return;
+		linterLoading = true;
+		linterError = null;
+		try {
+			const res = await executePrompt('m2-semantic-linter', {
+				text: observationText
+			});
+			linterCritique = res;
+		} catch (err: any) {
+			linterError = err.message || 'Semantic audit failed';
+		} finally {
+			linterLoading = false;
+		}
+	}
+
+	let linterActions = $derived.by<LlmAction[]>(() => {
+		const actions: LlmAction[] = [];
+		if (linterCritique?.patches && linterCritique.patches.length > 0) {
+			const patchCount = linterCritique.patches.length;
+			actions.push({
+				id: 'apply-patches',
+				label: `Apply Structural Replacements (${patchCount})`,
+				primary: true,
+				icon: Wand2,
+				onClick: () => {
+					if (linterCritique?.patches) {
+						observationText = applySurgicalPatches(observationText, linterCritique.patches);
+					}
+				}
+			});
+		}
+		return actions;
+	});
 
 	// 6-Question Human Decision Audit
 	let apparentIntent = $state('');
@@ -45,6 +88,47 @@
 	let acceptCondition = $state('');
 	let showLadderOverride = $state(false);
 	let diagnosticSavedNotice = $state(false);
+
+	// Diagnostic Ladder LLM state
+	let ladderCritique = $state<CritiqueResult | null>(null);
+	let ladderLoading = $state(false);
+	let ladderError = $state<string | null>(null);
+
+	async function runLadderAudit() {
+		if (!causingDecision.trim() || !proposedTest.trim()) return;
+		ladderLoading = true;
+		ladderError = null;
+		try {
+			const res = await executePrompt('m2-ladder-auditor', {
+				selectedLevel,
+				causingDecision,
+				proposedTest
+			});
+			ladderCritique = res;
+		} catch (err: any) {
+			ladderError = err.message || 'Ladder audit failed';
+		} finally {
+			ladderLoading = false;
+		}
+	}
+
+	let ladderActions = $derived.by<LlmAction[]>(() => {
+		const actions: LlmAction[] = [];
+		if (ladderCritique?.recommendedLevel && ladderCritique.recommendedLevel !== selectedLevel) {
+			const recLvl = ladderCritique.recommendedLevel;
+			const targetLvl = ladderLevels.find(l => l.level === recLvl);
+			actions.push({
+				id: 'promote-ladder-level',
+				label: `Promote to Level ${recLvl}${targetLvl ? ` (${targetLvl.name.split('. ')[1]})` : ''}`,
+				primary: true,
+				icon: Target,
+				onClick: () => {
+					selectedLevel = recLvl;
+				}
+			});
+		}
+		return actions;
+	});
 
 	function saveDiagnosticSentence() {
 		if (!causingDecision.trim() || !proposedTest.trim()) return;
@@ -228,6 +312,36 @@
 						<span>Clean perceptual observation! Zero evaluative shortcuts detected.</span>
 					</div>
 				{/if}
+
+				<!-- Semantic AI Audit & In-place Replacements -->
+				<div class="space-y-3 pt-3 border-t border-neutral-800">
+					<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+						<div class="text-[11px] text-neutral-400 font-mono">
+							<span>Word count: {observationText.trim() ? observationText.trim().split(/\s+/).length : 0}</span>
+							{#if observationText.trim().split(/\s+/).length > 150}
+								<span class="text-amber-400/80 ml-2">• Essay close-reading mode active</span>
+							{/if}
+						</div>
+
+						<LlmTriggerButton
+							label="Run Semantic Audit"
+							onclick={runSemanticAudit}
+							loading={linterLoading}
+							disabled={!observationText.trim()}
+							title="Audit for covert evaluative vocabulary and generate structural diffs"
+						/>
+					</div>
+
+					<LlmCritiqueCard
+						result={linterCritique}
+						loading={linterLoading}
+						error={linterError}
+						title="Classical Anatomist (Semantic Zero-Adjective Audit)"
+						actions={linterActions}
+						onDismiss={() => { linterCritique = null; }}
+						onRetry={runSemanticAudit}
+					/>
+				</div>
 			</div>
 		</div>
 
@@ -366,6 +480,33 @@
 									✓ Committed to Log!
 								</span>
 							{/if}
+						</div>
+
+						<!-- LLM Diagnostic Ladder Auditor -->
+						<div class="mt-4 pt-3 border-t border-neutral-800 space-y-3">
+							<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+								<span class="text-[11px] text-neutral-400">
+									Audit for premature polish or hidden level skip:
+								</span>
+								<LlmTriggerButton
+									label="Enforce Ladder Hierarchy"
+									onclick={runLadderAudit}
+									loading={ladderLoading}
+									disabled={!causingDecision.trim() || !proposedTest.trim()}
+									variant="secondary"
+									title="Test whether this defect originates at a higher ladder level"
+								/>
+							</div>
+
+							<LlmCritiqueCard
+								result={ladderCritique}
+								loading={ladderLoading}
+								error={ladderError}
+								title="Diagnostic Ladder Purist"
+								actions={ladderActions}
+								onDismiss={() => { ladderCritique = null; }}
+								onRetry={runLadderAudit}
+							/>
 						</div>
 					{/if}
 				</div>
