@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { practiceStore, type LearnerPreferences } from '$lib/state/practice.svelte';
 	import { soundSystem } from '$lib/engine/sound-system';
+	import ByokSettingsTab from '$lib/components/settings/ByokSettingsTab.svelte';
 	import {
 		X,
 		Sliders,
@@ -17,13 +18,28 @@
 		Download,
 		Upload,
 		RotateCcw,
-		Zap
+		Zap,
+		Cpu
 	} from '@lucide/svelte';
 
-	let { isOpen, onClose }: { isOpen: boolean; onClose: () => void } = $props();
+	let {
+		isOpen,
+		onClose,
+		initialTab = 'inference'
+	}: {
+		isOpen: boolean;
+		onClose: () => void;
+		initialTab?: SettingsTab;
+	} = $props();
 
-	type SettingsTab = 'typography' | 'theme' | 'focus' | 'backup';
-	let currentTab = $state<SettingsTab>('typography');
+	export type SettingsTab = 'inference' | 'typography' | 'theme' | 'focus' | 'backup';
+	let currentTab = $state<SettingsTab>('inference');
+
+	$effect(() => {
+		if (isOpen && initialTab) {
+			currentTab = initialTab;
+		}
+	});
 
 	let prefs = $derived(practiceStore.learnerPreferences);
 
@@ -142,7 +158,7 @@
 		aria-labelledby="pref-modal-title"
 	>
 		<div
-			class="bg-neutral-900 border border-neutral-800 rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+			class="bg-neutral-900 border border-neutral-800 rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
 		>
 			<!-- Modal Header -->
 			<div class="px-6 py-5 border-b border-neutral-800 flex items-center justify-between">
@@ -152,16 +168,17 @@
 					</div>
 					<div>
 						<h2 id="pref-modal-title" class="text-lg font-bold text-neutral-100 flex items-center gap-2">
-							Learner Preferences & Adaptability
-							<span class="text-xs font-normal px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400 border border-neutral-700">A11y</span>
+							Studio Settings & Preferences
+							<span class="text-xs font-normal px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">BYOK Ready</span>
 						</h2>
-						<p class="text-xs text-neutral-400">Tailor the studio workbench to your cognitive, visual, and learning style.</p>
+						<p class="text-xs text-neutral-400">Configure AI inference endpoints, typography, sensory palette, and data portability.</p>
 					</div>
 				</div>
 				<button
+					type="button"
 					onclick={onClose}
-					class="p-2 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 rounded-xl transition"
-					aria-label="Close preferences"
+					class="p-2 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 rounded-xl transition cursor-pointer"
+					aria-label="Close settings"
 				>
 					<X class="w-5 h-5" />
 				</button>
@@ -174,57 +191,73 @@
 					1-Click Presets:
 				</span>
 				<button
+					type="button"
 					onclick={() => applyPreset('adhd')}
-					class="text-xs px-3 py-1 rounded-xl bg-neutral-800/80 hover:bg-amber-500/20 hover:text-amber-300 border border-neutral-700/60 text-neutral-300 transition"
+					class="text-xs px-3 py-1 rounded-xl bg-neutral-800/80 hover:bg-amber-500/20 hover:text-amber-300 border border-neutral-700/60 text-neutral-300 transition cursor-pointer"
 				>
 					ADHD / Executive Focus
 				</button>
 				<button
+					type="button"
 					onclick={() => applyPreset('dyslexia')}
-					class="text-xs px-3 py-1 rounded-xl bg-neutral-800/80 hover:bg-amber-500/20 hover:text-amber-300 border border-neutral-700/60 text-neutral-300 transition"
+					class="text-xs px-3 py-1 rounded-xl bg-neutral-800/80 hover:bg-amber-500/20 hover:text-amber-300 border border-neutral-700/60 text-neutral-300 transition cursor-pointer"
 				>
 					Dyslexia & Low Glare
 				</button>
 				<button
+					type="button"
 					onclick={() => applyPreset('paper')}
-					class="text-xs px-3 py-1 rounded-xl bg-neutral-800/80 hover:bg-amber-500/20 hover:text-amber-300 border border-neutral-700/60 text-neutral-300 transition"
+					class="text-xs px-3 py-1 rounded-xl bg-neutral-800/80 hover:bg-amber-500/20 hover:text-amber-300 border border-neutral-700/60 text-neutral-300 transition cursor-pointer"
 				>
 					Archival Paper Reading
 				</button>
 				<button
+					type="button"
 					onclick={() => applyPreset('default')}
-					class="text-xs px-3 py-1 rounded-xl bg-neutral-800/40 hover:bg-neutral-700/60 border border-neutral-700/40 text-neutral-400 transition"
+					class="text-xs px-3 py-1 rounded-xl bg-neutral-800/40 hover:bg-neutral-700/60 border border-neutral-700/40 text-neutral-400 transition cursor-pointer"
 				>
 					Reset Default
 				</button>
 			</div>
 
 			<!-- Tabs Navigation -->
-			<div class="flex border-b border-neutral-800 px-6 bg-neutral-900/50">
+			<div class="flex border-b border-neutral-800 px-6 bg-neutral-900/50 overflow-x-auto">
 				<button
-					onclick={() => currentTab = 'typography'}
-					class="px-4 py-3 text-xs font-medium border-b-2 transition flex items-center gap-2 {currentTab === 'typography' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-400 hover:text-neutral-200'}"
+					type="button"
+					onclick={() => (currentTab = 'inference')}
+					class="px-4 py-3 text-xs font-medium border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer {currentTab === 'inference' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-400 hover:text-neutral-200'}"
+				>
+					<Cpu class="w-4 h-4" />
+					<span>AI Inference (BYOK)</span>
+				</button>
+				<button
+					type="button"
+					onclick={() => (currentTab = 'typography')}
+					class="px-4 py-3 text-xs font-medium border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer {currentTab === 'typography' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-400 hover:text-neutral-200'}"
 				>
 					<Type class="w-4 h-4" />
 					<span>Typography & Reading</span>
 				</button>
 				<button
-					onclick={() => currentTab = 'theme'}
-					class="px-4 py-3 text-xs font-medium border-b-2 transition flex items-center gap-2 {currentTab === 'theme' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-400 hover:text-neutral-200'}"
+					type="button"
+					onclick={() => (currentTab = 'theme')}
+					class="px-4 py-3 text-xs font-medium border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer {currentTab === 'theme' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-400 hover:text-neutral-200'}"
 				>
 					<Palette class="w-4 h-4" />
 					<span>Palette & Sensory</span>
 				</button>
 				<button
-					onclick={() => currentTab = 'focus'}
-					class="px-4 py-3 text-xs font-medium border-b-2 transition flex items-center gap-2 {currentTab === 'focus' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-400 hover:text-neutral-200'}"
+					type="button"
+					onclick={() => (currentTab = 'focus')}
+					class="px-4 py-3 text-xs font-medium border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer {currentTab === 'focus' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-400 hover:text-neutral-200'}"
 				>
 					<Brain class="w-4 h-4" />
 					<span>Focus & Scaffolding</span>
 				</button>
 				<button
-					onclick={() => currentTab = 'backup'}
-					class="px-4 py-3 text-xs font-medium border-b-2 transition flex items-center gap-2 {currentTab === 'backup' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-400 hover:text-neutral-200'}"
+					type="button"
+					onclick={() => (currentTab = 'backup')}
+					class="px-4 py-3 text-xs font-medium border-b-2 transition flex items-center gap-2 shrink-0 cursor-pointer {currentTab === 'backup' ? 'border-amber-400 text-amber-400' : 'border-transparent text-neutral-400 hover:text-neutral-200'}"
 				>
 					<Download class="w-4 h-4" />
 					<span>Data & Portability</span>
@@ -233,7 +266,9 @@
 
 			<!-- Tab Contents -->
 			<div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm">
-				{#if currentTab === 'typography'}
+				{#if currentTab === 'inference'}
+					<ByokSettingsTab />
+				{:else if currentTab === 'typography'}
 					<!-- Font Family -->
 					<div class="space-y-3">
 						<div class="font-semibold text-neutral-200 block" id="label-typeface">Typeface Selection</div>

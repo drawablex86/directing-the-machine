@@ -154,15 +154,18 @@
 				<span class="capitalize hidden lg:inline text-[11px] font-mono">{practiceStore.learnerPreferences.theme === 'dark' ? 'Stone' : 'Paper'}</span>
 			</button>
 
-			<!-- Preferences & Inclusivity Dialog Trigger -->
+			<!-- Studio Settings & BYOK Dialog Trigger -->
 			<button
 				type="button"
 				onclick={onOpenPreferences}
-				class="p-1.5 rounded-xl text-xs bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-300 hover:text-amber-400 transition"
-				title="Learner Preferences & Accessibility (Fonts, Themes, Focus)"
-				aria-label="Open Learner Preferences"
+				class="p-1.5 rounded-xl text-xs bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-300 hover:text-amber-400 transition relative cursor-pointer"
+				title="Studio Settings & BYOK Inference (P)"
+				aria-label="Open Studio Settings & BYOK Inference"
 			>
 				<Sliders class="w-4 h-4 text-neutral-400 hover:text-amber-400" />
+				{#if practiceStore.hasActiveApiKey()}
+					<span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-neutral-950" title="Active AI Key Configured"></span>
+				{/if}
 			</button>
 
 			<!-- Keyboard Shortcuts Trigger -->

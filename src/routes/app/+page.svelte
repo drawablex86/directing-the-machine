@@ -33,7 +33,9 @@
 		SlidersHorizontal,
 		MapPin,
 		Compass,
-		Home
+		Home,
+		Sliders,
+		Cpu
 	} from '@lucide/svelte';
 
 	let isDrawerOpen = $state(false);
@@ -41,6 +43,7 @@
 	let isStopModalOpen = $state(false);
 	let isPreferencesModalOpen = $state(false);
 	let isShortcutsModalOpen = $state(false);
+	let initialSettingsTab = $state<'inference' | 'typography' | 'theme' | 'focus' | 'backup'>('inference');
 
 	// Navigation: Primary views or specific active lab
 	type ViewMode = 'today' | 'curriculum' | 'labs' | 'assessment' | 'manual' | 'lab-session';
@@ -56,6 +59,11 @@
 		if (appParam) {
 			initialAppendix = appParam;
 			activeTab = 'manual';
+		}
+
+		if (tab === 'settings' || tab === 'byok' || tab === 'preferences') {
+			initialSettingsTab = 'inference';
+			isPreferencesModalOpen = true;
 		}
 
 		if (lab) {
@@ -82,8 +90,9 @@
 			if (e.key === '?') {
 				e.preventDefault();
 				isShortcutsModalOpen = !isShortcutsModalOpen;
-			} else if (e.key === 'p' || e.key === 'P') {
+			} else if (e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S') {
 				e.preventDefault();
+				initialSettingsTab = 'inference';
 				isPreferencesModalOpen = !isPreferencesModalOpen;
 			} else if (e.key === 'f' || e.key === 'F') {
 				e.preventDefault();
@@ -235,6 +244,19 @@
 						<BookOpen class="w-4 h-4" />
 						<span>Field Manual</span>
 					</button>
+
+					<button
+						type="button"
+						onclick={() => { initialSettingsTab = 'inference'; isPreferencesModalOpen = true; }}
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60"
+						title="Studio Settings & BYOK Inference Configuration"
+					>
+						<Sliders class="w-4 h-4 text-neutral-400" />
+						<span>Settings</span>
+						{#if practiceStore.hasActiveApiKey()}
+							<span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Active AI Key Configured"></span>
+						{/if}
+					</button>
 				</nav>
 
 				<a
@@ -320,6 +342,10 @@
 	/>
 	<FailureTriageModal isOpen={isFailureModalOpen} onClose={() => isFailureModalOpen = false} />
 	<HemingwayStopModal isOpen={isStopModalOpen} onClose={() => isStopModalOpen = false} />
-	<LearnerPreferencesModal isOpen={isPreferencesModalOpen} onClose={() => isPreferencesModalOpen = false} />
+	<LearnerPreferencesModal
+		isOpen={isPreferencesModalOpen}
+		initialTab={initialSettingsTab}
+		onClose={() => isPreferencesModalOpen = false}
+	/>
 	<KeyboardShortcutsModal isOpen={isShortcutsModalOpen} onClose={() => isShortcutsModalOpen = false} />
 </div>

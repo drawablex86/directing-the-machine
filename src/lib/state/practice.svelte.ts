@@ -14,6 +14,75 @@ import type {
 	TwoAxisEvaluation
 } from '../schemas/course.schema';
 import { analyzeCalibration } from '../engine/calibration-math';
+import type {
+	ByokSettings,
+	InferenceProviderId,
+	ProviderConfig,
+	ModelOption
+} from '../types/inference';
+
+export const DEFAULT_BYOK_SETTINGS: ByokSettings = {
+	activeProvider: 'openrouter',
+	providers: {
+		openrouter: {
+			apiKey: '',
+			baseUrl: 'https://openrouter.ai/api/v1',
+			selectedModel: 'anthropic/claude-3.5-sonnet',
+			availableModels: [
+				{ id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
+				{ id: 'anthropic/claude-3.7-sonnet', name: 'Claude 3.7 Sonnet' },
+				{ id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+				{ id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+				{ id: 'openai/gpt-4o', name: 'GPT-4o' },
+				{ id: 'deepseek/deepseek-chat', name: 'DeepSeek V3' },
+				{ id: 'meta-llama/llama-3.3-70b-instruct', name: 'Llama 3.3 70B' }
+			]
+		},
+		openai: {
+			apiKey: '',
+			baseUrl: 'https://api.openai.com/v1',
+			selectedModel: 'gpt-4o',
+			availableModels: [
+				{ id: 'gpt-4o', name: 'GPT-4o' },
+				{ id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+				{ id: 'o3-mini', name: 'o3-mini' },
+				{ id: 'o1', name: 'o1' }
+			]
+		},
+		google: {
+			apiKey: '',
+			baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
+			selectedModel: 'gemini-2.5-flash',
+			availableModels: [
+				{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+				{ id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+				{ id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' }
+			]
+		},
+		anthropic: {
+			apiKey: '',
+			baseUrl: 'https://api.anthropic.com/v1',
+			selectedModel: 'claude-3-7-sonnet-20250219',
+			availableModels: [
+				{ id: 'claude-3-7-sonnet-20250219', name: 'Claude 3.7 Sonnet' },
+				{ id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
+				{ id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
+				{ id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' }
+			]
+		},
+		custom: {
+			apiKey: '',
+			baseUrl: 'http://localhost:11434/v1',
+			selectedModel: 'llama3.2',
+			availableModels: [
+				{ id: 'llama3.2', name: 'Llama 3.2' },
+				{ id: 'llama3.3:70b', name: 'Llama 3.3 70B' },
+				{ id: 'mistral', name: 'Mistral' },
+				{ id: 'deepseek-r1', name: 'DeepSeek R1' }
+			]
+		}
+	}
+};
 
 // Drill session tracking — one entry per completed 60–90m drill block
 export interface DrillSession {
@@ -72,6 +141,9 @@ export class PracticeEngine {
 		soundEnabled: false,
 		lineSpacing: 'normal'
 	});
+
+	// BYOK Inference Engine Configuration (Local-First)
+	byokSettings = $state<ByokSettings>(JSON.parse(JSON.stringify(DEFAULT_BYOK_SETTINGS)));
 
 	// Pacing & Onboarding (Appendix O)
 	intensityPath = $state<IntensityPath>('full-time-12w');
@@ -210,6 +282,33 @@ export class PracticeEngine {
 
 	toggleTheme() {
 		this.setTheme(this.learnerPreferences.theme === 'dark' ? 'light' : 'dark');
+	}
+
+	// BYOK Inference Helpers
+	setByokProvider(provider: InferenceProviderId) {
+		this.byokSettings.activeProvider = provider;
+		this.saveToStorage();
+	}
+
+	updateByokConfig(provider: InferenceProviderId, patch: Partial<ProviderConfig>) {
+		if (!this.byokSettings.providers[provider]) return;
+		this.byokSettings.providers[provider] = {
+			...this.byokSettings.providers[provider],
+			...patch
+		};
+		this.saveToStorage();
+	}
+
+	clearByokKey(provider: InferenceProviderId) {
+		if (!this.byokSettings.providers[provider]) return;
+		this.byokSettings.providers[provider].apiKey = '';
+		this.saveToStorage();
+	}
+
+	hasActiveApiKey(): boolean {
+		const active = this.byokSettings.activeProvider;
+		if (active === 'custom') return true;
+		return Boolean(this.byokSettings.providers[active]?.apiKey?.trim());
 	}
 
 	// Two-Axis Assessment Matrix Classifier
@@ -496,7 +595,8 @@ export class PracticeEngine {
 				briefs: this.briefs,
 				projectProgress: this.projectProgress,
 				nonInstrumentalLines: this.nonInstrumentalLines,
-				playLines: this.playLines
+				playLines: this.playLines,
+				byokSettings: this.byokSettings
 			};
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 		} catch (e) {
@@ -518,6 +618,21 @@ export class PracticeEngine {
 					document.documentElement.classList.add(`theme-${theme}`);
 					document.documentElement.style.colorScheme = theme === 'light' ? 'light' : 'dark';
 				}
+			}
+			if (data.byokSettings && typeof data.byokSettings === 'object') {
+				const activeProvider = data.byokSettings.activeProvider || 'openrouter';
+				const providers = { ...JSON.parse(JSON.stringify(DEFAULT_BYOK_SETTINGS.providers)) };
+				if (data.byokSettings.providers && typeof data.byokSettings.providers === 'object') {
+					for (const p of Object.keys(providers) as InferenceProviderId[]) {
+						if (data.byokSettings.providers[p]) {
+							providers[p] = {
+								...providers[p],
+								...data.byokSettings.providers[p]
+							};
+						}
+					}
+				}
+				this.byokSettings = { activeProvider, providers };
 			}
 			if (data.intensityPath) this.intensityPath = data.intensityPath;
 			if (typeof data.showDeepening === 'boolean') this.showDeepening = data.showDeepening;

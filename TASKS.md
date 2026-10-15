@@ -122,3 +122,14 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Verified 0 occurrences of placeholder domain with `git grep -i "directingthemachine.com"`.
   - Verified 0 TypeScript errors with `npm run check` and successful static pre-rendering build with `npm run build`.
 
+- [x] **Task 16: BYOK Inference Setup Under Settings Tab**
+  - Implemented type system `src/lib/types/inference.ts` for providers (`openrouter`, `openai`, `google`, `anthropic`, `custom`), credentials, model options, requests, and responses.
+  - Built unified client inference engine `src/lib/engine/inference.ts` with direct browser fetch, dynamic model retrieval (`fetchAvailableModels`), connection & latency tester (`testInferenceConnection`), and unified completion runner (`runInference`) across OpenRouter, OpenAI, Google Gemini, Anthropic, and custom OpenAI-compatible endpoints.
+  - Enhanced `PracticeEngine` reactive store (`src/lib/state/practice.svelte.ts`) with `byokSettings`, provider switching, key masking, and local-first persistence via `localStorage`.
+  - Built interactive `ByokSettingsTab.svelte` component featuring provider cards, password-masked API key inputs, custom base URL configuration, live "Fetch Models" button, model search filter combobox with context window and pricing badges, manual model ID override, and 1-click latency tester.
+  - Upgraded `LearnerPreferencesModal.svelte` to "Studio Settings & Preferences" modal, introducing the "AI Inference (BYOK)" tab as the primary tab.
+  - Added "Settings" tab with status dot in Studio navigation bar (`src/routes/app/+page.svelte`) and deep-link query parameter support (`?tab=settings`).
+  - Added status dot and updated tooltip in `TodayLoopHeader.svelte` and keyboard shortcut (`P` / `S`) in `KeyboardShortcutsModal.svelte`.
+  - Verified 0 TypeScript errors with `pnpm run check` and successful static prerender build with `pnpm run build`.
+
+

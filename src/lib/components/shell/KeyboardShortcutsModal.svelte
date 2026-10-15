@@ -6,7 +6,7 @@
 	const shortcuts = [
 		{ key: 'Cmd/Ctrl + K', desc: 'Open Appendix Just-In-Time Reference Drawer' },
 		{ key: '?', desc: 'Open Keyboard Shortcuts Guide' },
-		{ key: 'P', desc: 'Open Learner Preferences & Accessibility Modal' },
+		{ key: 'P / S', desc: 'Open Studio Settings & BYOK Inference Configuration' },
 		{ key: 'F', desc: 'Toggle Single-Task Horizon (Focus Mode)' },
 		{ key: 'Esc', desc: 'Close any active modal or drawer' },
 		{ key: 'Tab', desc: 'Navigate between interactive controls and buttons' },
