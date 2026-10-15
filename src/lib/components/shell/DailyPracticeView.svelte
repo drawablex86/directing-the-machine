@@ -730,23 +730,23 @@
 			<!-- Bottom Criteria & Failure Trap Badges -->
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
 				<!-- How to know you are done -->
-				<div class="p-3 rounded-lg bg-emerald-950/20 border border-emerald-900/40 text-xs space-y-1">
+				<div class="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-900/40 text-xs space-y-1.5">
 					<div class="flex items-center gap-1.5 font-bold text-emerald-400 text-[11px] font-mono uppercase tracking-wide">
-						<CheckCircle2 class="w-3.5 h-3.5" />
+						<CheckCircle2 class="w-3.5 h-3.5 shrink-0" />
 						<span>Done Condition (Success Criterion)</span>
 					</div>
-					<p class="text-emerald-200/90 text-[11px] leading-relaxed">
+					<p class="text-emerald-200/90 text-xs leading-relaxed font-medium">
 						{activeTask.successCriterion}
 					</p>
 				</div>
 
 				<!-- Common Failure Trap -->
-				<div class="p-3 rounded-lg bg-red-950/20 border border-red-900/40 text-xs space-y-1">
+				<div class="p-3.5 rounded-xl bg-red-950/20 border border-red-900/40 text-xs space-y-1.5">
 					<div class="flex items-center gap-1.5 font-bold text-red-400 text-[11px] font-mono uppercase tracking-wide">
-						<AlertCircle class="w-3.5 h-3.5" />
+						<AlertCircle class="w-3.5 h-3.5 shrink-0" />
 						<span>Pitfall / Trap to Avoid</span>
 					</div>
-					<p class="text-red-200/90 text-[11px] leading-relaxed">
+					<p class="text-red-200/90 text-xs leading-relaxed font-medium">
 						{activeTask.failureTrap}
 					</p>
 				</div>

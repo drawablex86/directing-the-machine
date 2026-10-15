@@ -177,6 +177,92 @@ body {
 }
 
 /* ==========================================================================
+   PAPER (LIGHT) MODE CALLOUT & ALERT LEGIBILITY NORMALIZATION
+   Guarantees AAA contrast (7:1+) on unbleached paper for alerts and badges
+   ========================================================================== */
+.theme-light .text-emerald-200,
+.theme-light .text-emerald-200\/90,
+.theme-light .text-emerald-300 {
+	color: #064e3b !important; /* Deep forest green */
+}
+
+.theme-light .text-emerald-400,
+.theme-light .text-emerald-400\/80 {
+	color: #047857 !important; /* Rich emerald header */
+}
+
+.theme-light .text-red-200,
+.theme-light .text-red-200\/90,
+.theme-light .text-red-300,
+.theme-light .text-rose-200,
+.theme-light .text-rose-300 {
+	color: #7f1d1d !important; /* Deep crimson red */
+}
+
+.theme-light .text-red-400,
+.theme-light .text-red-400\/80,
+.theme-light .text-rose-400 {
+	color: #b91c1c !important; /* Saturated red header */
+}
+
+.theme-light .text-amber-200,
+.theme-light .text-amber-200\/90,
+.theme-light .text-amber-300 {
+	color: #78350f !important; /* Deep bronze/amber-brown */
+}
+
+.theme-light .text-amber-400 {
+	color: #92400e !important; /* Saturated amber header */
+}
+
+.theme-light .text-blue-200,
+.theme-light .text-blue-200\/90,
+.theme-light .text-blue-300 {
+	color: #1e3a8a !important; /* Deep cobalt/navy ink */
+}
+
+.theme-light .text-blue-400 {
+	color: #1d4ed8 !important; /* Saturated blue header */
+}
+
+/* Callout background and border normalization in Light Mode */
+.theme-light .bg-emerald-950,
+.theme-light .bg-emerald-950\/20,
+.theme-light .bg-emerald-950\/30,
+.theme-light .bg-emerald-950\/40,
+.theme-light .bg-emerald-950\/60 {
+	background-color: rgba(16, 185, 129, 0.08) !important;
+	border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.theme-light .bg-red-950,
+.theme-light .bg-red-950\/20,
+.theme-light .bg-red-950\/30,
+.theme-light .bg-red-950\/40,
+.theme-light .bg-red-950\/60,
+.theme-light .bg-red-950\/80 {
+	background-color: rgba(239, 68, 68, 0.08) !important;
+	border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.theme-light .bg-amber-950,
+.theme-light .bg-amber-950\/20,
+.theme-light .bg-amber-950\/30,
+.theme-light .bg-amber-950\/40,
+.theme-light .bg-amber-950\/60 {
+	background-color: rgba(245, 158, 11, 0.08) !important;
+	border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.theme-light .bg-blue-950,
+.theme-light .bg-blue-950\/20,
+.theme-light .bg-blue-950\/30,
+.theme-light .bg-blue-950\/40 {
+	background-color: rgba(59, 130, 246, 0.08) !important;
+	border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+/* ==========================================================================
    WCAG 2.4.7 & 2.4.11 / 2.4.13 FOCUS INDICATORS
    ========================================================================== */
 :focus-visible {
