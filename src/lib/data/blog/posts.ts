@@ -1,6 +1,8 @@
 // Blog Data & Editorial Architecture for Directing the Machine
 // Conceived, written, and engineered by Rahul Rajeev
 
+import { SITE_CONFIG } from '$lib/config/site';
+
 export type BlogCategory = 'Direction' | 'Taste & Curation' | 'Calibration' | 'Authorship';
 
 export interface StudioHook {
@@ -30,6 +32,12 @@ export interface BlogPost {
 	content: string; // Full Markdown content
 }
 
+const defaultAuthor = {
+	name: SITE_CONFIG.author.name,
+	title: SITE_CONFIG.author.title,
+	url: SITE_CONFIG.author.url
+};
+
 export const BLOG_POSTS: BlogPost[] = [
 	{
 		slug: 'prompt-engineering-is-dead',
@@ -38,11 +46,7 @@ export const BLOG_POSTS: BlogPost[] = [
 			'When the marginal cost of execution drops to zero, tricking a model with magic syntax is a commodity. The durable skill is knowing what is worth asking of it.',
 		publishedAt: '2026-10-10',
 		readingTimeMinutes: 7,
-		author: {
-			name: 'Rahul Rajeev',
-			title: 'Creator of Directing the Machine',
-			url: 'https://directingthemachine.com'
-		},
+		author: defaultAuthor,
 		category: 'Direction',
 		targetKeywords: [
 			'prompt engineering vs creative direction',
@@ -148,11 +152,7 @@ Stop searching for prompt templates. Stop bookmarking "100 ChatGPT prompts for w
 			'The mathematics of latent space averages toward the median. Without friction, personal provenance, and irreducible human anchors, your work will inevitably dissolve into aesthetic beige.',
 		publishedAt: '2026-10-12',
 		readingTimeMinutes: 8,
-		author: {
-			name: 'Rahul Rajeev',
-			title: 'Creator of Directing the Machine',
-			url: 'https://directingthemachine.com'
-		},
+		author: defaultAuthor,
 		category: 'Taste & Curation',
 		targetKeywords: [
 			'why does ai art look generic',
@@ -278,11 +278,7 @@ Anchor your work in the physical. Refuse the statistical median. Make things tha
 			'A prompt is a hopeful wish whispered to an algorithm. A brief is a structural contract with negative constraints, material boundaries, and failure protocols.',
 		publishedAt: '2026-10-14',
 		readingTimeMinutes: 9,
-		author: {
-			name: 'Rahul Rajeev',
-			title: 'Creator of Directing the Machine',
-			url: 'https://directingthemachine.com'
-		},
+		author: defaultAuthor,
 		category: 'Direction',
 		targetKeywords: [
 			'creative brief for generative ai',

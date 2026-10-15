@@ -1,10 +1,11 @@
 import { BLOG_POSTS } from '$lib/data/blog/posts';
+import { SITE_CONFIG } from '$lib/config/site';
 import type { RequestHandler } from './$types';
 
 export const prerender = true;
 
 export const GET: RequestHandler = async () => {
-	const siteUrl = 'https://directingthemachine.com';
+	const siteUrl = SITE_CONFIG.url;
 	const now = new Date().toISOString().split('T')[0];
 
 	const staticPages = [

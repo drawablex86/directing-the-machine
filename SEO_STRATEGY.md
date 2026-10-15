@@ -2,7 +2,7 @@
 ## Discoverability, Search Intent, Keyword Architecture & Blog Roadmap
 
 **Author & Creator**: Rahul Rajeev  
-**Platform**: [Directing the Machine](https://directingthemachine.com)  
+**Platform**: [Directing the Machine](https://directing-the-machine.vercel.app)  
 **Target Domain**: Creative Authorship, Art Direction, and Deliberate Practice in the Age of Generative AI  
 
 ---

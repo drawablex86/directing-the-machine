@@ -115,3 +115,10 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Integrated `FieldEssaysSection.svelte` on the homepage presenting the essays to visitors.
   - Verified 0 TypeScript errors (`pnpm run check`) and verified successful static pre-rendering of all 9 routes with `pnpm run build`.
 
+- [x] **Task 15: Canonical Domain Correction & Centralized Configuration Architecture**
+  - Created single source of truth `src/lib/config/site.ts` defining `SITE_CONFIG` with canonical domain `https://directing-the-machine.vercel.app`.
+  - Replaced all hardcoded placeholder domain references (`directingthemachine.com`) across `SeoHead.svelte`, `posts.ts`, `blog/+page.svelte`, `blog/[slug]/+page.svelte`, `sitemap.xml/+server.ts`, and `rss.xml/+server.ts`.
+  - Updated `static/robots.txt` and `SEO_STRATEGY.md` with the verified production Vercel URL.
+  - Verified 0 occurrences of placeholder domain with `git grep -i "directingthemachine.com"`.
+  - Verified 0 TypeScript errors with `npm run check` and successful static pre-rendering build with `npm run build`.
+

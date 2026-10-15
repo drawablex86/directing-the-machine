@@ -3,6 +3,7 @@
 	import HomeFooter from '$lib/components/home/HomeFooter.svelte';
 	import BlogCard from '$lib/components/blog/BlogCard.svelte';
 	import { BLOG_POSTS, type BlogCategory } from '$lib/data/blog/posts';
+	import { SITE_CONFIG } from '$lib/config/site';
 	import { BookOpen, Sparkles, Compass, Search, ArrowRight, Filter } from '@lucide/svelte';
 
 	let searchQuery = $state('');
@@ -31,11 +32,11 @@
 		'name': 'Field Essays — Directing the Machine',
 		'description':
 			'Critical dispatches and technical guides on creative direction, diagnostic taste, 7-layer briefs, and blank-sheet authorship in the generative AI era. Authored by Rahul Rajeev.',
-		'url': 'https://directingthemachine.com/blog',
+		'url': `${SITE_CONFIG.url}/blog`,
 		'publisher': {
 			'@type': 'EducationalOrganization',
 			'name': 'Directing the Machine',
-			'url': 'https://directingthemachine.com'
+			'url': SITE_CONFIG.url
 		}
 	};
 </script>
@@ -46,14 +47,14 @@
 		name="description"
 		content="Authoritative frameworks on creative direction, diagnostic taste, the 40% human anchor rule, and blank-sheet authorship in generative AI. By Rahul Rajeev."
 	/>
-	<link rel="canonical" href="https://directingthemachine.com/blog" />
+	<link rel="canonical" href="{SITE_CONFIG.url}/blog" />
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Field Essays — Directing the Machine" />
 	<meta
 		property="og:description"
 		content="When execution is commoditized, sensibility is the only durable moat. Critical dispatches on directing generative AI with taste and intent."
 	/>
-	<meta property="og:url" content="https://directingthemachine.com/blog" />
+	<meta property="og:url" content="{SITE_CONFIG.url}/blog" />
 	<meta name="twitter:card" content="summary_large_image" />
 	{@html `<script type="application/ld+json">${JSON.stringify(structuredData)}</script>`}
 </svelte:head>

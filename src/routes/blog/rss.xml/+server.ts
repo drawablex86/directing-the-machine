@@ -1,10 +1,11 @@
 import { BLOG_POSTS } from '$lib/data/blog/posts';
+import { SITE_CONFIG } from '$lib/config/site';
 import type { RequestHandler } from './$types';
 
 export const prerender = true;
 
 export const GET: RequestHandler = async () => {
-	const siteUrl = 'https://directingthemachine.com';
+	const siteUrl = SITE_CONFIG.url;
 
 	const itemsXml = BLOG_POSTS.map((post) => {
 		const pubDate = new Date(post.publishedAt).toUTCString();
@@ -16,7 +17,7 @@ export const GET: RequestHandler = async () => {
       <pubDate>${pubDate}</pubDate>
       <description><![CDATA[${post.summary}]]></description>
       <category>${post.category}</category>
-      <author>rahul@directingthemachine.com (Rahul Rajeev)</author>
+      <author>rahulrajeev1975@gmail.com (Rahul Rajeev)</author>
     </item>`;
 	}).join('\n');
 

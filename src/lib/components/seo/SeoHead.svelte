@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { SITE_CONFIG } from '$lib/config/site';
+
 	interface Props {
 		title?: string;
 		description?: string;
@@ -9,8 +11,8 @@
 	let {
 		title = 'Directing the Machine — A Course in Creative Authorship for the AI-Augmented World',
 		description = 'In a world where execution is automated by AI, develop your sensibility, diagnostic taste, and intent. An 18-week curriculum, 12 projects, and 8 deliberate practice studios. Conceived, built, and maintained by Rahul Rajeev.',
-		canonical = 'https://directingthemachine.com',
-		author = 'Rahul Rajeev'
+		canonical = SITE_CONFIG.url,
+		author = SITE_CONFIG.author.name
 	}: Props = $props();
 
 	let structuredData = $derived({
@@ -18,23 +20,23 @@
 		'@graph': [
 			{
 				'@type': 'EducationalOrganization',
-				'@id': 'https://directingthemachine.com/#organization',
+				'@id': `${SITE_CONFIG.url}/#organization`,
 				'name': 'Directing the Machine',
-				'url': 'https://directingthemachine.com',
+				'url': SITE_CONFIG.url,
 				'founder': {
 					'@type': 'Person',
 					'name': author,
-					'url': 'https://directingthemachine.com'
+					'url': SITE_CONFIG.author.url
 				},
 				'description': 'A curriculum and deliberate practice studio for creative authorship, judgment, and intent in the age of generative AI.'
 			},
 			{
 				'@type': 'Course',
-				'@id': 'https://directingthemachine.com/#course',
+				'@id': `${SITE_CONFIG.url}/#course`,
 				'name': 'Directing the Machine: Creative Authorship for the AI Era',
 				'description': description,
 				'provider': {
-					'@id': 'https://directingthemachine.com/#organization'
+					'@id': `${SITE_CONFIG.url}/#organization`
 				},
 				'creator': {
 					'@type': 'Person',
@@ -82,7 +84,7 @@
 			},
 			{
 				'@type': 'FAQPage',
-				'@id': 'https://directingthemachine.com/#faq',
+				'@id': `${SITE_CONFIG.url}/#faq`,
 				'mainEntity': [
 					{
 						'@type': 'Question',

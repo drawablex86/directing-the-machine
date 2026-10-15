@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://directingthemachine.com/sitemap.xml
+Sitemap: https://directing-the-machine.vercel.app/sitemap.xml

@@ -5,6 +5,7 @@
 	import HomeFooter from '$lib/components/home/HomeFooter.svelte';
 	import { renderMarkdownReading } from '$lib/engine/markdown-renderer';
 	import { BLOG_POSTS } from '$lib/data/blog/posts';
+	import { SITE_CONFIG } from '$lib/config/site';
 	import { Clock, Calendar, ArrowRight, Share2, BookOpen, Sparkles, Terminal, ChevronRight } from '@lucide/svelte';
 
 	interface Props {
@@ -25,13 +26,13 @@
 		'@graph': [
 			{
 				'@type': 'BlogPosting',
-				'@id': `https://directingthemachine.com/blog/${post.slug}#article`,
+				'@id': `${SITE_CONFIG.url}/blog/${post.slug}#article`,
 				'headline': post.title,
 				'description': post.summary,
 				'datePublished': post.publishedAt,
 				'dateModified': post.updatedAt || post.publishedAt,
 				'inLanguage': 'en',
-				'mainEntityOfPage': `https://directingthemachine.com/blog/${post.slug}`,
+				'mainEntityOfPage': `${SITE_CONFIG.url}/blog/${post.slug}`,
 				'author': {
 					'@type': 'Person',
 					'name': post.author.name,
@@ -41,32 +42,32 @@
 				'publisher': {
 					'@type': 'EducationalOrganization',
 					'name': 'Directing the Machine',
-					'url': 'https://directingthemachine.com'
+					'url': SITE_CONFIG.url
 				},
 				'keywords': post.targetKeywords.join(', '),
 				'articleSection': post.category
 			},
 			{
 				'@type': 'BreadcrumbList',
-				'@id': `https://directingthemachine.com/blog/${post.slug}#breadcrumbs`,
+				'@id': `${SITE_CONFIG.url}/blog/${post.slug}#breadcrumbs`,
 				'itemListElement': [
 					{
 						'@type': 'ListItem',
 						'position': 1,
 						'name': 'Home',
-						'item': 'https://directingthemachine.com'
+						'item': SITE_CONFIG.url
 					},
 					{
 						'@type': 'ListItem',
 						'position': 2,
 						'name': 'Field Essays',
-						'item': 'https://directingthemachine.com/blog'
+						'item': `${SITE_CONFIG.url}/blog`
 					},
 					{
 						'@type': 'ListItem',
 						'position': 3,
 						'name': post.title,
-						'item': `https://directingthemachine.com/blog/${post.slug}`
+						'item': `${SITE_CONFIG.url}/blog/${post.slug}`
 					}
 				]
 			}
@@ -78,14 +79,14 @@
 	<title>{post.title} — Directing the Machine</title>
 	<meta name="description" content={post.summary} />
 	<meta name="author" content={post.author.name} />
-	<link rel="canonical" href="https://directingthemachine.com/blog/{post.slug}" />
+	<link rel="canonical" href="{SITE_CONFIG.url}/blog/{post.slug}" />
 	<meta name="robots" content="index, follow" />
 
 	<!-- OpenGraph -->
 	<meta property="og:type" content="article" />
 	<meta property="og:title" content="{post.title} — Directing the Machine" />
 	<meta property="og:description" content={post.summary} />
-	<meta property="og:url" content="https://directingthemachine.com/blog/{post.slug}" />
+	<meta property="og:url" content="{SITE_CONFIG.url}/blog/{post.slug}" />
 	<meta property="og:site_name" content="Directing the Machine" />
 	<meta property="article:published_time" content={post.publishedAt} />
 	<meta property="article:author" content={post.author.name} />
