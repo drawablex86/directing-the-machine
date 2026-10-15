@@ -59,6 +59,20 @@ export interface SurgicalPatch {
 	reason?: string;
 }
 
+export interface TensionReframe {
+	isGenuineTension: boolean;
+	proposedFrame?: string;
+	sharpenedStakes?: string;
+	frictionQuestion?: string;
+}
+
+export interface PositionVerdict {
+	verdict: 'SOUND' | 'RISKY' | 'UNFOUNDED' | 'REFUSAL_RECOMMENDED';
+	recommendedPosition?: 'From' | 'With' | 'For' | 'About' | 'Over';
+	recommendedStanding?: boolean;
+	primaryRisk?: string;
+}
+
 export interface CritiqueResult {
 	id: string;
 	timestamp: string;
@@ -78,6 +92,8 @@ export interface CritiqueResult {
 	applied?: boolean;
 	patches?: SurgicalPatch[];
 	recommendedLevel?: number;
+	tensionReframe?: TensionReframe;
+	positionVerdict?: PositionVerdict;
 }
 
 export interface LlmAction {

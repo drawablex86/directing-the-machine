@@ -1,4 +1,4 @@
-import type { PromptConfig, PromptTemplateId, CritiqueResult, SurgicalPatch } from '../types/llm-prompts';
+import type { PromptConfig, PromptTemplateId, CritiqueResult, SurgicalPatch, TensionReframe, PositionVerdict } from '../types/llm-prompts';
 import type { InferenceRequest } from '../types/inference';
 import { runInference } from './inference';
 import { practiceStore } from '../state/practice.svelte';
@@ -128,16 +128,23 @@ INSTRUCTIONS:
 2. If it is a topic, isolate the missing counter-force.
 3. Stress-test the stakes: Are the stakes concrete (aesthetic, cognitive, physical consequence) or vague ("it matters to people")?
 4. Challenge the student with 1 sharp friction question that exposes the weakest assumption in their framing.
+5. At the very end of your response, output a machine-readable reframing block:
+[TENSION_REFRAME]
+IS_GENUINE_TENSION: [YES|NO]
+PROPOSED_TENSION_FRAME: [Reframed statement: The tension between X and Y creates a condition worth investigating because Z]
+SHARPENED_STAKES: [Concrete aesthetic, cognitive, or physical consequence]
+FRICTION_QUESTION: [1 single sharp question exposing the weakest assumption]
+[/TENSION_REFRAME]
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 800,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: { noticed: string; framedProblem: string; mode: string; stakes: string }) => `
 Observation Noticed: "${ctx.noticed}"
 Framed Problem: "${ctx.framedProblem}"
 Operational Mode: ${ctx.mode}
 Claimed Stakes: "${ctx.stakes}"
 
-Stress-test this framed problem for genuine tension and authentic stakes.
+Stress-test this framed problem for genuine tension and authentic stakes. Emit the reframing block at the end.
 `.trim()
 	},
 
@@ -162,17 +169,24 @@ The 5 Positions on the Positionality Compass are:
 INSTRUCTIONS:
 1. Evaluate whether the student's claimed position matches their stated standing justification.
 2. Flag if the stance slips into "Over" (speaking for others without dialogue or lived experience).
-3. Identify the primary risk of this position (e.g. sentimentality for "About", blindness for "From").
+3. Identify the primary risk of this position (e.g. sentimentality for "About", blindness for "From", appropriation for "Over").
 4. Keep the audit grounded in craft and ethical clarity—avoid moral posturing or paralyzing purity tests.
+5. At the very end of your response, output a machine-readable verdict block:
+[POSITION_VERDICT]
+VERDICT: [SOUND | RISKY | UNFOUNDED | REFUSAL_RECOMMENDED]
+RECOMMENDED_POSITION: [From | With | For | About | Over]
+RECOMMENDED_STANDING: [YES | NO]
+PRIMARY_RISK: [Specific craft, aesthetic, or ethical risk]
+[/POSITION_VERDICT]
 `.trim(),
-		defaultTemperature: 0.3,
-		defaultMaxTokens: 750,
+		defaultTemperature: 0.2,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: { positionality: string; standingJustification: string; framedProblem: string }) => `
 Problem: "${ctx.framedProblem}"
 Claimed Position: ${ctx.positionality}
 Standing Justification: "${ctx.standingJustification}"
 
-Audit this positionality standing.
+Audit this positionality standing and emit the verdict block at the end.
 `.trim()
 	},
 
@@ -947,6 +961,59 @@ export function parseLadderVerdict(text: string): { recommendedLevel?: number; r
 }
 
 /**
+ * Parses machine-readable tension reframe from Socratic Dialectician response.
+ */
+export function parseTensionReframe(text: string): TensionReframe | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[TENSION_REFRAME\]([\s\S]*?)(\[\/TENSION_REFRAME\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const tensionMatch = target.match(/IS_GENUINE_TENSION:\s*(YES|NO)/i);
+	const frameMatch = target.match(/PROPOSED_TENSION_FRAME:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const stakesMatch = target.match(/SHARPENED_STAKES:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const frictionMatch = target.match(/FRICTION_QUESTION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!tensionMatch && !frameMatch && !stakesMatch && !frictionMatch) {
+		return undefined;
+	}
+
+	return {
+		isGenuineTension: tensionMatch ? tensionMatch[1].toUpperCase() === 'YES' : false,
+		proposedFrame: frameMatch ? frameMatch[1].trim() : undefined,
+		sharpenedStakes: stakesMatch ? stakesMatch[1].trim() : undefined,
+		frictionQuestion: frictionMatch ? frictionMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable positionality verdict from Positionality Examiner response.
+ */
+export function parsePositionVerdict(text: string): PositionVerdict | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[POSITION_VERDICT\]([\s\S]*?)(\[\/POSITION_VERDICT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(SOUND|RISKY|UNFOUNDED|REFUSAL_RECOMMENDED)/i);
+	const posMatch = target.match(/RECOMMENDED_POSITION:\s*(From|With|For|About|Over)/i);
+	const standingMatch = target.match(/RECOMMENDED_STANDING:\s*(YES|NO|Sound|Refusal)/i);
+	const riskMatch = target.match(/PRIMARY_RISK:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!verdictMatch && !posMatch && !standingMatch && !riskMatch) {
+		return undefined;
+	}
+
+	const rawStanding = standingMatch ? standingMatch[1].toUpperCase() : '';
+	const recommendedStanding = rawStanding === 'YES' || rawStanding === 'SOUND' ? true : rawStanding === 'NO' || rawStanding === 'REFUSAL' ? false : undefined;
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'RISKY') as any,
+		recommendedPosition: posMatch ? (posMatch[1] as any) : undefined,
+		recommendedStanding,
+		primaryRisk: riskMatch ? riskMatch[1].trim() : undefined
+	};
+}
+
+/**
  * Central prompt execution pipeline.
  * Formats context into user prompt, applies system prompt and defaults, calls runInference,
  * and packages the result into a typed CritiqueResult with thoughts and parsed directives.
@@ -993,6 +1060,16 @@ export async function executePrompt<T = any>(
 		const verdict = parseLadderVerdict(response.text);
 		if (verdict.recommendedLevel) {
 			critique.recommendedLevel = verdict.recommendedLevel;
+		}
+	} else if (promptId === 'm1-problem-stress-test') {
+		const reframe = parseTensionReframe(response.text);
+		if (reframe) {
+			critique.tensionReframe = reframe;
+		}
+	} else if (promptId === 'm1-positionality-audit') {
+		const verdict = parsePositionVerdict(response.text);
+		if (verdict) {
+			critique.positionVerdict = verdict;
 		}
 	}
 

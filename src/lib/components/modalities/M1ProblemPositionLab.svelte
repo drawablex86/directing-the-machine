@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import type { ProblemEntry } from '$lib/schemas/course.schema';
-	import { Compass, ShieldCheck, ShieldAlert, ArrowRight, CheckCircle2, Clock, Target } from '@lucide/svelte';
+	import { Compass, ShieldCheck, ShieldAlert, ArrowRight, CheckCircle2, Clock, Target, Wand2 } from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
 	import { getDrillById } from '$lib/data/drills';
+	import { LlmTriggerButton, LlmCritiqueCard } from '$lib/components/llm';
+	import { executePrompt } from '$lib/engine/prompt-registry';
+	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
 
 	type ActiveTab = 'drill' | 'funnel';
 	let activeTab = $state<ActiveTab>('funnel');
@@ -27,6 +30,121 @@
 	let unassignedTimer = $state(3600); // 60-minute timer for Unassigned Beginning
 	let unassignedRunning = $state(false);
 	let unassignedInterval: any = null;
+
+	// Socratic Dialectician Tension Stress-Test LLM state
+	let tensionCritique = $state<CritiqueResult | null>(null);
+	let tensionLoading = $state(false);
+	let tensionError = $state<string | null>(null);
+
+	async function runTensionStressTest() {
+		if (!framedProblem.trim() && !noticed.trim()) return;
+		tensionLoading = true;
+		tensionError = null;
+		try {
+			const res = await executePrompt('m1-problem-stress-test', {
+				noticed: noticed.trim() || 'Unstated observation',
+				framedProblem: framedProblem.trim(),
+				mode,
+				stakes: stakes.trim() || 'Unstated stakes'
+			});
+			tensionCritique = res;
+		} catch (err: any) {
+			tensionError = err.message || 'Tension stress-test failed';
+		} finally {
+			tensionLoading = false;
+		}
+	}
+
+	let tensionActions = $derived.by<LlmAction[]>(() => {
+		const actions: LlmAction[] = [];
+		const reframe = tensionCritique?.tensionReframe;
+		if (reframe?.proposedFrame) {
+			actions.push({
+				id: 'apply-tension-reframe',
+				label: 'Apply Sharpened Tension Frame',
+				primary: true,
+				icon: Wand2,
+				onClick: () => {
+					if (reframe.proposedFrame) {
+						framedProblem = reframe.proposedFrame;
+					}
+					if (reframe.sharpenedStakes && !stakes.trim()) {
+						stakes = reframe.sharpenedStakes;
+					}
+				}
+			});
+		}
+		return actions;
+	});
+
+	// Positionality Ethics Examiner LLM state
+	let positionCritique = $state<CritiqueResult | null>(null);
+	let positionLoading = $state(false);
+	let positionError = $state<string | null>(null);
+
+	async function runPositionalityAudit() {
+		if (!standingJustification.trim() && !rejectionReason.trim()) return;
+		positionLoading = true;
+		positionError = null;
+		try {
+			const res = await executePrompt('m1-positionality-audit', {
+				positionality,
+				standingJustification: hasStanding ? standingJustification.trim() : rejectionReason.trim(),
+				framedProblem: framedProblem.trim() || 'Unframed candidate problem'
+			});
+			positionCritique = res;
+		} catch (err: any) {
+			positionError = err.message || 'Positionality standing audit failed';
+		} finally {
+			positionLoading = false;
+		}
+	}
+
+	let positionActions = $derived.by<LlmAction[]>(() => {
+		const actions: LlmAction[] = [];
+		const verdict = positionCritique?.positionVerdict;
+		if (!verdict) return actions;
+
+		if (verdict.recommendedPosition && verdict.recommendedPosition !== positionality) {
+			const targetPos = verdict.recommendedPosition;
+			actions.push({
+				id: 'shift-position',
+				label: `Shift Position to '${targetPos}'`,
+				primary: true,
+				icon: Compass,
+				onClick: () => {
+					positionality = targetPos;
+				}
+			});
+		}
+
+		if (verdict.recommendedStanding === false && hasStanding) {
+			actions.push({
+				id: 'switch-to-refusal',
+				label: 'Switch to Positional Refusal',
+				variant: 'danger',
+				icon: ShieldAlert,
+				onClick: () => {
+					hasStanding = false;
+					if (verdict.primaryRisk && !rejectionReason.trim()) {
+						rejectionReason = `Positional risk: ${verdict.primaryRisk}`;
+					}
+				}
+			});
+		} else if (verdict.recommendedStanding === true && !hasStanding) {
+			actions.push({
+				id: 'confirm-standing',
+				label: 'Confirm Standing',
+				primary: true,
+				icon: ShieldCheck,
+				onClick: () => {
+					hasStanding = true;
+				}
+			});
+		}
+
+		return actions;
+	});
 
 	const positionalityDescriptions = {
 		From: 'You are inside the lived experience. (Your own life, domain, or community).',
@@ -261,10 +379,38 @@
 					class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
 				/>
 			</div>
+
+			<!-- Socratic Tension Stress-Test Panel -->
+			<div class="space-y-3 pt-3 border-t border-neutral-800">
+				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+					<div class="text-[11px] text-neutral-400 font-mono">
+						<span>Tension check: {framedProblem.trim() ? 'Ready to stress-test' : 'Enter problem statement'}</span>
+					</div>
+
+					<LlmTriggerButton
+						label="Stress-Test Problem Tension"
+						onclick={runTensionStressTest}
+						loading={tensionLoading}
+						disabled={!framedProblem.trim() && !noticed.trim()}
+						title="Differentiate genuine tension from static topic and sharpen stakes"
+					/>
+				</div>
+
+				<LlmCritiqueCard
+					result={tensionCritique}
+					loading={tensionLoading}
+					error={tensionError}
+					title="Socratic Dialectician (Problem Tension Stress-Test)"
+					actions={tensionActions}
+					onDismiss={() => { tensionCritique = null; }}
+					onRetry={runTensionStressTest}
+				/>
+			</div>
+
 			<button
 				type="button"
 				onclick={() => step = 'select'}
-				class="px-4 py-2 rounded-xl text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-semibold flex items-center gap-2 transition"
+				class="px-4 py-2 rounded-xl text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-semibold flex items-center gap-2 transition cursor-pointer"
 			>
 				<span>Next: Positionality Compass</span>
 				<ArrowRight class="w-3.5 h-3.5" />
@@ -337,6 +483,34 @@
 						/>
 					</div>
 				{/if}
+			</div>
+
+			<!-- Positionality Standing Audit Panel -->
+			<div class="space-y-3 pt-2">
+				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+					<div class="text-[11px] text-neutral-400 font-mono">
+						<span>Standing audit: Position '{positionality}' ({hasStanding ? 'Claiming standing' : 'Positional refusal'})</span>
+					</div>
+
+					<LlmTriggerButton
+						label="Audit Positionality Standing"
+						onclick={runPositionalityAudit}
+						loading={positionLoading}
+						disabled={!standingJustification.trim() && !rejectionReason.trim()}
+						variant="secondary"
+						title="Audit standing justification against the 5 compass positions"
+					/>
+				</div>
+
+				<LlmCritiqueCard
+					result={positionCritique}
+					loading={positionLoading}
+					error={positionError}
+					title="Positionality Ethics Examiner"
+					actions={positionActions}
+					onDismiss={() => { positionCritique = null; }}
+					onRetry={runPositionalityAudit}
+				/>
 			</div>
 
 			<button

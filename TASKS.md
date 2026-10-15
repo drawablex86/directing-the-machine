@@ -160,10 +160,14 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Integrated Diagnostic Ladder Auditor in `M2DiagnosticVision.svelte` with machine-readable `[LADDER_VERDICT]` parsing and dynamic action button `Promote to Level X`.
   - Verified 0 TypeScript errors with `pnpm run check`, verified production prerender build with `pnpm run build`, and passed all unit test assertions.
 
-- [ ] **Task 20: M1 Studio — Problem Funnel Interrogator & Positionality Compass Auditor**
-  - Integrate problem statement stress-testing in `M1ProblemPositionLab.svelte` to differentiate genuine tensions with stakes from passive topics.
-  - Implement positionality standing audit (`From`, `With`, `For`, `About`, `Over`) testing standing justification without moral paralysis.
-  - Add collapsible "Problem Stress-Test Report" in Funnel steps.
+- [x] **Task 20: M1 Studio — Problem Funnel Interrogator & Positionality Compass Auditor**
+  - Integrated Socratic Dialectician (`m1-problem-stress-test`) into `M1ProblemPositionLab.svelte` Stage 2 (Frame & Mode) with 8,192 token headroom and `<think>` reasoning tag isolation.
+  - Implemented `parseTensionReframe` helper in `prompt-registry.ts` parsing machine-readable `[TENSION_REFRAME]` blocks (`IS_GENUINE_TENSION`, `PROPOSED_TENSION_FRAME`, `SHARPENED_STAKES`, `FRICTION_QUESTION`).
+  - Added 1-click **"Apply Sharpened Tension Frame"** in-place action updating `framedProblem` and `stakes`.
+  - Integrated Positionality Ethics Examiner (`m1-positionality-audit`) into Stage 3 (Positionality & Standing) auditing claimed standing across the 5 positions (*From, With, For, About, Over*) without moral paralysis.
+  - Implemented `parsePositionVerdict` helper in `prompt-registry.ts` parsing machine-readable `[POSITION_VERDICT]` blocks (`VERDICT`, `RECOMMENDED_POSITION`, `RECOMMENDED_STANDING`, `PRIMARY_RISK`).
+  - Added 1-click **"Shift to Position '[X]'"**, **"Switch to Positional Refusal"**, and **"Confirm Standing"** in-place actions.
+  - Verified 0 TypeScript errors with `pnpm run check`, verified production build with `pnpm run build`, and passed all unit test assertions.
 
 - [ ] **Task 21: M3 Studio — Premise Matrix Triangulator & 7-Layer Brief Reviewer**
   - Integrate 3-premise viability scoring and rejection logic auditing in `M3PremiseBriefLab.svelte`.
