@@ -197,11 +197,18 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Implement Reverse Direction Challenge coach transforming machine flaws into deliberate structural necessities.
   - Implement 40% human anchor verification for collections.
 
-- [ ] **Task 24: M6 Studio — Stakeholder Critique Simulator & 5-Mode Refusal Coach**
-  - Integrate interactive stakeholder critique simulator in `M6DirectionCollab.svelte` generating realistic, conflicting client feedback.
-  - Implement directorial triage evaluation (`Apply`, `Adapt`, `Alternative`, `Push Back`, `Re-Brief`).
-  - Implement 5-mode refusal letter soundness auditor (`Ethical`, `Positional`, `Technical`, `Intentional`, `Slop`).
-  - Implement Revision vs. Re-Brief arbiter after Cycle 2/3.
+- [x] **Task 24: M6 Studio — Stakeholder Critique Simulator & 5-Mode Refusal Coach**
+  - Integrated Executive Producer & Re-Brief Arbiter (`m6-rebrief-arbiter`) in `M6DirectionCollab.svelte` Tab 1 (Revision Fork) enforcing the 3-cycle limit and evaluating persistent defects.
+  - Implemented `parseRebriefArbitration` in `prompt-registry.ts` parsing machine-readable `[REBRIEF_ARBITRATION]` blocks (`RULING`, `CYCLE_CEILING_STATUS`, `ROOT_FAILURE_LEVEL`, `RATIONALE`, `NEXT_DIRECTORIAL_ACTION`).
+  - Added 1-click **"Adopt Re-Brief Ruling (Reset Brief)"**, **"Continue on Revision Cycle"**, and **"Adopt Next Directorial Action"** in-place actions in Revision Fork.
+  - Integrated dual-mode Stakeholder Critique Simulator & Triage Auditor (`m6-stakeholder-simulator`) in Tab 2 (Feedback Triage):
+    - *Scenario Simulation*: Generates uncalibrated client demands with hidden commercial anxiety and emits `[SIMULATED_STAKEHOLDER]` blocks with 1-click form loading.
+    - *Triage Evaluation*: Audits whether the director correctly diagnosed underlying needs or fell into dangerous compliance / premature defensiveness, emitting `[TRIAGE_EVALUATION]` blocks for 1-click recommended action adoption (*Apply, Adapt, Alternative, Push Back, Re-Brief*) and root need hardening.
+  - Integrated Senior Directorial Counsel (`m6-refusal-soundness`) in Tab 3 (5-Mode Refusal) auditing refusal letters against Appendix F standards across Ethical, Positional, Technical, Intentional, and Slop modes.
+  - Implemented `parseRefusalAudit` in `prompt-registry.ts` parsing machine-readable `[REFUSAL_AUDIT]` blocks (`VERDICT`, `RECOMMENDED_MODE`, `TONE_RATING`, `SHARPENED_RATIONALE`, `BOUNDARY_PRINCIPLE`).
+  - Added 1-click **"Adopt Sharpened Refusal Letter"** and **"Switch to Recommended Mode"** in-place actions in Refusal Composer.
+  - Added interactive Recent Decision Log history tables to Tab 1 (Revision choices), Tab 2 (Triage choices), and Tab 3 (Refusal letters) with in-place inspection and entry deletion.
+  - Verified 0 TypeScript errors with `pnpm run check`, verified production build with `pnpm run build`, and passed all unit test assertions.
 
 - [ ] **Task 25: M7 Studio & Capstone — Position Gap Mirror & Cross-Medium Removal Tester**
   - Integrate Position Gap Mirror in `M7AgencyBlankSheet.svelte` diagnosing deltas between claimed artistic statements and visible artifact traits.

@@ -9,7 +9,11 @@ import type {
 	BriefRedline,
 	CalibrationCheck,
 	PostRunDivergence,
-	NarrownessAudit
+	NarrownessAudit,
+	SimulatedStakeholder,
+	TriageEvaluation,
+	RefusalAudit,
+	RebriefArbitration
 } from '../types/llm-prompts';
 import type { InferenceRequest } from '../types/inference';
 import { runInference } from './inference';
@@ -587,22 +591,62 @@ Coach this reverse brief to elevate the diagnosed flaw into deliberate authorshi
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are a demanding, ambiguous Executive Stakeholder.
-You care about business impact, time-to-market, brand safety, and emotional resonance, but you do not know structural craft terms. You give vague, contradictory, or surface-level feedback ("make it pop", "it feels too somber", "can we make the logo bigger?").
+ROLE: You are the Chief Directorial Evaluator and Stakeholder Simulator.
+In production direction (Modules 12, 13, 14), directors must master two distinct capabilities:
+1. Simulating and confronting chaotic, ambiguous, emotionally charged client feedback without panic.
+2. Triaging stakeholder feedback: separating surface demands (what the client asks for: "Make the logo bigger", "Make it pop", "Needs more energy") from underlying commercial anxieties (what the client actually needs: fear of lost conversion, brand obscurity, lack of visual hierarchy).
+3. Selecting the correct directorial triage action:
+   - APPLY: The feedback identifies an objective defect; execute directly.
+   - ADAPT: The feedback identifies a real underlying problem, but the proposed solution is flawed. Redesign the mechanism while satisfying the root need.
+   - ALTERNATIVE: Propose a fundamentally different artistic or technical approach that achieves the goal without breaking the brief.
+   - PUSH BACK: The feedback violates core artistic premise, technical limits, or ethics. Defend the boundary with reasoned structural principles.
+   - RE-BRIEF: The feedback reveals that the initial brief was based on false assumptions. Reset the production frame.
 
-INSTRUCTIONS:
-1. Provide a realistic, challenging critique on the user's project deliverable.
-2. If evaluating the student's triage response (Apply, Adapt, Alternative, Push Back, Re-Brief), judge whether the director defended the core work while genuinely solving the stakeholder's root business anxiety.
+OPERATING MODES:
+MODE A: SCENARIO GENERATION (when generateScenario is true)
+Invent a hyper-realistic, uncalibrated executive/client critique based on the project context. The feedback MUST contain unexamined commercial panic, vague aesthetic terms, or contradictory demands.
+Output the machine-readable block:
+[SIMULATED_STAKEHOLDER]
+STAKEHOLDER_ROLE: <e.g. CMO, Series Producer, Head of Brand, Gallery Director, Product Lead>
+RAW_FEEDBACK: <The exact, vivid, unvarnished client demand or email excerpt>
+HIDDEN_COMMERCIAL_ANXIETY: <The unspoken fear or business vulnerability motivating this demand>
+PRIMARY_CONFLICT: <The structural clash between this demand and the creative brief>
+[/SIMULATED_STAKEHOLDER]
+
+Followed by a concise breakdown of what makes this feedback difficult to navigate.
+
+MODE B: TRIAGE EVALUATION (when rawFeedback, userAction, and diagnosedNeed are provided)
+Evaluate whether the director correctly diagnosed the underlying need and selected the optimal directorial action.
+- Warn against DANGEROUS_COMPLIANCE (slavishly following a bad surface demand that destroys the work).
+- Warn against PREMATURE_DEFENSIVENESS (fighting back reflexively without acknowledging the client's legitimate anxiety).
+- Validate whether their ADAPT, ALTERNATIVE, or PUSH BACK strategy is structurally airtight.
+
+Output the machine-readable block:
+[TRIAGE_EVALUATION]
+VERDICT: <SOUND_TRIAGE | MISDIAGNOSED_ROOT_NEED | DANGEROUS_COMPLIANCE | PREMATURE_DEFENSIVENESS>
+RECOMMENDED_ACTION: <apply | adapt | alternative | pushback | rebrief>
+HARDENED_UNDERLYING_NEED: <A precise, zero-adjective formulation of the stakeholder's true commercial requirement>
+DIRECTORIAL_RESPONSE: <An authoritative, non-defensive sample response to the stakeholder explaining the path forward>
+[/TRIAGE_EVALUATION]
+
+Followed by your diagnostic structural critique.
 `.trim(),
-		defaultTemperature: 0.6,
-		defaultMaxTokens: 800,
-		formatPrompt: (ctx: { projectContext: string; rawFeedback?: string; userAction?: string; diagnosedNeed?: string }) => `
+		defaultTemperature: 0.5,
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: {
+			projectContext: string;
+			generateScenario?: boolean;
+			rawFeedback?: string;
+			userAction?: string;
+			diagnosedNeed?: string;
+		}) => `
 Project Context: "${ctx.projectContext}"
-${ctx.rawFeedback ? `Feedback Under Triage: "${ctx.rawFeedback}"` : ''}
-${ctx.userAction ? `Director Action Chosen: [${ctx.userAction}]` : ''}
+${ctx.generateScenario ? 'TASK: Generate a realistic, challenging uncalibrated stakeholder demand scenario.' : ''}
+${ctx.rawFeedback ? `Stakeholder Feedback: "${ctx.rawFeedback}"` : ''}
+${ctx.userAction ? `Director Selected Action: [${ctx.userAction}]` : ''}
 ${ctx.diagnosedNeed ? `Director Diagnosed Root Need: "${ctx.diagnosedNeed}"` : ''}
 
-Evaluate this stakeholder exchange or simulate the critique.
+${ctx.generateScenario ? 'Generate the simulated stakeholder scenario with [SIMULATED_STAKEHOLDER] block.' : 'Evaluate this directorial triage and emit the [TRIAGE_EVALUATION] block.'}
 `.trim()
 	},
 
@@ -617,20 +661,38 @@ Evaluate this stakeholder exchange or simulate the critique.
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are Senior Directorial Counsel.
-The 5 Canonical Refusal Modes (Appendix F) are:
-1. Ethical Refusal (harm, exploitation, deception, rights violation)
-2. Positional Refusal (lacks standing, speaks over rather than from/with)
-3. Technical Refusal (unrealistic pipeline expectation, violates physics/resolution limits)
-4. Intentional Refusal (contradicts the stated brief or aesthetic premise)
-5. Slop Refusal (refusing uncurated, homogenised, low-fidelity volume)
+In the "Directing the Machine" curriculum, refusal is not petulance or stubbornness; it is the ultimate exercise of professional agency (Module 14 and Appendix F).
+When a director refuses a client or executive demand, the refusal must be delivered through one of the 5 Canonical Refusal Modes:
+1. Ethical Refusal: Harm, exploitation, deception, privacy invasion, or rights violation.
+2. Positional Refusal: Lack of standing, epistemic distance, speaking over rather than with or from.
+3. Technical Refusal: Pipeline impossibility, physical or resolution limits, non-convergent constraints.
+4. Intentional Refusal: Demand directly contradicts the foundational premise, core brief, or agreed tone.
+5. Slop Refusal: Refusing uncurated, homogenised, low-fidelity volume or commodity generation.
+
+FAILURE MODES TO AUDIT:
+1. Defensive Whining: Complaining about how hard the work is or feeling underappreciated.
+2. Unearned Apology: Beginning with "I'm sorry", "Unfortunately", or hedging ("I feel like maybe...").
+3. Mismatched Mode: Masking an ethical refusal as a technical one, or masking aesthetic disagreement as an ethical refusal.
+4. Weak Compliance: Attempting to refuse but conceding in the final sentence.
 
 INSTRUCTIONS:
-1. Check that the refusal is firm, polite, unambiguous, and completely free of defensive whining or unearned apology.
-2. Confirm that the chosen refusal mode matches the actual root justification.
-3. Ensure the refusal offers either an alternative path or a principled boundary.
+Audit the director's refusal letter.
+Assess its firmness, professionalism, mode alignment, and absence of apology.
+Provide a sharpened, authoritative rewrite that preserves the boundary while maintaining collaborative standing.
+
+Output the machine-readable block:
+[REFUSAL_AUDIT]
+VERDICT: <AIRTIGHT | DEFENSIVE_WHINING | MISMATCHED_MODE | WEAK_COMPLIANCE>
+RECOMMENDED_MODE: <Ethical | Positional | Technical | Intentional | Slop>
+TONE_RATING: <PROFESSIONAL_FIRM | OVERLY_APOLOGETIC | COMBATIVE | PASSIVE_AGGRESSIVE>
+SHARPENED_RATIONALE: <An airtight, non-apologetic, firm rewrite of the refusal rationale ready for client transmission>
+BOUNDARY_PRINCIPLE: <The single foundational principle anchoring this refusal>
+[/REFUSAL_AUDIT]
+
+Followed by your diagnostic legal/directorial analysis of why this refusal succeeds or falters.
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 750,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: { mode: string; target: string; rationale: string }) => `
 Refusal Mode: ${ctx.mode} Refusal
 Refusal Target / Demand: "${ctx.target}"
@@ -639,7 +701,7 @@ Director's Written Rationale / Letter:
 ${ctx.rationale}
 """
 
-Audit the firmness, professionalism, and validity of this refusal.
+Audit the firmness, tone, and validity of this refusal letter and emit the [REFUSAL_AUDIT] block.
 `.trim()
 	},
 
@@ -653,23 +715,43 @@ Audit the firmness, professionalism, and validity of this refusal.
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Executive Producer.
-In this studio, directors are limited to 3 named revision cycles per brief.
-If the fundamental premise is flawed or misaligned with reality, continuing cosmetic revisions is an expensive failure of nerve. A Re-Brief is mandatory.
+ROLE: You are the Executive Producer & Arbiter.
+In this studio (Modules 12 & 13), directors are subject to a strict Revision Ceiling:
+- Maximum 3 named revision cycles per brief.
+- Cycle 1: Structural realignment.
+- Cycle 2: Secondary refinement and tension calibration.
+- Cycle 3: Surface polish and finishing.
+If a project after Cycle 2 still suffers from fundamental incoherence, contradictory premises, or an impossible brief, continuing into cosmetic revision is an expensive failure of nerve. A RE-BRIEF is mandatory.
 
-INSTRUCTIONS:
-1. Review the current revision cycle and the nature of the persistent defect.
-2. Rule decisively: REVISE or RE-BRIEF.
-3. Explain why cosmetic adjustments will or will not solve the underlying issue.
+A RE-BRIEF resets the core premise, reframes the problem, or renegotiates deliverables.
+A REVISION continues within the existing brief.
+
+EVALUATION CRITERIA:
+1. Cycle Count: If cycle >= 3 and the obstacle is structural or conceptual, rule RE_BRIEF immediately.
+2. Obstacle Depth:
+   - PREMISE_FRAME or CORE_STRUCTURE defect -> Mandate RE_BRIEF.
+   - SURFACE_POLISH or VALUE_RHYTHM defect -> Allow REVISE.
+3. Repetitive Churn: If the obstacle reveals that the machine cannot bridge the gap without changing the brief, rule RE_BRIEF.
+
+Output the machine-readable block:
+[REBRIEF_ARBITRATION]
+RULING: <REVISE | RE_BRIEF>
+CYCLE_CEILING_STATUS: <UNDER_CAP | AT_CAP_REVISE_ALLOWED | HARD_STOP_REBRIEF_MANDATORY>
+ROOT_FAILURE_LEVEL: <PREMISE_FRAME | CORE_STRUCTURE | SURFACE_POLISH | VALUE_RHYTHM>
+RATIONALE: <A concise, incisive explanation of why this defect can or cannot be solved in the current brief>
+NEXT_DIRECTORIAL_ACTION: <A specific, actionable command for the director's next working session>
+[/REBRIEF_ARBITRATION]
+
+Followed by your structural arbitration analysis.
 `.trim(),
 		defaultTemperature: 0.2,
-		defaultMaxTokens: 750,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: { cycle: number; revisionFocus: string; currentObstacle: string }) => `
 Current Revision Cycle: ${ctx.cycle} of 3
 Revision Focus: "${ctx.revisionFocus}"
 Current Persistent Obstacle: "${ctx.currentObstacle}"
 
-Arbitrate whether the director should proceed with revision or trigger a Re-Brief.
+Arbitrate whether the director should proceed with revision or trigger a Re-Brief, and emit the [REBRIEF_ARBITRATION] block.
 `.trim()
 	},
 
@@ -1332,6 +1414,110 @@ export function parseNarrownessAudit(text: string): NarrownessAudit | undefined 
 }
 
 /**
+ * Parses machine-readable simulated stakeholder critique scenario.
+ */
+export function parseSimulatedStakeholder(text: string): SimulatedStakeholder | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[SIMULATED_STAKEHOLDER\]([\s\S]*?)(\[\/SIMULATED_STAKEHOLDER\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const roleMatch = target.match(/STAKEHOLDER_ROLE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const feedbackMatch = target.match(/RAW_FEEDBACK:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const anxietyMatch = target.match(/HIDDEN_COMMERCIAL_ANXIETY:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const conflictMatch = target.match(/PRIMARY_CONFLICT:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!roleMatch && !feedbackMatch) {
+		return undefined;
+	}
+
+	return {
+		stakeholderRole: roleMatch ? roleMatch[1].trim() : 'Executive Stakeholder',
+		rawFeedback: feedbackMatch ? feedbackMatch[1].trim() : '',
+		hiddenCommercialAnxiety: anxietyMatch ? anxietyMatch[1].trim() : undefined,
+		primaryConflict: conflictMatch ? conflictMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable triage evaluation from Chief Directorial Evaluator response.
+ */
+export function parseTriageEvaluation(text: string): TriageEvaluation | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[TRIAGE_EVALUATION\]([\s\S]*?)(\[\/TRIAGE_EVALUATION\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(SOUND_TRIAGE|MISDIAGNOSED_ROOT_NEED|DANGEROUS_COMPLIANCE|PREMATURE_DEFENSIVENESS)/i);
+	const actionMatch = target.match(/RECOMMENDED_ACTION:\s*(apply|adapt|alternative|pushback|rebrief)/i);
+	const needMatch = target.match(/HARDENED_UNDERLYING_NEED:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const responseMatch = target.match(/DIRECTORIAL_RESPONSE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!verdictMatch && !actionMatch && !needMatch && !responseMatch) {
+		return undefined;
+	}
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'SOUND_TRIAGE') as any,
+		recommendedAction: (actionMatch ? actionMatch[1].toLowerCase() : 'adapt') as any,
+		hardenedUnderlyingNeed: needMatch ? needMatch[1].trim() : undefined,
+		directorialResponse: responseMatch ? responseMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable 5-mode refusal audit from Senior Directorial Counsel response.
+ */
+export function parseRefusalAudit(text: string): RefusalAudit | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[REFUSAL_AUDIT\]([\s\S]*?)(\[\/REFUSAL_AUDIT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(AIRTIGHT|DEFENSIVE_WHINING|MISMATCHED_MODE|WEAK_COMPLIANCE)/i);
+	const modeMatch = target.match(/RECOMMENDED_MODE:\s*(Ethical|Positional|Technical|Intentional|Slop)/i);
+	const toneMatch = target.match(/TONE_RATING:\s*(PROFESSIONAL_FIRM|OVERLY_APOLOGETIC|COMBATIVE|PASSIVE_AGGRESSIVE)/i);
+	const rationaleMatch = target.match(/SHARPENED_RATIONALE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const boundaryMatch = target.match(/BOUNDARY_PRINCIPLE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!verdictMatch && !modeMatch && !toneMatch && !rationaleMatch) {
+		return undefined;
+	}
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'AIRTIGHT') as any,
+		recommendedMode: modeMatch ? (modeMatch[1] as any) : undefined,
+		toneRating: toneMatch ? (toneMatch[1].toUpperCase() as any) : undefined,
+		sharpenedRationale: rationaleMatch ? rationaleMatch[1].trim() : undefined,
+		boundaryPrinciple: boundaryMatch ? boundaryMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable revision vs. re-brief arbitration from Executive Producer response.
+ */
+export function parseRebriefArbitration(text: string): RebriefArbitration | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[REBRIEF_ARBITRATION\]([\s\S]*?)(\[\/REBRIEF_ARBITRATION\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const rulingMatch = target.match(/RULING:\s*(REVISE|RE_BRIEF)/i);
+	const ceilingMatch = target.match(/CYCLE_CEILING_STATUS:\s*(UNDER_CAP|AT_CAP_REVISE_ALLOWED|HARD_STOP_REBRIEF_MANDATORY)/i);
+	const levelMatch = target.match(/ROOT_FAILURE_LEVEL:\s*(PREMISE_FRAME|CORE_STRUCTURE|SURFACE_POLISH|VALUE_RHYTHM)/i);
+	const rationaleMatch = target.match(/RATIONALE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+	const actionMatch = target.match(/NEXT_DIRECTORIAL_ACTION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z_]+:|$)/i);
+
+	if (!rulingMatch && !ceilingMatch && !levelMatch && !rationaleMatch && !actionMatch) {
+		return undefined;
+	}
+
+	return {
+		ruling: (rulingMatch ? rulingMatch[1].toUpperCase() : 'REVISE') as any,
+		cycleCeilingStatus: ceilingMatch ? (ceilingMatch[1].toUpperCase() as any) : undefined,
+		rootFailureLevel: levelMatch ? (levelMatch[1].toUpperCase() as any) : undefined,
+		rationale: rationaleMatch ? rationaleMatch[1].trim() : undefined,
+		nextDirectorialAction: actionMatch ? actionMatch[1].trim() : undefined
+	};
+}
+
+/**
  * Central prompt execution pipeline.
  * Formats context into user prompt, applies system prompt and defaults, calls runInference,
  * and packages the result into a typed CritiqueResult with thoughts and parsed directives.
@@ -1413,6 +1599,25 @@ export async function executePrompt<T = any>(
 		const audit = parseNarrownessAudit(response.text);
 		if (audit) {
 			critique.narrownessAudit = audit;
+		}
+	} else if (promptId === 'm6-stakeholder-simulator') {
+		const stakeholder = parseSimulatedStakeholder(response.text);
+		if (stakeholder) {
+			critique.simulatedStakeholder = stakeholder;
+		}
+		const triage = parseTriageEvaluation(response.text);
+		if (triage) {
+			critique.triageEvaluation = triage;
+		}
+	} else if (promptId === 'm6-refusal-soundness') {
+		const refusal = parseRefusalAudit(response.text);
+		if (refusal) {
+			critique.refusalAudit = refusal;
+		}
+	} else if (promptId === 'm6-rebrief-arbiter') {
+		const rebrief = parseRebriefArbitration(response.text);
+		if (rebrief) {
+			critique.rebriefArbitration = rebrief;
 		}
 	}
 

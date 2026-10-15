@@ -118,6 +118,36 @@ export interface NarrownessAudit {
 	prescribedConfidence?: number;
 }
 
+export interface SimulatedStakeholder {
+	stakeholderRole: string;
+	rawFeedback: string;
+	hiddenCommercialAnxiety?: string;
+	primaryConflict?: string;
+}
+
+export interface TriageEvaluation {
+	verdict: 'SOUND_TRIAGE' | 'MISDIAGNOSED_ROOT_NEED' | 'DANGEROUS_COMPLIANCE' | 'PREMATURE_DEFENSIVENESS';
+	recommendedAction: 'apply' | 'adapt' | 'alternative' | 'pushback' | 'rebrief';
+	hardenedUnderlyingNeed?: string;
+	directorialResponse?: string;
+}
+
+export interface RefusalAudit {
+	verdict: 'AIRTIGHT' | 'DEFENSIVE_WHINING' | 'MISMATCHED_MODE' | 'WEAK_COMPLIANCE';
+	recommendedMode?: 'Ethical' | 'Positional' | 'Technical' | 'Intentional' | 'Slop';
+	toneRating?: 'PROFESSIONAL_FIRM' | 'OVERLY_APOLOGETIC' | 'COMBATIVE' | 'PASSIVE_AGGRESSIVE';
+	sharpenedRationale?: string;
+	boundaryPrinciple?: string;
+}
+
+export interface RebriefArbitration {
+	ruling: 'REVISE' | 'RE_BRIEF';
+	cycleCeilingStatus?: 'UNDER_CAP' | 'AT_CAP_REVISE_ALLOWED' | 'HARD_STOP_REBRIEF_MANDATORY';
+	rootFailureLevel?: 'PREMISE_FRAME' | 'CORE_STRUCTURE' | 'SURFACE_POLISH' | 'VALUE_RHYTHM';
+	rationale?: string;
+	nextDirectorialAction?: string;
+}
+
 export interface CritiqueResult {
 	id: string;
 	timestamp: string;
@@ -144,6 +174,10 @@ export interface CritiqueResult {
 	calibrationCheck?: CalibrationCheck;
 	postRunDivergence?: PostRunDivergence;
 	narrownessAudit?: NarrownessAudit;
+	simulatedStakeholder?: SimulatedStakeholder;
+	triageEvaluation?: TriageEvaluation;
+	refusalAudit?: RefusalAudit;
+	rebriefArbitration?: RebriefArbitration;
 }
 
 export interface LlmAction {
