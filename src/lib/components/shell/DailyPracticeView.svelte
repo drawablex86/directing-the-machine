@@ -31,10 +31,12 @@
 	import { DRILLS, getDrillsByModality, type Drill } from '$lib/data/drills';
 	import ReadingModal from './ReadingModal.svelte';
 	import ProjectBriefModal from '../course/ProjectBriefModal.svelte';
+	import DrillRunner from './DrillRunner.svelte';
 
 	let { onSelectModality }: { onSelectModality: (modId: string) => void } = $props();
 
 	let isProjectModalOpen = $state(false);
+	let isDrillRunnerOpen = $state(false);
 
 	// Active week and day models
 	let currentWeekData = $derived(
@@ -73,6 +75,10 @@
 	// Daily completion metrics
 	let completedCount = $derived(
 		currentDayData.tasks.filter((t) => practiceStore.isTaskCompleted(t.id)).length
+	);
+
+	let auditedBaselineCount = $derived(
+		practiceStore.baseline.filter((b) => b.notes.trim().length > 0 || b.score !== 2).length
 	);
 
 	// Matched drill for deliberate practice step
@@ -179,6 +185,29 @@
 				class="text-[11px] text-neutral-400 hover:text-white underline cursor-pointer"
 			>
 				Dismiss
+			</button>
+		</div>
+	{/if}
+
+	<!-- First-Run Onboarding Banner (if baseline is un-audited) -->
+	{#if auditedBaselineCount < 6}
+		<div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+			<div class="flex items-center gap-3">
+				<Target class="w-5 h-5 text-amber-400 shrink-0" />
+				<div>
+					<div class="font-bold text-amber-300">Welcome to Directing the Machine · Week 0 Orientation</div>
+					<p class="text-neutral-300 text-[11px] mt-0.5">
+						Begin your training by auditing your 12-competency baseline mirror and signing your Deliberate Practice Contract.
+					</p>
+				</div>
+			</div>
+			<button
+				type="button"
+				onclick={() => onSelectModality('m0')}
+				class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+			>
+				<span>Start Baseline Diagnostic (M0)</span>
+				<ArrowRight class="w-3.5 h-3.5" />
 			</button>
 		</div>
 	{/if}
@@ -350,13 +379,22 @@
 					</button>
 
 				{:else if currentStep.id === 'practise'}
+					{#if matchedDrill}
+						<button
+							type="button"
+							onclick={() => isDrillRunnerOpen = !isDrillRunnerOpen}
+							class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+						>
+							<Play class="w-4 h-4 fill-current" />
+							<span>{isDrillRunnerOpen ? 'Hide In-Place Drill Runner' : 'Run Drill In-Place (Timer & Reps)'}</span>
+						</button>
+					{/if}
 					<button
 						type="button"
 						onclick={() => onSelectModality(activeTask.targetModalityId)}
-						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow transition cursor-pointer"
+						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 flex items-center gap-2 shadow transition cursor-pointer"
 					>
-						<Play class="w-4 h-4 fill-current" />
-						<span>Launch Micro-Drill in Studio ({activeTask.targetModalityId.toUpperCase()})</span>
+						<span>Studio ({activeTask.targetModalityId.toUpperCase()})</span>
 						<ArrowRight class="w-4 h-4" />
 					</button>
 					<a
@@ -492,6 +530,31 @@
 						</span>
 					</div>
 				</div>
+
+				<!-- Interactive In-Place Drill Runner -->
+				{#if isDrillRunnerOpen && matchedDrill}
+					<div class="p-4 rounded-xl bg-neutral-950 border border-neutral-800 space-y-3">
+						<div class="flex items-center justify-between border-b border-neutral-800/80 pb-2">
+							<span class="text-xs font-bold text-amber-400">Live Drill Runner: {matchedDrill.title}</span>
+							<button
+								type="button"
+								onclick={() => isDrillRunnerOpen = false}
+								class="text-[11px] text-neutral-500 hover:text-white cursor-pointer"
+							>
+								Close Runner
+							</button>
+						</div>
+						<DrillRunner
+							drill={matchedDrill}
+							onComplete={() => {
+								if (!isActiveTaskDone) {
+									toggleTaskWithSound(activeTask.id);
+								}
+								isDrillRunnerOpen = false;
+							}}
+						/>
+					</div>
+				{/if}
 
 				<!-- What you're training -->
 				<div class="space-y-1">

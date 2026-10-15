@@ -14,6 +14,8 @@
 		Scale
 	} from '@lucide/svelte';
 
+	import ProjectWorkspace from './ProjectWorkspace.svelte';
+
 	let {
 		project,
 		onClose,
@@ -24,26 +26,7 @@
 		onLaunchModality: (modId: string) => void;
 	} = $props();
 
-	// Evaluation states
-	let outcomeQuality = $state<number>(3);
-	let decisionQuality = $state<number>(3);
-	let reflectionNotes = $state<string>('');
-	let submittedEvaluation = $state<boolean>(false);
-
-	function submitEvaluation() {
-		practiceStore.evaluateProjectSession({
-			projectId: project.id,
-			projectName: project.title,
-			outcomeQuality,
-			decisionQuality,
-			intention: project.goal,
-			reflectionNotes: reflectionNotes.trim() || 'Project milestone evaluated against rubrics.'
-		});
-		submittedEvaluation = true;
-		setTimeout(() => {
-			submittedEvaluation = false;
-		}, 3000);
-	}
+	let activeModalTab = $state<'workspace' | 'spec'>('workspace');
 </script>
 
 <div class="fixed inset-0 z-50 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
@@ -83,136 +66,77 @@
 			</button>
 		</div>
 
+		<!-- Tabs -->
+		<div class="px-6 py-2.5 bg-neutral-950/80 border-b border-neutral-800 flex items-center gap-2 text-xs">
+			<button
+				type="button"
+				onclick={() => activeModalTab = 'workspace'}
+				class="px-3.5 py-1.5 rounded-xl font-semibold transition cursor-pointer {activeModalTab === 'workspace' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'}"
+			>
+				Live Workspace & Checklist
+			</button>
+			<button
+				type="button"
+				onclick={() => activeModalTab = 'spec'}
+				class="px-3.5 py-1.5 rounded-xl font-semibold transition cursor-pointer {activeModalTab === 'spec' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'}"
+			>
+				Full Specification & Rubrics
+			</button>
+		</div>
+
 		<!-- Body -->
 		<div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm text-neutral-300">
-			<!-- Goal -->
-			<div class="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-1.5">
-				<h3 class="text-xs font-bold uppercase tracking-wider text-amber-400">Directorial Goal</h3>
-				<p class="text-neutral-200 leading-relaxed text-xs md:text-sm">
-					{project.goal}
-				</p>
-			</div>
-
-			<!-- Brief -->
-			<div class="space-y-2">
-				<h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Project Brief & Constraints</h3>
-				<p class="text-neutral-300 leading-relaxed text-xs md:text-sm bg-neutral-950 p-4 rounded-xl border border-neutral-800">
-					{project.brief}
-				</p>
-			</div>
-
-			<!-- Deliverables Table -->
-			<div class="space-y-3">
-				<div class="flex items-center justify-between">
-					<h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Required Deliverables</h3>
-					<span class="text-xs font-mono text-neutral-500">{project.deliverables.length} Items</span>
+			{#if activeModalTab === 'workspace'}
+				<ProjectWorkspace {project} {onLaunchModality} />
+			{:else}
+				<!-- Goal -->
+				<div class="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 space-y-1.5">
+					<h3 class="text-xs font-bold uppercase tracking-wider text-amber-400">Directorial Goal</h3>
+					<p class="text-neutral-200 leading-relaxed text-xs md:text-sm">
+						{project.goal}
+					</p>
 				</div>
-				<div class="border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800/80 bg-neutral-950/40">
-					{#each project.deliverables as deliv, i}
-						<div class="p-3.5 flex items-start gap-3 hover:bg-neutral-800/30 transition">
-							<span class="text-xs font-mono font-bold text-amber-400 mt-0.5">0{i + 1}</span>
-							<div class="space-y-0.5 flex-1">
-								<div class="font-semibold text-neutral-200 text-xs md:text-sm">{deliv.name}</div>
-								<p class="text-xs text-neutral-400 leading-normal">{deliv.specification}</p>
+
+				<!-- Brief -->
+				<div class="space-y-2">
+					<h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Project Brief & Constraints</h3>
+					<p class="text-neutral-300 leading-relaxed text-xs md:text-sm bg-neutral-950 p-4 rounded-xl border border-neutral-800">
+						{project.brief}
+					</p>
+				</div>
+
+				<!-- Deliverables Table -->
+				<div class="space-y-3">
+					<div class="flex items-center justify-between">
+						<h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Required Deliverables</h3>
+						<span class="text-xs font-mono text-neutral-500">{project.deliverables.length} Items</span>
+					</div>
+					<div class="border border-neutral-800 rounded-xl overflow-hidden divide-y divide-neutral-800/80 bg-neutral-950/40">
+						{#each project.deliverables as deliv, i}
+							<div class="p-3.5 flex items-start gap-3 hover:bg-neutral-800/30 transition">
+								<span class="text-xs font-mono font-bold text-amber-400 mt-0.5">0{i + 1}</span>
+								<div class="space-y-0.5 flex-1">
+									<div class="font-semibold text-neutral-200 text-xs md:text-sm">{deliv.name}</div>
+									<p class="text-xs text-neutral-400 leading-normal">{deliv.specification}</p>
+								</div>
 							</div>
-						</div>
-					{/each}
-				</div>
-			</div>
-
-			<!-- Evaluation Rubric -->
-			<div class="space-y-3">
-				<h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Evaluation Rubric</h3>
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-					{#each project.evaluationRubric as rub}
-						<div class="p-3 rounded-xl bg-neutral-950 border border-neutral-800 space-y-1 text-xs">
-							<span class="font-bold font-mono text-amber-400">{rub.level}</span>
-							<p class="text-neutral-400 leading-normal">{rub.criteria}</p>
-						</div>
-					{/each}
-				</div>
-			</div>
-
-			<!-- Evaluation & Two-Axis Logging Loop -->
-			<div class="p-5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-4">
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-2">
-						<Scale class="w-4 h-4 text-amber-400" />
-						<h3 class="font-bold text-xs uppercase tracking-wider text-neutral-200">
-							Evaluate Milestone in Two-Axis Quadrant
-						</h3>
-					</div>
-					{#if submittedEvaluation}
-						<span class="text-emerald-400 text-xs font-bold flex items-center gap-1">
-							<CheckCircle2 class="w-3.5 h-3.5" />
-							Logged into Assessment Matrix!
-						</span>
-					{/if}
-				</div>
-
-				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-					<div class="space-y-1.5">
-						<div class="flex justify-between text-neutral-400">
-							<span>Outcome Quality (Artifact Fitness)</span>
-							<span class="font-mono text-amber-400 font-bold">{outcomeQuality}/4</span>
-						</div>
-						<input
-							type="range"
-							min="1"
-							max="4"
-							step="1"
-							bind:value={outcomeQuality}
-							class="w-full accent-amber-500 cursor-pointer"
-						/>
-						<div class="flex justify-between text-[10px] text-neutral-600 font-mono">
-							<span>1: Weak</span>
-							<span>2: Flawed</span>
-							<span>3: Strong</span>
-							<span>4: Exceptional</span>
-						</div>
-					</div>
-
-					<div class="space-y-1.5">
-						<div class="flex justify-between text-neutral-400">
-							<span>Decision Quality (Sound Process)</span>
-							<span class="font-mono text-amber-400 font-bold">{decisionQuality}/4</span>
-						</div>
-						<input
-							type="range"
-							min="1"
-							max="4"
-							step="1"
-							bind:value={decisionQuality}
-							class="w-full accent-amber-500 cursor-pointer"
-						/>
-						<div class="flex justify-between text-[10px] text-neutral-600 font-mono">
-							<span>1: Accidental</span>
-							<span>2: Inconsistent</span>
-							<span>3: Rigorous</span>
-							<span>4: Masterful</span>
-						</div>
+						{/each}
 					</div>
 				</div>
 
-				<div class="space-y-1.5">
-					<label for="evaluation-reflection" class="text-xs text-neutral-400">Reflection & Diagnostic Causal Notes</label>
-					<input
-						id="evaluation-reflection"
-						type="text"
-						bind:value={reflectionNotes}
-						placeholder="What specific causal decision determined whether this milestone succeeded?"
-						class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-3 py-2 text-xs text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
-					/>
+				<!-- Evaluation Rubric -->
+				<div class="space-y-3">
+					<h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Evaluation Rubric</h3>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+						{#each project.evaluationRubric as rub}
+							<div class="p-3 rounded-xl bg-neutral-950 border border-neutral-800 space-y-1 text-xs">
+								<span class="font-bold font-mono text-amber-400">{rub.level}</span>
+								<p class="text-neutral-400 leading-normal">{rub.criteria}</p>
+							</div>
+						{/each}
+					</div>
 				</div>
-
-				<button
-					type="button"
-					onclick={submitEvaluation}
-					class="w-full py-2.5 rounded-xl text-xs font-bold bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700 transition cursor-pointer"
-				>
-					Log Milestone to Two-Axis Assessment
-				</button>
-			</div>
+			{/if}
 		</div>
 
 		<!-- Footer -->

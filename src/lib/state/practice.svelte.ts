@@ -8,7 +8,10 @@ import type {
 	ProblemEntry,
 	PracticeSession,
 	DecisionEntry,
-	Brief
+	Brief,
+	ProjectProgress,
+	ProjectStatus,
+	TwoAxisEvaluation
 } from '../schemas/course.schema';
 import { analyzeCalibration } from '../engine/calibration-math';
 
@@ -26,6 +29,7 @@ export interface DrillSession {
 	discoveryNote: string;   // "What did I discover about the mechanism?"
 	difficultyAdjustment: 'increased' | 'maintained' | 'reduced' | 'none';
 	durationMinutes: number;
+	reps?: RepResult[];
 }
 
 // Individual rep result within a drill session
@@ -112,6 +116,7 @@ export class PracticeEngine {
 	drillSessions = $state<DrillSession[]>([]); // NEW: rep-level drill tracking
 	decisions = $state<DecisionEntry[]>([]);
 	briefs = $state<Brief[]>([]);
+	projectProgress = $state<Record<string, ProjectProgress>>({});
 
 	// 1-Line Protected Logs
 	nonInstrumentalLines = $state<{ id: string; date: string; line: string }[]>([]);
@@ -246,6 +251,82 @@ export class PracticeEngine {
 		}
 	}
 
+	saveBrief(briefData: Omit<Brief, 'id' | 'date'>): Brief {
+		const newBrief: Brief = {
+			id: crypto.randomUUID(),
+			date: new Date().toISOString().slice(0, 10),
+			...briefData
+		};
+		this.briefs.unshift(newBrief);
+		this.saveToStorage();
+		return newBrief;
+	}
+
+	saveDecision(decisionData: Omit<DecisionEntry, 'id' | 'date'>): DecisionEntry {
+		const newDecision: DecisionEntry = {
+			id: crypto.randomUUID(),
+			date: new Date().toISOString().slice(0, 10),
+			...decisionData
+		};
+		this.decisions.unshift(newDecision);
+		this.saveToStorage();
+		return newDecision;
+	}
+
+	getProjectProgress(projectId: string): ProjectProgress {
+		if (!this.projectProgress[projectId]) {
+			this.projectProgress[projectId] = {
+				projectId,
+				status: 'not-started',
+				completedDeliverableNames: [],
+				lastUpdated: new Date().toISOString().slice(0, 10)
+			};
+		}
+		return this.projectProgress[projectId];
+	}
+
+	toggleProjectDeliverable(projectId: string, deliverableName: string) {
+		const prog = this.getProjectProgress(projectId);
+		if (prog.completedDeliverableNames.includes(deliverableName)) {
+			prog.completedDeliverableNames = prog.completedDeliverableNames.filter((d) => d !== deliverableName);
+		} else {
+			prog.completedDeliverableNames.push(deliverableName);
+			if (prog.status === 'not-started') {
+				prog.status = 'in-progress';
+			}
+		}
+		prog.lastUpdated = new Date().toISOString().slice(0, 10);
+		this.saveToStorage();
+	}
+
+	setProjectStatus(projectId: string, status: ProjectStatus) {
+		const prog = this.getProjectProgress(projectId);
+		prog.status = status;
+		prog.lastUpdated = new Date().toISOString().slice(0, 10);
+		this.saveToStorage();
+	}
+
+	saveProjectEvaluation(projectId: string, outcomeScore: number, decisionScore: number, notes: string) {
+		const prog = this.getProjectProgress(projectId);
+		const quadrant = this.classifyQuadrant(outcomeScore, decisionScore);
+		prog.twoAxisEvaluation = {
+			outcomeScore,
+			decisionScore,
+			quadrant,
+			date: new Date().toISOString().slice(0, 10),
+			notes
+		};
+		prog.lastUpdated = new Date().toISOString().slice(0, 10);
+		this.saveToStorage();
+	}
+
+	setProjectArtifactUrl(projectId: string, url: string) {
+		const prog = this.getProjectProgress(projectId);
+		prog.repositoryOrArtifactUrl = url;
+		prog.lastUpdated = new Date().toISOString().slice(0, 10);
+		this.saveToStorage();
+	}
+
 	// Baseline Diagnostic Synthesis & Continuity Analysis
 	getBaselineSynthesis() {
 		const total = this.baseline.length;
@@ -374,6 +455,7 @@ export class PracticeEngine {
 				drillSessions: this.drillSessions,
 				decisions: this.decisions,
 				briefs: this.briefs,
+				projectProgress: this.projectProgress,
 				nonInstrumentalLines: this.nonInstrumentalLines,
 				playLines: this.playLines
 			};
@@ -409,6 +491,7 @@ export class PracticeEngine {
 			if (data.drillSessions) this.drillSessions = data.drillSessions;
 			if (data.decisions) this.decisions = data.decisions;
 			if (data.briefs) this.briefs = data.briefs;
+			if (data.projectProgress && typeof data.projectProgress === 'object') this.projectProgress = data.projectProgress;
 			if (data.nonInstrumentalLines) this.nonInstrumentalLines = data.nonInstrumentalLines;
 			if (data.playLines) this.playLines = data.playLines;
 		} catch (e) {

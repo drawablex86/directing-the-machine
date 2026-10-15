@@ -1,8 +1,16 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
-	import { Sparkles, EyeOff, Award, RotateCcw, CheckCircle, ArrowRight } from '@lucide/svelte';
+	import { Sparkles, EyeOff, Award, RotateCcw, CheckCircle, ArrowRight, Target, CheckCircle2 } from '@lucide/svelte';
+	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import { getDrillById } from '$lib/data/drills';
 
-	let activeSubTab = $state<'tasteFormula' | 'blindRanker' | 'anchors' | 'reverse'>('tasteFormula');
+	let activeSubTab = $state<'tasteFormula' | 'blindRanker' | 'anchors' | 'reverse' | 'drills'>('tasteFormula');
+	let activeDrillId = $state<'blind-ranking' | 'm5-taste-builder' | 'm5-reverse-brief'>('blind-ranking');
+	let activeDrill = $derived(getDrillById(activeDrillId));
+
+	let formulaSaved = $state(false);
+	let rankingSaved = $state(false);
+	let reverseBriefSaved = $state(false);
 
 	// 5-Part Taste Formula
 	let tastePreference = $state('');
@@ -11,19 +19,87 @@
 	let tasteMechanism = $state('');
 	let tastePurpose = $state('');
 
+	function saveTasteFormula() {
+		if (!tastePreference.trim() && !tasteCriteria.trim()) return;
+		practiceStore.saveDecision({
+			project: 'Taste Infrastructure (M5)',
+			decision: `Taste Formula: ${tastePreference.trim() || 'Aesthetic Commitment'}`,
+			highestUnresolvedLevel: 'Purpose & Criteria Formulation',
+			alternativesRejected: 'Judging artifact in isolation without explicit reference class or mechanism',
+			justification: `Criteria: ${tasteCriteria} | Ref Class: ${tasteRefClass} | Mechanism: ${tasteMechanism} | Purpose: ${tastePurpose}`,
+			feedbackIncorporated: 'Self-calibrated criteria',
+			refusals: 'Rejecting default algorithmic homogenisation'
+		});
+		formulaSaved = true;
+		setTimeout(() => formulaSaved = false, 3000);
+	}
+
 	// Blind Ranker state
 	let provenanceRevealed = $state(false);
-	const mockWorks = $state([
+	let mockWorks = $state([
 		{ id: 1, title: 'Study 01: Low-Key Corridor', actualType: 'Human Reference (Gordon Willis)', rank: 1, userCriteria: 'Values cluster in bottom third, light serves narrative suspense' },
 		{ id: 2, title: 'Study 02: Neon Alley Reflection', actualType: 'AI Default Generation (Midjourney v6)', rank: 2, userCriteria: 'Atmospheric but generic centering trope' },
 		{ id: 3, title: 'Study 03: Editorial Portrait', actualType: 'Hybrid Direction (Authored ControlNet + Hand Paint)', rank: 3, userCriteria: 'Controlled gaze line with custom cast shadow' },
 		{ id: 4, title: 'Study 04: Minimalist Interior', actualType: 'Human Anchor (Vilhelm Hammershøi)', rank: 4, userCriteria: 'Radical stillness through muted color harmony' }
 	]);
 
+	function moveRank(index: number, direction: 'up' | 'down') {
+		const targetIndex = direction === 'up' ? index - 1 : index + 1;
+		if (targetIndex < 0 || targetIndex >= mockWorks.length) return;
+		const temp = mockWorks[index];
+		mockWorks[index] = mockWorks[targetIndex];
+		mockWorks[targetIndex] = temp;
+	}
+
+	function commitBlindRanking() {
+		practiceStore.saveDecision({
+			project: 'Blind Provenance Arena (M5)',
+			decision: `Blind Provenance Ranking: 1st ${mockWorks[0].title}, 2nd ${mockWorks[1].title}`,
+			highestUnresolvedLevel: 'Objective Evaluation Prior to Provenance Reveal',
+			alternativesRejected: `Subordinate rank candidates: ${mockWorks.slice(2).map(w => w.title).join(', ')}`,
+			justification: mockWorks.map((w, i) => `#${i + 1} ${w.title}: ${w.userCriteria}`).join(' | '),
+			feedbackIncorporated: `Actual revealed provenances: ${mockWorks.map((w) => `${w.title} (${w.actualType})`).join(', ')}`,
+			refusals: 'Refused evaluation bias from author/tool brand labels'
+		});
+		rankingSaved = true;
+		setTimeout(() => rankingSaved = false, 3000);
+	}
+
 	// Reverse Direction Challenge
 	let rejectedArtifact = $state('');
 	let observedFlaw = $state('');
 	let newBriefWhereFlawIsStrength = $state('');
+
+	function commitReverseBrief() {
+		if (!rejectedArtifact.trim() || !newBriefWhereFlawIsStrength.trim()) return;
+		practiceStore.saveBrief({
+			title: `Reverse Brief: ${rejectedArtifact.trim().slice(0, 40)}`,
+			premise: `Inverted Flaw as Core Aesthetic: ${observedFlaw.trim() || 'Generative Artifact'}`,
+			intention: newBriefWhereFlawIsStrength.trim(),
+			constraints: [
+				'Elevate diagnosed generative flaw into the mandatory aesthetic condition',
+				'Preserve deliberate tension without falling back into default polished tropes'
+			],
+			references: [],
+			acceptanceCriteria: [
+				'Flaw is visually central and clearly structurally motivated',
+				'The work cannot be confused with an accidental defect'
+			],
+			rejectionConditions: [
+				'Default smooth cosmetic finish that conceals the inverted feature',
+				'Uncalibrated drift away from stated reverse premise'
+			],
+			risksAndUnknowns: ['Risk of audience perceiving deliberate flaw as unintentional failure'],
+			provenance: {
+				origin: 'Module 11 Reverse Direction Challenge',
+				humanContribution: 'Diagnosed model failure mode and authored inverted aesthetic brief',
+				toolContribution: 'Produced artifact containing the uncalibrated generative anomaly',
+				licenses: 'Personal study archive'
+			}
+		});
+		reverseBriefSaved = true;
+		setTimeout(() => reverseBriefSaved = false, 3000);
+	}
 </script>
 
 <div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-6">
@@ -71,6 +147,14 @@
 			>
 				Reverse Challenge
 			</button>
+			<button
+				type="button"
+				onclick={() => activeSubTab = 'drills'}
+				class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeSubTab === 'drills' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+			>
+				<Target class="w-3.5 h-3.5" />
+				<span>Drills</span>
+			</button>
 		</div>
 	</div>
 
@@ -106,6 +190,25 @@
 				<label for="tf-purp" class="block font-medium text-amber-400 mb-1">5. Purpose (Fitness for this specific project):</label>
 				<input id="tf-purp" type="text" bind:value={tastePurpose} placeholder="Does it serve the tension of psychological concealment?" class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-neutral-100" />
 			</div>
+
+			<div class="flex items-center justify-between pt-2">
+				{#if formulaSaved}
+					<span class="text-xs text-emerald-400 flex items-center gap-1.5 font-medium animate-pulse">
+						<CheckCircle2 class="w-4 h-4" />
+						Formula committed to Decision Log!
+					</span>
+				{:else}
+					<span></span>
+				{/if}
+				<button
+					type="button"
+					onclick={saveTasteFormula}
+					class="px-4 py-2 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center gap-2 cursor-pointer"
+				>
+					<CheckCircle2 class="w-3.5 h-3.5" />
+					<span>Commit Formula to Decision Log</span>
+				</button>
+			</div>
 		</div>
 
 	<!-- TAB 2: Blind Provenance Ranker -->
@@ -114,23 +217,49 @@
 			<div class="p-3 bg-neutral-950 rounded-xl border border-neutral-800 text-xs text-neutral-400 leading-relaxed">
 				<strong class="text-neutral-200">Blind Provenance Curation Arena (Module 11):</strong>
 				Provenance is hidden. Rank the artifacts and commit your written criteria <strong>first</strong>.
-				Only then reveal whether the work was human handcraft, model default, or hybrid authored direction.
+				Use the reorder arrows to sort from best to worst, update criteria, and commit before revealing provenance.
 			</div>
 
 			<div class="space-y-2">
 				{#each mockWorks as work, idx}
 					<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-						<div class="space-y-1">
+						<div class="space-y-1.5 flex-1 w-full">
 							<div class="flex items-center gap-2">
 								<span class="font-mono font-bold text-amber-400">#{idx + 1}</span>
 								<span class="font-bold text-neutral-200">{work.title}</span>
 							</div>
-							<div class="text-[11px] text-neutral-400 italic">
-								Criteria: "{work.userCriteria}"
+							<div class="flex items-center gap-2">
+								<span class="text-[11px] text-neutral-500 shrink-0">Criteria:</span>
+								<input
+									type="text"
+									bind:value={work.userCriteria}
+									class="flex-1 bg-neutral-900 border border-neutral-800 rounded px-2 py-1 text-[11px] text-neutral-200"
+								/>
 							</div>
 						</div>
 
-						<div class="flex items-center gap-2 self-end sm:self-auto">
+						<div class="flex items-center gap-2 shrink-0">
+							<div class="flex items-center gap-1">
+								<button
+									type="button"
+									disabled={idx === 0}
+									onclick={() => moveRank(idx, 'up')}
+									class="px-2 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 hover:bg-neutral-800 disabled:opacity-30 disabled:cursor-not-allowed"
+									title="Move Up"
+								>
+									↑
+								</button>
+								<button
+									type="button"
+									disabled={idx === mockWorks.length - 1}
+									onclick={() => moveRank(idx, 'down')}
+									class="px-2 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 hover:bg-neutral-800 disabled:opacity-30 disabled:cursor-not-allowed"
+									title="Move Down"
+								>
+									↓
+								</button>
+							</div>
+
 							{#if provenanceRevealed}
 								<span class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-neutral-900 border border-neutral-700 text-amber-300">
 									{work.actualType}
@@ -146,13 +275,32 @@
 				{/each}
 			</div>
 
-			<button
-				type="button"
-				onclick={() => provenanceRevealed = !provenanceRevealed}
-				class="w-full py-2.5 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center justify-center gap-2"
-			>
-				<span>{provenanceRevealed ? 'Hide Provenance Labels' : 'Reveal Provenance (Check Calibration Gap)'}</span>
-			</button>
+			<div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+				<button
+					type="button"
+					onclick={() => provenanceRevealed = !provenanceRevealed}
+					class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+				>
+					<span>{provenanceRevealed ? 'Hide Provenance Labels' : 'Reveal Provenance (Check Calibration Gap)'}</span>
+				</button>
+
+				<div class="flex items-center gap-3">
+					{#if rankingSaved}
+						<span class="text-xs text-emerald-400 flex items-center gap-1.5 font-medium animate-pulse">
+							<CheckCircle2 class="w-4 h-4" />
+							Ranking committed to Decision Log!
+						</span>
+					{/if}
+					<button
+						type="button"
+						onclick={commitBlindRanking}
+						class="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+					>
+						<CheckCircle2 class="w-3.5 h-3.5" />
+						<span>Commit Ranking to Decision Log</span>
+					</button>
+				</div>
+			</div>
 		</div>
 
 	<!-- TAB 3: ≥40% Human Anchor Rule & Demotion -->
@@ -216,6 +364,65 @@
 					<textarea id="rev-brief" rows="3" bind:value={newBriefWhereFlawIsStrength} placeholder="e.g. A satire of institutional bureaucracy where unnatural stiffness and harsh unyielding lighting represent emotional alienation..." class="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-neutral-100 leading-relaxed"></textarea>
 				</div>
 			</div>
+
+			<div class="flex items-center justify-between pt-2">
+				{#if reverseBriefSaved}
+					<span class="text-xs text-emerald-400 flex items-center gap-1.5 font-medium animate-pulse">
+						<CheckCircle2 class="w-4 h-4" />
+						Reverse Brief saved to Logbook Briefs!
+					</span>
+				{:else}
+					<span></span>
+				{/if}
+				<button
+					type="button"
+					onclick={commitReverseBrief}
+					class="px-4 py-2 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center gap-2 cursor-pointer"
+				>
+					<CheckCircle2 class="w-3.5 h-3.5" />
+					<span>Save Reverse Brief to Logbook</span>
+				</button>
+			</div>
+		</div>
+
+	<!-- TAB 5: Deliberate Practice Drill Reps -->
+	{:else if activeSubTab === 'drills'}
+		<div class="space-y-4">
+			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-neutral-950 rounded-2xl border border-neutral-800 text-xs text-neutral-400">
+				<div>
+					<strong class="text-neutral-200">Module 5 Deliberate Practice Drills:</strong> Blind curation, 5-part taste formulation, and reverse direction.
+				</div>
+				<div class="flex items-center gap-2 flex-wrap">
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'blind-ranking'}
+						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'blind-ranking' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+					>
+						Blind Ranking (15m)
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'm5-taste-builder'}
+						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'm5-taste-builder' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+					>
+						Taste Formula (10m)
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'm5-reverse-brief'}
+						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'm5-reverse-brief' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+					>
+						Reverse Brief (15m)
+					</button>
+				</div>
+			</div>
+
+			{#if activeDrill}
+				<DrillRunner
+					drill={activeDrill}
+					onComplete={() => {}}
+				/>
+			{/if}
 		</div>
 	{/if}
 </div>

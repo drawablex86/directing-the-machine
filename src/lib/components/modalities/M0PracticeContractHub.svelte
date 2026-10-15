@@ -27,6 +27,8 @@
 	} from '@lucide/svelte';
 	import BaselineCompetencyCard from './BaselineCompetencyCard.svelte';
 	import { COMPETENCY_DETAILS } from '$lib/schemas/competency-details';
+	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import { getDrillById } from '$lib/data/drills';
 
 	let {
 		onNavigateTab,
@@ -36,7 +38,9 @@
 		onSelectModality?: (modId: string) => void;
 	} = $props();
 
-	let activeSubTab = $state<'baseline' | 'intensity' | 'play' | 'attention' | 'synthesis'>('baseline');
+	let activeSubTab = $state<'baseline' | 'intensity' | 'play' | 'attention' | 'synthesis' | 'drills'>('baseline');
+	let activeDrillId = $state<'m0-attention-sprint' | 'm0-play-rep'>('m0-attention-sprint');
+	let activeDrill = $derived(getDrillById(activeDrillId));
 	let baselineViewMode = $state<'step' | 'grid'>('step');
 	let currentStepIndex = $state(0);
 	let baselineLayerFilter = $state<number | 'all'>('all');
@@ -180,6 +184,14 @@
 				{:else if auditedCount >= 10}
 					<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
 				{/if}
+			</button>
+			<button
+				type="button"
+				onclick={() => activeSubTab = 'drills'}
+				class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeSubTab === 'drills' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+			>
+				<Target class="w-3.5 h-3.5" />
+				<span>Drills</span>
 			</button>
 		</div>
 	</div>
@@ -826,6 +838,39 @@
 					</button>
 				</div>
 			</div>
+		</div>
+
+	<!-- TAB 6: Deliberate Practice Drill Reps -->
+	{:else if activeSubTab === 'drills'}
+		<div class="space-y-4">
+			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-neutral-950 rounded-2xl border border-neutral-800 text-xs text-neutral-400">
+				<div>
+					<strong class="text-neutral-200">Module 0 Deliberate Practice Drills:</strong> High-repetition routines to separate noticing from instrumented production.
+				</div>
+				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'm0-attention-sprint'}
+						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'm0-attention-sprint' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+					>
+						Attention Sprint (10m)
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'm0-play-rep'}
+						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'm0-play-rep' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+					>
+						Uninstrumented Play (15m)
+					</button>
+				</div>
+			</div>
+
+			{#if activeDrill}
+				<DrillRunner
+					drill={activeDrill}
+					onComplete={() => {}}
+				/>
+			{/if}
 		</div>
 	{/if}
 </div>

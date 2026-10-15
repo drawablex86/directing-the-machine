@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import type { CalibrationEntry } from '$lib/schemas/course.schema';
-	import { Sliders, AlertTriangle, CheckCircle, Clock, ShieldCheck, HeartPulse } from '@lucide/svelte';
+	import { Sliders, AlertTriangle, CheckCircle, Clock, ShieldCheck, HeartPulse, Target } from '@lucide/svelte';
+	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import { getDrillById } from '$lib/data/drills';
 
-	let activeSubTab = $state<'pipeline' | 'calibration' | 'ergonomics'>('pipeline');
+	let activeSubTab = $state<'pipeline' | 'calibration' | 'ergonomics' | 'drills'>('pipeline');
+	let activeDrillId = $state<'predict-then-run' | 'm4-causal-ablation'>('predict-then-run');
+	let activeDrill = $derived(getDrillById(activeDrillId));
 
 	// Pre-run calibration inputs
 	let calDomain = $state<'pipeline' | 'curation' | 'writing' | 'visual' | 'audience' | 'direction' | 'problem'>('pipeline');
@@ -101,6 +105,14 @@
 				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'ergonomics' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
 				Ergonomic HUD
+			</button>
+			<button
+				type="button"
+				onclick={() => activeSubTab = 'drills'}
+				class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeSubTab === 'drills' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+			>
+				<Target class="w-3.5 h-3.5" />
+				<span>Drills</span>
 			</button>
 		</div>
 	</div>
@@ -298,6 +310,39 @@
 					<p class="text-[11px] text-neutral-400">Stand up and walk for 3 minutes before beginning any new rendering or drafting cycle.</p>
 				</div>
 			</div>
+		</div>
+
+	<!-- TAB 4: Deliberate Practice Drill Reps -->
+	{:else if activeSubTab === 'drills'}
+		<div class="space-y-4">
+			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-neutral-950 rounded-2xl border border-neutral-800 text-xs text-neutral-400">
+				<div>
+					<strong class="text-neutral-200">Module 4 Deliberate Practice Drills:</strong> Causal isolation, variable prediction locks, and ablation testing.
+				</div>
+				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'predict-then-run'}
+						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'predict-then-run' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+					>
+						Predict-Then-Run (10m)
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'm4-causal-ablation'}
+						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'm4-causal-ablation' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+					>
+						Causal Ablation (12m)
+					</button>
+				</div>
+			</div>
+
+			{#if activeDrill}
+				<DrillRunner
+					drill={activeDrill}
+					onComplete={() => {}}
+				/>
+			{/if}
 		</div>
 	{/if}
 </div>

@@ -1,23 +1,79 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
-	import { Users, Ban, GitFork, MessageSquare, Volume2, VolumeX, ShieldCheck, CheckCircle2 } from '@lucide/svelte';
+	import { Users, Ban, GitFork, MessageSquare, Volume2, VolumeX, ShieldCheck, CheckCircle2, Target } from '@lucide/svelte';
+	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import { getDrillById } from '$lib/data/drills';
 
-	let activeSubTab = $state<'scope' | 'triage' | 'refusal' | 'collab' | 'transmission'>('scope');
+	let activeSubTab = $state<'scope' | 'triage' | 'refusal' | 'transmission' | 'drills'>('scope');
+	let activeDrillId = $state<'m6-refusal-pressure' | 'm6-feedback-translation'>('m6-refusal-pressure');
+	let activeDrill = $derived(getDrillById(activeDrillId));
+
+	let revisionSaved = $state(false);
+	let triageSaved = $state(false);
+	let refusalSaved = $state(false);
 
 	// Scope & Revision Fork (Module 12/13)
 	let currentCycle = $state(1); // max 3 named revision cycles
 	let revisionFocus = $state('Cycle 1: Resolve high-contrast focal entry');
 	let shouldRebrief = $state(false);
 
+	function commitRevisionDecision() {
+		practiceStore.saveDecision({
+			project: 'Production Direction & Revision Fork (M6)',
+			decision: shouldRebrief
+				? `Re-Brief Fork Initiated (After Cycle ${currentCycle})`
+				: `Named Revision Cycle ${currentCycle} Lock: ${revisionFocus}`,
+			highestUnresolvedLevel: shouldRebrief ? 'Premise & Core Framing' : 'Cycle 1-3 Structural Refinement',
+			alternativesRejected: shouldRebrief ? 'Endless cosmetic patching' : 'Premature re-briefing',
+			justification: shouldRebrief
+				? 'Core premise flawed or 3-cycle revision limit reached without convergence.'
+				: 'Targeted structural revision within current brief parameters.',
+			feedbackIncorporated: `Cycle ${currentCycle}/3 tracked`,
+			refusals: shouldRebrief ? 'Refused fourth cosmetic revision' : 'Refused out-of-scope adjustments'
+		});
+		revisionSaved = true;
+		setTimeout(() => revisionSaved = false, 3000);
+	}
+
 	// Stakeholder Critique Translator
 	let rawFeedback = $state('Make the logo and the person bigger and more inspiring.');
 	let diagnosedUnderlyingNeed = $state('Stakeholder fears lack of emotional presence and brand illegibility.');
 	let selectedAction = $state<'apply' | 'adapt' | 'alternative' | 'pushback' | 'rebrief'>('alternative');
 
+	function commitTriageDecision() {
+		if (!rawFeedback.trim()) return;
+		practiceStore.saveDecision({
+			project: 'Stakeholder Feedback Triage (M6)',
+			decision: `Action [${selectedAction.toUpperCase()}] on Feedback: "${rawFeedback.trim()}"`,
+			highestUnresolvedLevel: 'Directorial Translation of Stakeholder Intent',
+			alternativesRejected: 'Literal compliance without diagnosis',
+			justification: `Diagnosed Root Need: ${diagnosedUnderlyingNeed.trim()}`,
+			feedbackIncorporated: rawFeedback.trim(),
+			refusals: selectedAction === 'pushback' ? 'Pushed back against non-convergent surface demand' : 'None'
+		});
+		triageSaved = true;
+		setTimeout(() => triageSaved = false, 3000);
+	}
+
 	// 5-Mode Refusal Composer (Appendix F)
 	let refusalMode = $state<'Ethical' | 'Positional' | 'Technical' | 'Intentional' | 'Slop'>('Ethical');
 	let refusalTarget = $state('');
 	let refusalRationale = $state('');
+
+	function commitRefusalDecision() {
+		if (!refusalTarget.trim()) return;
+		practiceStore.saveDecision({
+			project: '5-Mode Refusal System (M6)',
+			decision: `${refusalMode} Refusal: ${refusalTarget.trim()}`,
+			highestUnresolvedLevel: 'Professional Authorship Boundaries',
+			alternativesRejected: 'Passive acquiescence or silent resentment',
+			justification: refusalRationale.trim() || 'Directorial integrity commitment',
+			feedbackIncorporated: 'Boundary defense',
+			refusals: refusalTarget.trim()
+		});
+		refusalSaved = true;
+		setTimeout(() => refusalSaved = false, 3000);
+	}
 
 	// Transmission & Silence Tolerance (Module 19)
 	let silenceTimerSeconds = $state(10);
@@ -87,6 +143,14 @@
 			>
 				Transmission (M19)
 			</button>
+			<button
+				type="button"
+				onclick={() => activeSubTab = 'drills'}
+				class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeSubTab === 'drills' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+			>
+				<Target class="w-3.5 h-3.5" />
+				<span>Drills</span>
+			</button>
 		</div>
 	</div>
 
@@ -115,20 +179,36 @@
 				{/each}
 			</div>
 
-			<!-- Re-Brief Trigger -->
-			<div class="p-4 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-between gap-3 text-xs">
+			<!-- Re-Brief Trigger & Revision Commit -->
+			<div class="p-4 rounded-xl bg-neutral-950 border border-neutral-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
 				<div class="space-y-1">
 					<div class="font-bold text-neutral-200">Is the core premise flawed?</div>
 					<div class="text-neutral-400 text-[11px]">If structural problems persist across cycles, do not patch surface rendering. Re-brief.</div>
 				</div>
-				<button
-					type="button"
-					onclick={() => shouldRebrief = !shouldRebrief}
-					class="px-3.5 py-2 rounded-xl text-xs font-bold transition {shouldRebrief ? 'bg-red-950 border border-red-800 text-red-300' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}"
-				>
-					{shouldRebrief ? 'Re-Brief Initiated' : 'Trigger Re-Brief'}
-				</button>
+				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						onclick={() => shouldRebrief = !shouldRebrief}
+						class="px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer {shouldRebrief ? 'bg-red-950 border border-red-800 text-red-300' : 'bg-neutral-800 text-neutral-300 hover:bg-neutral-700'}"
+					>
+						{shouldRebrief ? 'Re-Brief Initiated' : 'Trigger Re-Brief'}
+					</button>
+					<button
+						type="button"
+						onclick={commitRevisionDecision}
+						class="px-3.5 py-2 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center gap-1.5 cursor-pointer"
+					>
+						<CheckCircle2 class="w-3.5 h-3.5" />
+						<span>Commit Revision Choice</span>
+					</button>
+				</div>
 			</div>
+			{#if revisionSaved}
+				<div class="text-xs text-emerald-400 flex items-center gap-1.5 font-medium animate-pulse">
+					<CheckCircle2 class="w-4 h-4" />
+					Revision choice committed to Decision Log!
+				</div>
+			{/if}
 		</div>
 
 	<!-- TAB 2: Stakeholder Critique Triage -->
@@ -170,6 +250,25 @@
 					</button>
 				{/each}
 			</div>
+
+			<div class="flex items-center justify-between pt-2">
+				{#if triageSaved}
+					<span class="text-xs text-emerald-400 flex items-center gap-1.5 font-medium animate-pulse">
+						<CheckCircle2 class="w-4 h-4" />
+						Feedback triage action committed to Decision Log!
+					</span>
+				{:else}
+					<span></span>
+				{/if}
+				<button
+					type="button"
+					onclick={commitTriageDecision}
+					class="px-4 py-2 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center gap-2 cursor-pointer"
+				>
+					<CheckCircle2 class="w-3.5 h-3.5" />
+					<span>Commit Action to Decision Log</span>
+				</button>
+			</div>
 		</div>
 
 	<!-- TAB 3: 5-Mode Refusal Composer (Appendix F) -->
@@ -202,6 +301,25 @@
 					<textarea id="ref-rationale" rows="3" bind:value={refusalRationale} placeholder="State explicit professional, ethical, or aesthetic reason for refusal..." class="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-neutral-100 leading-relaxed"></textarea>
 				</div>
 			</div>
+
+			<div class="flex items-center justify-between pt-2">
+				{#if refusalSaved}
+					<span class="text-xs text-emerald-400 flex items-center gap-1.5 font-medium animate-pulse">
+						<CheckCircle2 class="w-4 h-4" />
+						Refusal committed to Decision Log!
+					</span>
+				{:else}
+					<span></span>
+				{/if}
+				<button
+					type="button"
+					onclick={commitRefusalDecision}
+					class="px-4 py-2 rounded-xl text-xs bg-red-600 hover:bg-red-500 text-white font-bold transition flex items-center gap-2 cursor-pointer"
+				>
+					<ShieldCheck class="w-3.5 h-3.5" />
+					<span>Commit Refusal to Decision Log</span>
+				</button>
+			</div>
 		</div>
 
 	<!-- TAB 4: Transmission & Silence Tolerance (Module 19) -->
@@ -231,11 +349,44 @@
 				<button
 					type="button"
 					onclick={toggleSilenceTimer}
-					class="px-4 py-2 rounded-xl text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-semibold transition"
+					class="px-4 py-2 rounded-xl text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-semibold transition cursor-pointer"
 				>
 					{silenceRunning ? 'Reset' : 'Start 10s Silence'}
 				</button>
 			</div>
+		</div>
+
+	<!-- TAB 5: Deliberate Practice Drill Reps -->
+	{:else if activeSubTab === 'drills'}
+		<div class="space-y-4">
+			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-neutral-950 rounded-2xl border border-neutral-800 text-xs text-neutral-400">
+				<div>
+					<strong class="text-neutral-200">Module 6 Deliberate Practice Drills:</strong> Refusal under stakeholder pressure and feedback triage.
+				</div>
+				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'm6-refusal-pressure'}
+						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'm6-refusal-pressure' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+					>
+						Refusal Pressure (12m)
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'm6-feedback-translation'}
+						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'm6-feedback-translation' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
+					>
+						Feedback Translation (10m)
+					</button>
+				</div>
+			</div>
+
+			{#if activeDrill}
+				<DrillRunner
+					drill={activeDrill}
+					onComplete={() => {}}
+				/>
+			{/if}
 		</div>
 	{/if}
 </div>

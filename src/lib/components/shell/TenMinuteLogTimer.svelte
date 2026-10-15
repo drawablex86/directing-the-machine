@@ -69,9 +69,9 @@
 	</div>
 
 	{#if hasExpired}
-		<span class="text-amber-400 font-medium ml-1 flex items-center gap-1">
+		<span class="px-2 py-0.5 rounded bg-red-950/80 border border-red-800 text-red-300 font-bold ml-1 flex items-center gap-1 text-[11px]">
 			<AlertCircle class="w-3.5 h-3.5" />
-			Time cap reached! The document is not the practice. Go make something.
+			10m Hard Cap Reached!
 		</span>
 	{:else}
 		<span class="text-neutral-500 text-[11px] hidden sm:inline ml-1">
@@ -79,3 +79,32 @@
 		</span>
 	{/if}
 </div>
+
+{#if hasExpired}
+	<aside aria-label="Logging time limit alert" class="fixed bottom-6 right-6 max-w-sm p-4 rounded-2xl bg-neutral-900/95 border-2 border-red-500 shadow-2xl z-50 backdrop-blur-md">
+		<div class="flex items-start gap-3">
+			<AlertCircle class="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+			<div class="space-y-1 text-xs">
+				<div class="font-bold text-red-300 text-sm">10-Minute Log Cap Reached</div>
+				<p class="text-neutral-300 leading-relaxed">
+					The document is not the practice. Stop documenting and return to making.
+				</p>
+				<div class="pt-1 flex items-center justify-between">
+					<a
+						href="/app"
+						class="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-[11px] transition inline-block"
+					>
+						Return to Studio →
+					</a>
+					<button
+						type="button"
+						onclick={resetTimer}
+						class="text-[11px] text-neutral-400 hover:text-white underline cursor-pointer"
+					>
+						Dismiss
+					</button>
+				</div>
+			</div>
+		</div>
+	</aside>
+{/if}

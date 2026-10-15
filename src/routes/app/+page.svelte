@@ -66,6 +66,13 @@
 
 		// Global accessibility hotkeys
 		function handleKeyDown(e: KeyboardEvent) {
+			// Cmd+K or Ctrl+K opens Reference Drawer (Appendix A–Q Index)
+			if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+				e.preventDefault();
+				isDrawerOpen = !isDrawerOpen;
+				return;
+			}
+
 			const target = e.target as HTMLElement;
 			// Ignore typing inside inputs/textareas
 			if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
@@ -95,15 +102,44 @@
 		return () => window.removeEventListener('keydown', handleKeyDown);
 	});
 
+	function switchTab(newTab: ViewMode) {
+		activeTab = newTab;
+		if (newTab !== 'lab-session') {
+			activeLabId = null;
+		}
+		if (typeof window !== 'undefined') {
+			const url = new URL(window.location.href);
+			url.searchParams.set('tab', newTab);
+			if (newTab === 'lab-session' && activeLabId) {
+				url.searchParams.set('lab', activeLabId);
+			} else {
+				url.searchParams.delete('lab');
+			}
+			window.history.replaceState({}, '', url.toString());
+		}
+	}
+
 	function openLab(modId: string) {
 		activeLabId = modId;
 		activeTab = 'lab-session';
-		window.scrollTo({ top: 0, behavior: 'smooth' });
+		if (typeof window !== 'undefined') {
+			const url = new URL(window.location.href);
+			url.searchParams.set('tab', 'lab-session');
+			url.searchParams.set('lab', modId);
+			window.history.replaceState({}, '', url.toString());
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
 	}
 
 	function exitLab() {
 		activeLabId = null;
 		activeTab = 'labs';
+		if (typeof window !== 'undefined') {
+			const url = new URL(window.location.href);
+			url.searchParams.set('tab', 'labs');
+			url.searchParams.delete('lab');
+			window.history.replaceState({}, '', url.toString());
+		}
 	}
 
 	const labNames: Record<string, string> = {
@@ -157,7 +193,7 @@
 				<nav class="flex items-center gap-1.5 overflow-x-auto text-xs md:text-sm">
 					<button
 						type="button"
-						onclick={() => activeTab = 'today'}
+						onclick={() => switchTab('today')}
 						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'today' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Calendar class="w-4 h-4" />
@@ -166,7 +202,7 @@
 
 					<button
 						type="button"
-						onclick={() => activeTab = 'curriculum'}
+						onclick={() => switchTab('curriculum')}
 						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'curriculum' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Compass class="w-4 h-4" />
@@ -175,7 +211,7 @@
 
 					<button
 						type="button"
-						onclick={() => activeTab = 'labs'}
+						onclick={() => switchTab('labs')}
 						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'labs' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Layers class="w-4 h-4" />
@@ -184,7 +220,7 @@
 
 					<button
 						type="button"
-						onclick={() => activeTab = 'assessment'}
+						onclick={() => switchTab('assessment')}
 						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'assessment' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Activity class="w-4 h-4" />
@@ -193,7 +229,7 @@
 
 					<button
 						type="button"
-						onclick={() => activeTab = 'manual'}
+						onclick={() => switchTab('manual')}
 						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'manual' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<BookOpen class="w-4 h-4" />
@@ -253,8 +289,7 @@
 			{#if activeLabId === 'm0'}
 				<M0PracticeContractHub
 					onNavigateTab={(tab) => {
-						activeLabId = null;
-						activeTab = tab;
+						switchTab(tab);
 						window.scrollTo({ top: 0, behavior: 'smooth' });
 					}}
 					onSelectModality={openLab}

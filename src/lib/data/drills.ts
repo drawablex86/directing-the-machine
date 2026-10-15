@@ -385,6 +385,302 @@ export const DRILLS: Drill[] = [
     examplePass: 'The tension between organizations\' need for synchronous coordination and individuals\' preference for autonomous schedule management creates a condition in distributed knowledge work worth investigating because it determines whether organizations will mandate return-to-office at the cost of distributed talent retention, or develop new coordination protocols that sacrifice neither.',
     exampleFail: 'Remote work and how it affects employees\' mental health and work-life balance.',
     weeks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  },
+  {
+    id: 'm0-attention-sprint',
+    title: 'Non-Instrumental Attention Sprint',
+    category: 'observation',
+    targetSkill: 'Observe and notice structural phenomena without seeking project utility or prompt material',
+    modalityId: 'm0',
+    moduleRef: 'Module 0 / Module 3',
+    repDuration: '15 min',
+    repCount: '1',
+    successCriterion: '1-sentence note records something genuinely encountered without pre-existing intent or analytical classification',
+    repProtocol: [
+      { step: 1, label: 'Unplug & step outside', instruction: 'Put phone on airplane mode. Walk or sit in an unfamiliar spot with zero goals or prompts.', duration: '1 min' },
+      { step: 2, label: 'Non-instrumental look', instruction: 'Observe without trying to "use" what you see for a project, blog post, or image generation. Watch spatial shifts, light bounce, or mundane human rhythms.', duration: '12 min' },
+      { step: 3, label: 'Single-sentence record', instruction: 'Write one plain sentence answering: "What did I encounter that I was not looking for?" Forbid analytical tags, hashtags, or project ideas.', duration: '2 min' }
+    ],
+    difficulty: {
+      warmup: 'Observe physical objects on your desk for 5 minutes without touching them.',
+      standard: '15-minute walk in an ordinary commercial or transit area without looking at screens.',
+      harder: 'Sit in an uncomfortable, chaotic public place for 20 minutes maintaining receptive attention.',
+      hardest: 'Notice structural omissions (what is absent) rather than what is visually prominent.'
+    },
+    surface: 'Physical pocket notebook or M0 Protected Attention input',
+    commonFailures: [
+      'Turning the observation into a prompt idea immediately ("Ooh, I could render that in Midjourney")',
+      'Using evaluative adjectives instead of reporting what was encountered',
+      'Writing multi-paragraph analytical essays instead of a single quiet sentence'
+    ],
+    exampleInput: '15-minute walk near rail station',
+    examplePass: 'The shadow of the overpass cuts the pedestrian queue in half diagonally every time the signal turns green.',
+    exampleFail: 'I saw great potential for a moody cyberpunk film scene with gritty urban lighting.',
+    weeks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  },
+  {
+    id: 'm0-play-rep',
+    title: 'Unstructured Play Rep',
+    category: 'observation',
+    targetSkill: 'Engage in unstructured creative making with zero brief, no audience, and zero evaluative criteria',
+    modalityId: 'm0',
+    moduleRef: 'Module 0',
+    repDuration: '20–30 min',
+    repCount: '1',
+    successCriterion: 'Made something with zero intention of sharing, judging, or monetizing; logged only "What did I enjoy?"',
+    repProtocol: [
+      { step: 1, label: 'Disable all rubrics', instruction: 'Lock all diagnostic ladders and briefs. Pick an absurd, silly, or purposeless material or tool.', duration: '1 min' },
+      { step: 2, label: 'Unstructured play', instruction: 'Draw badly on purpose, write nonsense dialogue, or combine incompatible systems until the timer rings. Do not self-correct.', duration: '20–25 min' },
+      { step: 3, label: 'Single-line joy log', instruction: 'Record exactly one line: "What did I enjoy?" Do not analyze it or convert it into a task.', duration: '2 min' }
+    ],
+    difficulty: {
+      warmup: 'Doodle on scrap paper with a pen without lifting it from the page.',
+      standard: 'Combine two contradictory generative tools or media to produce something deliberately useless.',
+      harder: 'Write dialogue between two inanimate objects without trying to make it clever or funny.',
+      hardest: 'Spend 30 minutes following a completely unviable idea without rescuing it.'
+    },
+    surface: 'Physical sketchbook, scrap paper, or M0 Play timer',
+    commonFailures: [
+      'Secretly hoping the play will turn into a flagship project deliverable',
+      'Judging the output as "good" or "bad"',
+      'Skipping play because it feels unproductive'
+    ],
+    exampleInput: 'Free play session with drawing tool',
+    examplePass: 'Enjoyed scribbling heavy black grease-pencil diagonals across yesterday\'s receipts without looking at the page.',
+    exampleFail: 'Created 4 concept art thumbnails that I can repurpose for Project 3.',
+    weeks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  },
+  {
+    id: 'm4-causal-ablation',
+    title: 'Causal Variable Sensitivity Ablation',
+    category: 'pipeline',
+    targetSkill: 'Isolate single pipeline variables and calibrate causal sensitivity thresholds',
+    modalityId: 'm4',
+    moduleRef: 'Module 8',
+    repDuration: '10 min',
+    repCount: '5',
+    successCriterion: 'Identifies the precise inflection point where a single variable change causes structural output failure',
+    repProtocol: [
+      { step: 1, label: 'Choose one variable', instruction: 'Select exactly one pipeline parameter (e.g. CFG scale, denoise strength, temperature, sentence length constraint). Hold all other variables constant.', duration: '1 min' },
+      { step: 2, label: 'Predict inflection point', instruction: 'Predict at what exact numerical value the output will collapse or cross a phase transition. Record confidence %.', duration: '2 min' },
+      { step: 3, label: 'Run 5-step sweep', instruction: 'Generate 5 iterations stepping across the variable range (e.g. temp: 0.2, 0.5, 0.7, 0.9, 1.2).', duration: '4 min' },
+      { step: 4, label: 'Locate boundary failure', instruction: 'Identify the exact step where the model output degraded or lost intent.', duration: '2 min' },
+      { step: 5, label: 'Update mental model', instruction: 'Write 1 sentence: "Above [value], the variable causes [failure mode] because [mechanism]."', duration: '1 min' }
+    ],
+    difficulty: {
+      warmup: 'Test temperature sweeps on a simple summarization prompt.',
+      standard: 'Test ControlNet weight or Denoise strength thresholds in an image pipeline.',
+      harder: 'Test negative prompt token weights to find where negative weighting inverts intent.',
+      hardest: 'Test multi-stage chain-of-thought prompt dependencies where upstream drift causes downstream collapse.'
+    },
+    surface: 'Local pipeline workbench, ComfyUI, API playground, or M4 Pipeline Lab',
+    commonFailures: [
+      'Changing two variables at once, destroying causal attribution',
+      'Failing to log the pre-run prediction before seeing the output',
+      'Ignoring subtle structural degradation in favor of obvious artifacting'
+    ],
+    exampleInput: 'Denoising strength in img2img pass (0.35 to 0.75)',
+    examplePass: 'Above 0.55 denoise, figure proportions drift into generic mannequin symmetry because the latent noise overcomes initial structural massing.',
+    exampleFail: '0.7 looked cool and dreamlike.',
+    weeks: [5, 6, 7, 8]
+  },
+  {
+    id: 'm5-taste-builder',
+    title: '5-Part Taste Formula Composition',
+    category: 'judgment',
+    targetSkill: 'Express aesthetic judgment using complete causal mechanics rather than isolated preference',
+    modalityId: 'm5',
+    moduleRef: 'Module 10',
+    repDuration: '8 min',
+    repCount: '5',
+    successCriterion: 'Completes all 5 parts: Preference + Explicit Criteria + Reference Class + Concrete Mechanism + Stated Purpose',
+    repProtocol: [
+      { step: 1, label: 'Select candidate artifact', instruction: 'Choose an image, prose excerpt, or layout.', duration: '30 sec' },
+      { step: 2, label: 'State gut preference', instruction: 'Write your immediate instinctive preference (Like or Dislike).', duration: '30 sec' },
+      { step: 3, label: 'State reference class & purpose', instruction: 'Define: what class of work is this, and what is its human/artistic purpose?', duration: '2 min' },
+      { step: 4, label: 'Name criteria & mechanism', instruction: 'What observable structural mechanism causes the work to succeed or fail against its purpose?', duration: '3 min' },
+      { step: 5, label: 'Synthesize formula', instruction: 'Combine: "In [Reference Class], I judge this [Pass/Fail] for [Purpose] because [Mechanism] satisfies/violates [Criteria]."', duration: '2 min' }
+    ],
+    difficulty: {
+      warmup: 'Evaluate an artifact from your most familiar genre.',
+      standard: 'Evaluate an artifact in a genre you personally dislike, finding whether it succeeds at its stated purpose.',
+      harder: 'Evaluate a work that you love aesthetically but that fails its functional purpose.',
+      hardest: 'Evaluate two superficially similar AI images and state the exact mechanical difference that separates the master from the slop.'
+    },
+    surface: 'M5 Taste Curation Arena or physical notebook',
+    commonFailures: [
+      'Judging "Is this good?" in isolation from purpose',
+      'Stopping at preference without identifying the physical mechanism',
+      'Confusing high polish with structural fitness'
+    ],
+    exampleInput: 'Minimalist editorial portrait',
+    examplePass: 'In contemporary editorial portraiture, I judge this passing for conveying emotional isolation because the low-key value cluster in the bottom-left third leaves 70% negative darkness, which forces the viewer\'s eye to search without relief.',
+    exampleFail: 'I like it because it looks moody and beautiful.',
+    weeks: [7, 8, 9, 10]
+  },
+  {
+    id: 'm5-reverse-brief',
+    title: 'Reverse-Direction Challenge',
+    category: 'judgment',
+    targetSkill: 'Transform an artifact\'s observed flaw into an authored strength by rewriting the brief around it',
+    modalityId: 'm5',
+    moduleRef: 'Module 10',
+    repDuration: '10 min',
+    repCount: '3',
+    successCriterion: 'Authors a brief where the specific rejected flaw becomes the essential causal driver of the new work',
+    repProtocol: [
+      { step: 1, label: 'Take rejected output', instruction: 'Select an image or paragraph you discarded because of an obvious "error" (e.g. flat lighting, awkward rhythm, harsh banding).', duration: '1 min' },
+      { step: 2, label: 'Isolate exact flaw', instruction: 'Describe the structural defect with zero adjectives: "Sentence lengths do not vary; 6 consecutive 4-word clauses."', duration: '2 min' },
+      { step: 3, label: 'Formulate new premise', instruction: 'Ask: In what situation would this exact property be the most powerful aesthetic choice possible?', duration: '3 min' },
+      { step: 4, label: 'Write reverse brief', instruction: 'Draft a 1-paragraph brief where this specific quality is a mandatory negative constraint for achieving a new purpose.', duration: '4 min' }
+    ],
+    difficulty: {
+      warmup: 'Reverse an oversaturated, neon AI color mistake into an arcade dystopia brief.',
+      standard: 'Reverse an awkward, stiff prose rhythm into an interrogation or bureaucratic log brief.',
+      harder: 'Reverse a distorted anatomical artifact into a psychological horror or bodily alienation brief.',
+      hardest: 'Reverse a complete pipeline collapse into an experimental structural asset.'
+    },
+    surface: 'M5 Taste Arena (Reverse Tab) or text scratchpad',
+    commonFailures: [
+      'Excusing the flaw in the original work rather than building a genuinely new brief',
+      'Choosing generic premises that don\'t rely directly on the isolated defect'
+    ],
+    exampleInput: 'Rejected text with monotonous 4-word repetitive sentences',
+    examplePass: 'Flaw: Rigid 4-word staccato sentences. New Brief: An automated air traffic controller voice recording during cabin decompression; monotonic 4-word cadence enforces administrative calm while disaster unfolds.',
+    exampleFail: 'New Brief: A story about a robot.',
+    weeks: [7, 8, 9, 10]
+  },
+  {
+    id: 'm6-refusal-pressure',
+    title: '5-Mode Refusal Under Pressure',
+    category: 'collaboration',
+    targetSkill: 'Deliver a principled, structured refusal to an unviable or unethical creative directive',
+    modalityId: 'm6',
+    moduleRef: 'Module 13 / Appendix F',
+    repDuration: '8 min',
+    repCount: '5',
+    successCriterion: 'Categorizes refusal under one of 5 modes (Ethical, Positional, Technical, Intentional, Slop) with non-defensive rationale',
+    repProtocol: [
+      { step: 1, label: 'Receive client pressure', instruction: 'Take a toxic or unviable prompt (e.g. "Clone this living artist\'s style", "Make it look like Apple but in 2 hours", "Just use AI to write 50 articles today").', duration: '30 sec' },
+      { step: 2, label: 'Select refusal mode', instruction: 'Choose: Ethical | Positional | Technical | Intentional | Slop.', duration: '30 sec' },
+      { step: 3, label: 'Identify core violation', instruction: 'State what foundational principle or boundary the request breaches.', duration: '2 min' },
+      { step: 4, label: 'Draft clean refusal', instruction: 'Write a calm, authoritative 2-sentence response refusing the request without apology or moralizing, and proposing a viable alternative.', duration: '4 min' },
+      { step: 5, label: 'Check defensiveness', instruction: 'PASS = response is professional, firm, and preserves working relationship. FAIL = passive aggressive, apologetic, or preachy.', duration: '1 min' }
+    ],
+    difficulty: {
+      warmup: 'Refuse an explicit copyright violation request.',
+      standard: 'Refuse a "make it pop" aesthetic demand that destroys focal hierarchy.',
+      harder: 'Refuse a high-paying client requesting deepfake likeness generation.',
+      hardest: 'Refuse an internal collaborator when you have lower institutional authority.'
+    },
+    surface: 'M6 Direction Studio or text editor',
+    commonFailures: [
+      'Apologizing ("I\'m really sorry but I can\'t...") which invites negotiation',
+      'Sounding morally superior instead of stating professional standards',
+      'Refusing without offering a constructive alternative'
+    ],
+    exampleInput: 'Client: "Can you generate a model holding our product that looks exactly like this famous influencer?"',
+    examplePass: 'Mode: Ethical Refusal. Response: "We do not generate identifiable likenesses of individuals without direct consent and commercial rights. Instead, we can build a custom, proprietary character model calibrated specifically for your brand identity."',
+    exampleFail: 'Sorry, that is illegal and AI ethics guidelines forbid me from doing that.',
+    weeks: [9, 10, 11, 12]
+  },
+  {
+    id: 'm6-feedback-translation',
+    title: 'Stakeholder Surface-to-Root Feedback Translation',
+    category: 'collaboration',
+    targetSkill: 'Translate surface symptom feedback into underlying creative needs and select correct directorial actions',
+    modalityId: 'm6',
+    moduleRef: 'Module 12',
+    repDuration: '6 min',
+    repCount: '5',
+    successCriterion: 'Correctly maps surface demand to root anxiety, and selects one of 5 actions: Apply, Adapt, Alternative, Push Back, Re-Brief',
+    repProtocol: [
+      { step: 1, label: 'Read surface request', instruction: 'Take a common client symptom: "Make the logo bigger", "Can it be more exciting?", "Change the blue to orange".', duration: '30 sec' },
+      { step: 2, label: 'Diagnose underlying anxiety', instruction: 'Ask: What is the stakeholder genuinely feeling or fearing that caused them to say this? (e.g. fear of illegibility, fear of being ignored).', duration: '2 min' },
+      { step: 3, label: 'Select directorial action', instruction: 'Choose: Apply | Adapt | Propose Alternative | Push Back | Re-Brief.', duration: '1 min' },
+      { step: 4, label: 'Write directorial response', instruction: 'Formulate your answer addressing the root need rather than arguing about the surface symptom.', duration: '2.5 min' }
+    ],
+    difficulty: {
+      warmup: 'Translate "Make the font bigger".',
+      standard: 'Translate "It feels a bit cold / corporate".',
+      harder: 'Translate "I showed this to my partner and they didn\'t get it".',
+      hardest: 'Translate contradictory feedback from two executive stakeholders.'
+    },
+    surface: 'M6 Direction Studio or notebook',
+    commonFailures: [
+      'Taking surface feedback literally and ruining the composition',
+      'Arguing with the client\'s taste instead of addressing their commercial anxiety',
+      'Applying a surface patch instead of triggering a Re-Brief when the premise is broken'
+    ],
+    exampleInput: 'Stakeholder: "Make the headline bigger and put exclamation points."',
+    examplePass: 'Root Anxiety: Stakeholder fears the offer is not urgent enough to drive conversion. Action: Propose Alternative. Response: "Increasing headline size crowds the primary CTA button. Instead, let\'s increase contrast between the offer banner and background, and lead with the numerical value prop."',
+    exampleFail: 'I made the font 20pt larger and added two exclamation marks.',
+    weeks: [9, 10, 11, 12]
+  },
+  {
+    id: 'm7-position-gap',
+    title: '10-Piece Untitled Position Gap Deduction',
+    category: 'judgment',
+    targetSkill: 'Detect the gap between your stated artistic intentions and the actual commitments revealed by your work',
+    modalityId: 'm7',
+    moduleRef: 'Module 15',
+    repDuration: '15 min',
+    repCount: '1',
+    successCriterion: 'Identifies at least one concrete divergence between written position and inferred position from untitled artifacts',
+    repProtocol: [
+      { step: 1, label: 'Review 10 untitled works', instruction: 'Gather 10 recent artifacts you produced. Strip all prompts, titles, and explanations.', duration: '2 min' },
+      { step: 2, label: 'Infer position blind', instruction: 'Look at them as if created by a stranger. What commitments repeatedly appear? What is repeatedly refused?', duration: '5 min' },
+      { step: 3, label: 'Compare to written position', instruction: 'Place your written artist statement side-by-side with the inferred position.', duration: '3 min' },
+      { step: 4, label: 'Isolate the gap', instruction: 'Write: "My written position claims [X], but my artifacts actually commit to [Y]. This gap reveals [borrowed ambition / craft avoidance / authentic reflex]."', duration: '5 min' }
+    ],
+    difficulty: {
+      warmup: 'Compare 5 short paragraphs you wrote against your stated writing goal.',
+      standard: 'Review 10 image generations across 3 weeks without looking at prompts.',
+      harder: 'Have a peer perform the blind deduction on your 10 works and compare their inference with your statement.',
+      hardest: 'Perform this on works produced under tight client deadlines to see what compromises your reflexes made.'
+    },
+    surface: 'M7 Blank Sheet Studio or physical desk display',
+    commonFailures: [
+      'Projecting your original intention onto the works instead of looking at what is physically there',
+      'Defending the gap rather than treating it as diagnostic information'
+    ],
+    exampleInput: '10 recent architectural renders',
+    examplePass: 'Written position claims to investigate human vulnerability in urban spaces. Inferred position reveals zero humans, sterile symmetrical glass facades, and dramatic dusk skies. Gap: Borrowed ambition from corporate architectural rendering; avoided the difficulty of rendering human messiness.',
+    exampleFail: 'The works match my intention perfectly.',
+    weeks: [11, 12, 13, 14, 15, 16, 17, 18]
+  },
+  {
+    id: 'm7-removal-test',
+    title: 'Cross-Medium Synthesis Subtraction Rep',
+    category: 'judgment',
+    targetSkill: 'Test whether a multi-modal work achieves true synthesis or is merely an image with decorative text',
+    modalityId: 'm7',
+    moduleRef: 'Module 17',
+    repDuration: '10 min',
+    repCount: '3',
+    successCriterion: 'Removal of either medium collapses the core argument, proving the presence of a "Third Thing"',
+    repProtocol: [
+      { step: 1, label: 'Select hybrid work', instruction: 'Take a paired image and text artifact (visual essay, comic panel, editorial layout).', duration: '1 min' },
+      { step: 2, label: 'Subtract the image', instruction: 'Read the text alone. Does the argument or narrative stand completely on its own? If yes: the image is merely decorative.', duration: '3 min' },
+      { step: 3, label: 'Subtract the text', instruction: 'View the image alone. Is the meaning fully resolved? If yes: the text was merely redundant captioning.', duration: '3 min' },
+      { step: 4, label: 'Evaluate the third thing', instruction: 'PASS = neither medium alone delivers the meaning; the friction between them creates the third thing. FAIL = one medium is superfluous.', duration: '3 min' }
+    ],
+    difficulty: {
+      warmup: 'Test a simple meme or photo caption.',
+      standard: 'Test an editorial layout or hybrid visual essay spread.',
+      harder: 'Test a complex narrative video or interactive multimedia document.',
+      hardest: 'Redesign a failed hybrid work so that text and image are in necessary tension.'
+    },
+    surface: 'M7 Studio (Synthesis Tab) or printed spreads',
+    commonFailures: [
+      'Writing text that describes what the image already shows',
+      'Using an image that merely illustrates the literal words of the text',
+      'Accepting redundant pairing because both elements look polished individually'
+    ],
+    exampleInput: 'Photograph of empty boardroom + text: "Meeting held at 2 PM."',
+    examplePass: 'Photograph of abandoned boardroom with scattered papers + text: "The vote was unanimous." Neither alone conveys the corporate collapse; the tension between the pristine empty room and the finality of the vote creates the Third Thing.',
+    exampleFail: 'Photo of a sunset + text: "The sun set over the ocean." (Total redundancy).',
+    weeks: [11, 12, 13, 14, 15, 16, 17, 18]
   }
 ];
 

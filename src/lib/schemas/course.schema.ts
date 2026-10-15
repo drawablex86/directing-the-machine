@@ -123,6 +123,36 @@ export const BriefSchema = z.object({
 });
 export type Brief = z.infer<typeof BriefSchema>;
 
+// Project Progress & Deliverables Lifecycle
+export const ProjectStatusSchema = z.enum([
+	'not-started',
+	'in-progress',
+	'under-critique',
+	'completed',
+	'abandoned'
+]);
+export type ProjectStatus = z.infer<typeof ProjectStatusSchema>;
+
+export const TwoAxisEvaluationSchema = z.object({
+	outcomeScore: z.number().min(1).max(4),
+	decisionScore: z.number().min(1).max(4),
+	quadrant: QuadrantSchema,
+	date: z.string(),
+	notes: z.string()
+});
+export type TwoAxisEvaluation = z.infer<typeof TwoAxisEvaluationSchema>;
+
+export const ProjectProgressSchema = z.object({
+	projectId: z.string(),
+	status: ProjectStatusSchema,
+	completedDeliverableNames: z.array(z.string()),
+	twoAxisEvaluation: TwoAxisEvaluationSchema.optional(),
+	repositoryOrArtifactUrl: z.string().optional(),
+	notes: z.string().optional(),
+	lastUpdated: z.string()
+});
+export type ProjectProgress = z.infer<typeof ProjectProgressSchema>;
+
 function stringSchema(fieldName: string) {
 	return z.string().min(1, `${fieldName} cannot be empty`);
 }

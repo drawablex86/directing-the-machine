@@ -43,6 +43,24 @@
 	let causingDecision = $state('');
 	let proposedTest = $state('');
 	let acceptCondition = $state('');
+	let showLadderOverride = $state(false);
+	let diagnosticSavedNotice = $state(false);
+
+	function saveDiagnosticSentence() {
+		if (!causingDecision.trim() || !proposedTest.trim()) return;
+		const lvlName = ladderLevels.find(l => l.level === selectedLevel)?.name || `Level ${selectedLevel}`;
+		practiceStore.saveDecision({
+			project: 'Diagnostic Vision (M2)',
+			decision: `Highest Unresolved: ${lvlName} — Causing Decision: ${causingDecision.trim()}`,
+			highestUnresolvedLevel: lvlName,
+			alternativesRejected: 'Optimizing lower-level surface polish while higher structure was unresolved',
+			justification: `Test: ${proposedTest.trim()} (Accept if: ${acceptCondition.trim() || 'Focal entry criteria met'})`,
+			feedbackIncorporated: 'Canonical Diagnostic Ladder',
+			refusals: 'Refused evaluative shortcuts and premature surface fixes'
+		});
+		diagnosticSavedNotice = true;
+		setTimeout(() => diagnosticSavedNotice = false, 3000);
+	}
 
 	// Canvas massing state
 	let canvasElement: HTMLCanvasElement | null = $state(null);
@@ -217,9 +235,18 @@
 	{:else if activeTool === 'ladder'}
 		<div class="space-y-4">
 			{#if !practiceStore.scaffolding.ladder}
-				<div class="p-3 bg-amber-950/40 border border-amber-800/40 rounded-xl text-xs text-amber-300 flex items-center gap-2">
-					<Sliders class="w-4 h-4 text-amber-400 shrink-0" />
-					<span>Scaffolding Removal Active: In Part II+, the explicit Diagnostic Ladder is hidden by default to test internalised diagnostic hierarchy.</span>
+				<div class="p-3 bg-amber-950/40 border border-amber-800/40 rounded-xl text-xs text-amber-300 flex items-center justify-between gap-2">
+					<div class="flex items-center gap-2">
+						<Sliders class="w-4 h-4 text-amber-400 shrink-0" />
+						<span><strong>Layer 2/3 Scaffolding Removed:</strong> The Diagnostic Ladder is hidden by default to test internalised diagnostic vision.</span>
+					</div>
+					<button
+						type="button"
+						onclick={() => showLadderOverride = !showLadderOverride}
+						class="px-2.5 py-1 rounded-lg text-[11px] font-mono bg-neutral-900 border border-neutral-700 text-amber-400 hover:bg-neutral-800 transition cursor-pointer"
+					>
+						{showLadderOverride ? 'Hide Ladder (Test Recall)' : 'Peek Ladder (Check Memory)'}
+					</button>
 				</div>
 			{/if}
 
@@ -230,24 +257,54 @@
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<!-- Ladder levels selection -->
-				<div class="space-y-1.5">
-					<div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1">Select Highest Unresolved Level:</div>
-					{#each ladderLevels as lvl}
-						<button
-							type="button"
-							onclick={() => selectedLevel = lvl.level}
-							class="w-full p-2.5 rounded-xl text-left border transition flex items-center justify-between {selectedLevel === lvl.level ? 'bg-neutral-950 border-amber-500 text-neutral-100' : 'bg-neutral-950/40 border-neutral-800/80 text-neutral-400 hover:border-neutral-700'}"
-						>
-							<div>
-								<div class="text-xs font-semibold">{lvl.name}</div>
-								<div class="text-[10px] text-neutral-500">{lvl.desc}</div>
-							</div>
-							{#if selectedLevel === lvl.level}
-								<span class="text-xs text-amber-400 font-bold">Selected</span>
+				{#if practiceStore.scaffolding.ladder || showLadderOverride}
+					<div class="space-y-1.5 animate-in fade-in duration-150">
+						<div class="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+							<span>Select Highest Unresolved Level:</span>
+							{#if showLadderOverride}
+								<span class="text-[10px] text-amber-400 font-mono">Memory Check Mode</span>
 							{/if}
-						</button>
-					{/each}
-				</div>
+						</div>
+						{#each ladderLevels as lvl}
+							<button
+								type="button"
+								onclick={() => selectedLevel = lvl.level}
+								class="w-full p-2.5 rounded-xl text-left border transition flex items-center justify-between {selectedLevel === lvl.level ? 'bg-neutral-950 border-amber-500 text-neutral-100' : 'bg-neutral-950/40 border-neutral-800/80 text-neutral-400 hover:border-neutral-700'}"
+							>
+								<div>
+									<div class="text-xs font-semibold">{lvl.name}</div>
+									<div class="text-[10px] text-neutral-500">{lvl.desc}</div>
+								</div>
+								{#if selectedLevel === lvl.level}
+									<span class="text-xs text-amber-400 font-bold">Selected</span>
+								{/if}
+							</button>
+						{/each}
+					</div>
+				{:else}
+					<!-- Active recall prompt when scaffolding is removed -->
+					<div class="p-5 rounded-xl bg-neutral-950/70 border border-neutral-800/80 space-y-3 flex flex-col justify-center text-xs">
+						<div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-mono font-bold">
+							L2
+						</div>
+						<div class="space-y-1">
+							<div class="font-bold text-white text-sm">Autonomous Diagnostic Vision</div>
+							<p class="text-neutral-400 leading-relaxed">
+								You have progressed past Part I. Rely on your internalized hierarchy: does this artifact fail at <em>Intent</em>, <em>Premise</em>, <em>Composition</em>, <em>Logic</em>, or <em>Execution</em>?
+							</p>
+						</div>
+						<div class="pt-2">
+							<button
+								type="button"
+								onclick={() => showLadderOverride = true}
+								class="text-xs text-amber-400 hover:underline font-mono flex items-center gap-1 cursor-pointer"
+							>
+								<span>Need to verify? Peek reference ladder</span>
+								<ArrowRight class="w-3 h-3" />
+							</button>
+						</div>
+					</div>
+				{/if}
 
 				<!-- Formulate Diagnostic Sentence -->
 				<div class="space-y-3 bg-neutral-950 p-4 rounded-xl border border-neutral-800 text-xs">
@@ -287,11 +344,28 @@
 					</div>
 
 					{#if causingDecision && proposedTest}
-						<div class="mt-3 p-3 bg-neutral-900 rounded-lg border border-neutral-800 text-neutral-300 italic">
+						<div class="mt-3 p-3 bg-neutral-900 rounded-lg border border-neutral-800 text-neutral-300 italic leading-relaxed">
 							"The highest unresolved level is <strong>{ladderLevels.find(l => l.level === selectedLevel)?.name}</strong>.
 							The decision causing the problem is <strong>{causingDecision}</strong>.
 							I would test <strong>{proposedTest}</strong> next.
 							I would accept if <strong>{acceptCondition || '...'}</strong>."
+						</div>
+
+						<div class="pt-2 flex items-center justify-between">
+							<button
+								type="button"
+								onclick={saveDiagnosticSentence}
+								class="px-3.5 py-2 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center gap-1.5 cursor-pointer shadow"
+							>
+								<CheckCircle class="w-3.5 h-3.5" />
+								<span>Commit Diagnosis to Decision Log</span>
+							</button>
+
+							{#if diagnosticSavedNotice}
+								<span class="text-xs text-emerald-400 font-mono animate-in fade-in">
+									✓ Committed to Log!
+								</span>
+							{/if}
 						</div>
 					{/if}
 				</div>

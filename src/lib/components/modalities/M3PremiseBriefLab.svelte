@@ -1,9 +1,18 @@
 <script lang="ts">
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import type { Brief } from '$lib/schemas/course.schema';
-	import { FileText, Sliders, ShieldCheck, CheckCircle2, ArrowRight } from '@lucide/svelte';
+	import { FileText, Sliders, ShieldCheck, CheckCircle2, ArrowRight, Target, Sparkles } from '@lucide/svelte';
+	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import { getDrillById } from '$lib/data/drills';
 
-	let activeTab = $state<'premise' | 'brief' | 'constraints' | 'provenance'>('premise');
+	let activeTab = $state<'drill' | 'premise' | 'brief' | 'constraints' | 'provenance'>('brief');
+	let briefSavedNotice = $state(false);
+	let freeformMode = $state(false);
+	let freeformBriefText = $state('');
+
+	// Active drill for M3
+	let activeDrillId = $state<'sentence-surgery' | 'compression'>('sentence-surgery');
+	let activeDrill = $derived(getDrillById(activeDrillId));
 
 	// Premise Matrix state
 	let candidate1 = $state('');
@@ -44,11 +53,32 @@
 	}
 
 	function saveBrief() {
+		if (freeformMode) {
+			if (!briefTitle.trim() || !freeformBriefText.trim()) return;
+			practiceStore.saveBrief({
+				title: briefTitle.trim(),
+				premise: briefPremise.trim() || 'Freeform authoring',
+				intention: 'Authored under Layer 2 Scaffolding Removal',
+				constraints: [freeformBriefText.slice(0, 100) + '...'],
+				references: [],
+				acceptanceCriteria: ['Satisfies authored freeform specification'],
+				rejectionConditions: ['Violates authored freeform specification'],
+				risksAndUnknowns: [],
+				provenance: {
+					origin: provOrigin,
+					humanContribution: freeformBriefText,
+					toolContribution: provTool,
+					licenses: provLicenses
+				}
+			});
+			briefSavedNotice = true;
+			setTimeout(() => briefSavedNotice = false, 3000);
+			return;
+		}
+
 		if (!briefTitle.trim() || !briefPremise.trim()) return;
 
-		const newBrief: Brief = {
-			id: crypto.randomUUID(),
-			date: new Date().toISOString().slice(0, 10),
+		practiceStore.saveBrief({
 			title: briefTitle.trim(),
 			premise: briefPremise.trim(),
 			intention: briefIntention.trim() || 'Create tension between figure presence and spatial isolation.',
@@ -71,13 +101,10 @@
 				toolContribution: provTool,
 				licenses: provLicenses
 			}
-		};
+		});
 
-		practiceStore.briefs.unshift(newBrief);
-		practiceStore.saveToStorage();
-		briefTitle = '';
-		briefPremise = '';
-		briefIntention = '';
+		briefSavedNotice = true;
+		setTimeout(() => briefSavedNotice = false, 3000);
 	}
 </script>
 
@@ -97,40 +124,77 @@
 		</div>
 
 		<!-- Sub-tabs -->
-		<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
+		<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs flex-wrap">
+			<button
+				type="button"
+				onclick={() => activeTab = 'drill'}
+				class="px-3 py-1.5 rounded-lg transition cursor-pointer {activeTab === 'drill' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+			>
+				<span class="flex items-center gap-1.5">
+					<Target class="w-3.5 h-3.5" />
+					<span>Drills</span>
+				</span>
+			</button>
 			<button
 				type="button"
 				onclick={() => activeTab = 'premise'}
-				class="px-3 py-1.5 rounded-lg transition {activeTab === 'premise' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+				class="px-3 py-1.5 rounded-lg transition cursor-pointer {activeTab === 'premise' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
 				Premise Forge
 			</button>
 			<button
 				type="button"
 				onclick={() => activeTab = 'brief'}
-				class="px-3 py-1.5 rounded-lg transition {activeTab === 'brief' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+				class="px-3 py-1.5 rounded-lg transition cursor-pointer {activeTab === 'brief' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
 				7-Layer Brief
 			</button>
 			<button
 				type="button"
 				onclick={() => activeTab = 'constraints'}
-				class="px-3 py-1.5 rounded-lg transition {activeTab === 'constraints' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+				class="px-3 py-1.5 rounded-lg transition cursor-pointer {activeTab === 'constraints' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
 				Constraints (3/6/10)
 			</button>
 			<button
 				type="button"
 				onclick={() => activeTab = 'provenance'}
-				class="px-3 py-1.5 rounded-lg transition {activeTab === 'provenance' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
+				class="px-3 py-1.5 rounded-lg transition cursor-pointer {activeTab === 'provenance' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
 				Provenance Stamp
 			</button>
 		</div>
 	</div>
 
+	<!-- TAB 0: Drill Runner -->
+	{#if activeTab === 'drill'}
+		<div class="space-y-4">
+			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-neutral-950 p-3 rounded-xl border border-neutral-800 text-xs">
+				<span class="text-neutral-400 font-medium">Select M3 Micro-Drill:</span>
+				<div class="flex items-center gap-1.5 flex-wrap">
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'sentence-surgery'}
+						class="px-2.5 py-1 rounded-lg font-mono transition cursor-pointer {activeDrillId === 'sentence-surgery' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'}"
+					>
+						Sentence Surgery
+					</button>
+					<button
+						type="button"
+						onclick={() => activeDrillId = 'compression'}
+						class="px-2.5 py-1 rounded-lg font-mono transition cursor-pointer {activeDrillId === 'compression' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'}"
+					>
+						Writing Compression
+					</button>
+				</div>
+			</div>
+			{#if activeDrill}
+				<DrillRunner drill={activeDrill} />
+			{/if}
+		</div>
+
 	<!-- TAB 1: Premise Forge & Rejection Matrix -->
-	{#if activeTab === 'premise'}
+	{:else if activeTab === 'premise'}
 		<div class="space-y-4">
 			<div class="p-3 bg-neutral-950 rounded-xl border border-neutral-800 text-xs text-neutral-400 leading-relaxed">
 				<strong class="text-neutral-200">The Premise Forge (Module 5):</strong>
@@ -199,8 +263,18 @@
 	{:else if activeTab === 'brief'}
 		<div class="space-y-4">
 			{#if !practiceStore.scaffolding.template}
-				<div class="p-3 bg-amber-950/40 border border-amber-800/40 rounded-xl text-xs text-amber-300">
-					Scaffolding Removal Active: In Part III+, pre-structured brief forms are removed to test your ability to author briefs from first principles.
+				<div class="p-3 bg-amber-950/40 border border-amber-800/40 rounded-xl text-xs text-amber-300 flex items-center justify-between gap-2">
+					<div class="flex items-center gap-2">
+						<Sliders class="w-4 h-4 text-amber-400 shrink-0" />
+						<span><strong>Layer 1 Scaffolding Removed:</strong> In Part III+, rigid brief forms are removed to test your unassisted specification skill.</span>
+					</div>
+					<button
+						type="button"
+						onclick={() => freeformMode = !freeformMode}
+						class="px-2.5 py-1 rounded-lg text-[11px] font-mono bg-neutral-900 border border-neutral-700 text-amber-400 hover:bg-neutral-800 transition cursor-pointer"
+					>
+						{freeformMode ? 'Guided Form Mode' : 'Blank Brief Composer'}
+					</button>
 				</div>
 			{/if}
 
@@ -209,79 +283,118 @@
 				Brief first, generation second. Every brief defines: Premise, Intention, Constraints, References, Acceptance Criteria, Rejection Conditions, and Risks.
 			</div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-				<div>
-					<label for="b-title" class="block font-medium text-neutral-300 mb-1">Project Title:</label>
-					<input id="b-title" type="text" bind:value={briefTitle} class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-neutral-100" />
-				</div>
-				<div>
-					<label for="b-premise" class="block font-medium text-neutral-300 mb-1">1. Premise:</label>
-					<input id="b-premise" type="text" bind:value={briefPremise} class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-neutral-100" />
-				</div>
-			</div>
+			{#if freeformMode}
+				<!-- Freeform Composer when scaffolding removed -->
+				<div class="space-y-3 bg-neutral-950 p-4 rounded-xl border border-neutral-800 text-xs">
+					<div class="flex items-center justify-between">
+						<span class="font-bold text-amber-400 uppercase tracking-wider text-[11px]">Unassisted Markdown Brief Composer</span>
+						<span class="text-neutral-500 font-mono text-[10px]">Author from first principles</span>
+					</div>
 
-			<div class="space-y-2">
-				<label for="b-intent" class="block text-xs font-medium text-neutral-300">2. Intention (What the work causes):</label>
-				<input id="b-intent" type="text" bind:value={briefIntention} class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100" />
-			</div>
+					<div>
+						<label for="fb-title" class="block font-medium text-neutral-300 mb-1">Project Title:</label>
+						<input id="fb-title" type="text" bind:value={briefTitle} placeholder="e.g. Urban Exposure Series" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-neutral-100" />
+					</div>
 
-			<!-- Constraints list -->
-			<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
-				<div class="font-bold text-neutral-200">3. Constraints ({constraintsList.length}):</div>
-				<div class="flex flex-wrap gap-1.5">
-					{#each constraintsList as c, i}
-						<span class="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 flex items-center gap-1.5">
-							{c}
-							<button type="button" onclick={() => constraintsList.splice(i, 1)} class="text-neutral-500 hover:text-red-400">×</button>
-						</span>
-					{/each}
-				</div>
-				<div class="flex gap-2 pt-1">
-					<input
-						type="text"
-						bind:value={newConstraint}
-						placeholder="Add specific constraint..."
-						class="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-200"
-					/>
-					<button type="button" onclick={addConstraint} class="px-3 py-1 rounded-lg text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200">
-						Add
-					</button>
-				</div>
-			</div>
+					<div>
+						<label for="fb-premise" class="block font-medium text-neutral-300 mb-1">Core Premise & Tension:</label>
+						<input id="fb-premise" type="text" bind:value={briefPremise} placeholder="e.g. Intimacy under public surveillance" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-neutral-100" />
+					</div>
 
-			<!-- Acceptance criteria list -->
-			<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
-				<div class="font-bold text-neutral-200">5. Checkable Acceptance Criteria ({acceptanceList.length}):</div>
-				<div class="flex flex-wrap gap-1.5">
-					{#each acceptanceList as a, i}
-						<span class="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 flex items-center gap-1.5">
-							{a}
-							<button type="button" onclick={() => acceptanceList.splice(i, 1)} class="text-neutral-500 hover:text-red-400">×</button>
-						</span>
-					{/each}
+					<div>
+						<label for="fb-content" class="block font-medium text-neutral-300 mb-1">Full 7-Layer Markdown Specification:</label>
+						<textarea
+							id="fb-content"
+							rows="10"
+							bind:value={freeformBriefText}
+							placeholder="## 1. Intention&#10;...&#10;&#10;## 2. Constraints&#10;- Negative constraint: ...&#10;- Format: ...&#10;&#10;## 3. References & Mechanisms&#10;...&#10;&#10;## 4. Acceptance Criteria&#10;- [ ] ...&#10;&#10;## 5. Rejection Conditions&#10;- ...&#10;&#10;## 6. Risks & Unknowns&#10;..."
+							class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 text-neutral-100 font-mono text-xs leading-relaxed"
+						></textarea>
+					</div>
 				</div>
-				<div class="flex gap-2 pt-1">
-					<input
-						type="text"
-						bind:value={newAcceptance}
-						placeholder="Add checkable criterion (e.g. figure occupies <15% of frame)..."
-						class="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-200"
-					/>
-					<button type="button" onclick={addAcceptance} class="px-3 py-1 rounded-lg text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200">
-						Add
-					</button>
+			{:else}
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+					<div>
+						<label for="b-title" class="block font-medium text-neutral-300 mb-1">Project Title:</label>
+						<input id="b-title" type="text" bind:value={briefTitle} class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-neutral-100" />
+					</div>
+					<div>
+						<label for="b-premise" class="block font-medium text-neutral-300 mb-1">1. Premise:</label>
+						<input id="b-premise" type="text" bind:value={briefPremise} class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-neutral-100" />
+					</div>
 				</div>
-			</div>
 
-			<button
-				type="button"
-				onclick={saveBrief}
-				disabled={!briefTitle.trim() || !briefPremise.trim()}
-				class="w-full py-2.5 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-bold transition flex items-center justify-center gap-2"
-			>
-				<CheckCircle2 class="w-4 h-4" />
-				<span>Save Brief & Commit Provenance</span>
-			</button>
+				<div class="space-y-2">
+					<label for="b-intent" class="block text-xs font-medium text-neutral-300">2. Intention (What the work causes):</label>
+					<input id="b-intent" type="text" bind:value={briefIntention} class="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100" />
+				</div>
+
+				<!-- Constraints list -->
+				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
+					<div class="font-bold text-neutral-200">3. Constraints ({constraintsList.length}):</div>
+					<div class="flex flex-wrap gap-1.5">
+						{#each constraintsList as c, i}
+							<span class="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 flex items-center gap-1.5">
+								{c}
+								<button type="button" onclick={() => constraintsList.splice(i, 1)} class="text-neutral-500 hover:text-red-400">×</button>
+							</span>
+						{/each}
+					</div>
+					<div class="flex gap-2 pt-1">
+						<input
+							type="text"
+							bind:value={newConstraint}
+							placeholder="Add specific constraint..."
+							class="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-200"
+						/>
+						<button type="button" onclick={addConstraint} class="px-3 py-1 rounded-lg text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 cursor-pointer">
+							Add
+						</button>
+					</div>
+				</div>
+
+				<!-- Acceptance criteria list -->
+				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2 text-xs">
+					<div class="font-bold text-neutral-200">5. Checkable Acceptance Criteria ({acceptanceList.length}):</div>
+					<div class="flex flex-wrap gap-1.5">
+						{#each acceptanceList as a, i}
+							<span class="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 flex items-center gap-1.5">
+								{a}
+								<button type="button" onclick={() => acceptanceList.splice(i, 1)} class="text-neutral-500 hover:text-red-400">×</button>
+							</span>
+						{/each}
+					</div>
+					<div class="flex gap-2 pt-1">
+						<input
+							type="text"
+							bind:value={newAcceptance}
+							placeholder="Add checkable criterion (e.g. figure occupies <15% of frame)..."
+							class="flex-1 bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-200"
+						/>
+						<button type="button" onclick={addAcceptance} class="px-3 py-1 rounded-lg text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-200 cursor-pointer">
+							Add
+						</button>
+					</div>
+				</div>
+			{/if}
+
+			<div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+				<button
+					type="button"
+					onclick={saveBrief}
+					disabled={freeformMode ? (!briefTitle.trim() || !freeformBriefText.trim()) : (!briefTitle.trim() || !briefPremise.trim())}
+					class="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow"
+				>
+					<CheckCircle2 class="w-4 h-4" />
+					<span>Save Brief & Commit Provenance</span>
+				</button>
+
+				{#if briefSavedNotice}
+					<span class="text-xs text-emerald-400 font-mono animate-in fade-in">
+						✓ Brief & Provenance Saved to Ledger!
+					</span>
+				{/if}
+			</div>
 		</div>
 
 	<!-- TAB 3: Constraint Density Tri-View -->
