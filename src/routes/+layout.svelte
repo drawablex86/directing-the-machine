@@ -2,6 +2,8 @@
 	import '../app.css';
 	import type { Snippet } from 'svelte';
 	import { practiceStore } from '$lib/state/practice.svelte';
+	import HelpModal from '$lib/components/shell/HelpModal.svelte';
+	import { onMount } from 'svelte';
 
 	let { children }: { children?: Snippet } = $props();
 
@@ -19,7 +21,35 @@
 			document.documentElement.style.colorScheme = theme === 'light' ? 'light' : 'dark';
 		}
 	});
+
+	onMount(() => {
+		if (typeof window !== 'undefined') {
+			const searchParams = new URLSearchParams(window.location.search);
+			const helpParam = searchParams.get('help');
+			if (helpParam) {
+				practiceStore.openHelp(helpParam === 'true' ? undefined : helpParam);
+			}
+		}
+	});
+
+	function handleGlobalKeyDown(e: KeyboardEvent) {
+		const target = e.target as HTMLElement | null;
+		if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+			return;
+		}
+
+		if (e.key === '?' || (e.shiftKey && e.key === '/') || e.key === 'h' || e.key === 'H') {
+			e.preventDefault();
+			if (practiceStore.isHelpModalOpen) {
+				practiceStore.closeHelp();
+			} else {
+				practiceStore.openHelp();
+			}
+		}
+	}
 </script>
+
+<svelte:window onkeydown={handleGlobalKeyDown} />
 
 <svelte:head>
 	<link rel="icon" href="/favicon.svg" />
@@ -34,3 +64,9 @@
 <div class="min-h-screen bg-neutral-950 text-neutral-100 antialiased transition-colors duration-200 {themeClass} {fontClass} {sizeClass} {spacingClass} {motionClass}">
 	{@render children?.()}
 </div>
+
+<!-- Universal Help & Encyclopedia Modal -->
+<HelpModal
+	isOpen={practiceStore.isHelpModalOpen}
+	onClose={() => practiceStore.closeHelp()}
+/>

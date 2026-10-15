@@ -195,6 +195,12 @@ export class PracticeEngine {
 	nonInstrumentalLines = $state<{ id: string; date: string; line: string }[]>([]);
 	playLines = $state<{ id: string; date: string; line: string }[]>([]);
 
+	// Universal Help Modal & Knowledge Base State
+	isHelpModalOpen = $state<boolean>(false);
+	activeHelpTermId = $state<string | null>(null);
+	helpSearchQuery = $state<string>('');
+	selectedHelpCategory = $state<string>('all');
+
 	// Scaffolding Removal Derived State (Layers 1 -> 2 -> 3)
 	scaffolding = $derived.by<ScaffoldingState>(() => {
 		if (this.activePart <= 1) {
@@ -309,6 +315,29 @@ export class PracticeEngine {
 		const active = this.byokSettings.activeProvider;
 		if (active === 'custom') return true;
 		return Boolean(this.byokSettings.providers[active]?.apiKey?.trim());
+	}
+
+	// Universal Help Modal Operations
+	openHelp(termIdOrQuery?: string, category?: string) {
+		if (termIdOrQuery) {
+			// If it matches a known slug or short id, focus on that term
+			this.activeHelpTermId = termIdOrQuery;
+			this.helpSearchQuery = '';
+		}
+		if (category) {
+			this.selectedHelpCategory = category;
+		}
+		this.isHelpModalOpen = true;
+	}
+
+	searchHelp(query: string) {
+		this.helpSearchQuery = query;
+		this.activeHelpTermId = null;
+		this.isHelpModalOpen = true;
+	}
+
+	closeHelp() {
+		this.isHelpModalOpen = false;
 	}
 
 	// Two-Axis Assessment Matrix Classifier

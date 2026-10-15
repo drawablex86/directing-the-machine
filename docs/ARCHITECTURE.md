@@ -155,9 +155,11 @@ directing-the-machine/
 │       │   ├── archive-exporter.ts     # Appendix L Markdown/JSON bundle generator
 │       │   ├── inference.ts            # Client-side multi-provider LLM executor & latency tester
 │       │   ├── prompt-registry.ts      # Central system prompt catalog & execution pipeline
+│       │   ├── help-search.ts          # Loose, case-insensitive multi-token fuzzy search engine
 │       │   ├── sound-system.ts         # Synthesized Web Audio API sound cues
 │       │   └── markdown-renderer.ts    # Lightweight markdown-to-HTML parser for modal readers
 │       ├── data/
+│       │   ├── help-knowledge-base.ts  # 66+ categorized course definitions, ladders, and checks
 │       │   ├── curriculum.ts           # 19 weeks, 133 daily schedules, 7 daily tasks each
 │       │   ├── projects.ts             # Specifications and evaluation rubrics for Projects 1–12
 │       │   ├── appendices.ts           # Unabridged text and protocols for Appendices A–O
@@ -167,7 +169,7 @@ directing-the-machine/
 │       │       └── posts.ts            # Long-form editorial essays with rich markdown content
 │       └── components/
 │           ├── home/                   # Landing page components (OgilvyHero, Theses, Linter demo)
-│           ├── shell/                  # Studio shell components (TodayLoop, DailyPractice, Modals)
+│           ├── shell/                  # Studio shell (TodayLoop, DailyPractice, HelpModal, Modals)
 │           ├── modalities/             # M0 through M7 interactive practice laboratories
 │           ├── assessment/             # CompetencyRadar16 and TwoAxisQuadrant visualizers
 │           ├── course/                 # CourseSyllabusView, ProjectBriefModal, ProjectWorkspace

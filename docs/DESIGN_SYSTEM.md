@@ -258,6 +258,17 @@ Every laboratory view (M0 through M7) uses a standard structural shell:
   - Variants: `primary` (Amber), `secondary` (Surface), `subtle` (Ghost), and `outline`.
 - **`LlmCritiqueCard.svelte`**:
   - Structured critique container rendering system persona, provider/model label, and inference latency in milliseconds (`740ms`).
+  - Collapsible `<details>` drawer for deep-reasoning chains (`<think>` blocks).
+
+### 7. Universal Help Modal & Knowledge Base (`HelpModal.svelte`)
+- **Backdrop**: `bg-black/80 backdrop-blur-md fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6`.
+- **Master-Detail Inspector Layout**:
+  - Max width: `max-w-6xl`, max height: `max-h-[92vh]`.
+  - Left Master Pane (`lg:col-span-5`): Live loose search input with clear button, category filter pills, scrollable matched terms with category badges and 1-line summaries.
+  - Right Inspector Pane (`lg:col-span-7`): Term header, keywords, 3 structured cards ("What is it?", "What does it do?", "How does it help?"), practical before/after example card, studio touchpoint, and related concept cross-links.
+- **Accessibility & Contrast**:
+  - Full Kepano Stone (Dark) and Paper (Light) theme compliance with WCAG AAA contrast.
+  - Universal keyboard navigation: <kbd>?</kbd> / <kbd>H</kbd> toggles modal, <kbd>Esc</kbd> dismisses, <kbd>↑</kbd>/<kbd>↓</kbd> cycles terms.
   - Markdown-formatted critique body with code blocks, alert callouts, and clean typographic leading.
   - Action footer supporting 1-click clipboard copy, re-run trigger, and domain-specific action buttons ("Apply to Field", "Decompose into Tasks").
 

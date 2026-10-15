@@ -87,9 +87,13 @@
 				return;
 			}
 
-			if (e.key === '?') {
+			if (e.key === '?' || e.key === 'h' || e.key === 'H') {
 				e.preventDefault();
-				isShortcutsModalOpen = !isShortcutsModalOpen;
+				if (practiceStore.isHelpModalOpen) {
+					practiceStore.closeHelp();
+				} else {
+					practiceStore.openHelp();
+				}
 			} else if (e.key === 'p' || e.key === 'P' || e.key === 's' || e.key === 'S') {
 				e.preventDefault();
 				initialSettingsTab = 'inference';
@@ -104,6 +108,7 @@
 				isStopModalOpen = false;
 				isPreferencesModalOpen = false;
 				isShortcutsModalOpen = false;
+				practiceStore.closeHelp();
 			}
 		}
 

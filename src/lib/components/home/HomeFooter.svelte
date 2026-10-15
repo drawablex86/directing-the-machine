@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ArrowRight, Terminal, BookOpen, Compass, ShieldCheck, Heart } from '@lucide/svelte';
+	import { practiceStore } from '$lib/state/practice.svelte';
 </script>
 
 <footer class="bg-neutral-950 text-neutral-400 py-16 sm:py-20 border-t border-neutral-900">
@@ -70,6 +71,15 @@
 			<div class="space-y-3">
 				<div class="font-mono uppercase text-neutral-300 font-bold tracking-wider">Field Reference</div>
 				<ul class="space-y-2">
+					<li>
+						<button
+							type="button"
+							onclick={() => practiceStore.openHelp()}
+							class="text-amber-400 font-semibold hover:text-amber-300 transition cursor-pointer text-left flex items-center gap-1.5"
+						>
+							<span>Help & Encyclopedia (? / H)</span>
+						</button>
+					</li>
 					<li><a href="/blog" class="text-amber-400 font-medium hover:text-amber-300 transition flex items-center gap-1.5"><BookOpen class="w-3 h-3" /><span>Field Essays & Blog</span></a></li>
 					<li><a href="/app?tab=manual" class="hover:text-amber-400 transition">Field Manual (Appendices A–O)</a></li>
 					<li><a href="/logs" class="hover:text-amber-400 transition">Unified Studio Logbook</a></li>

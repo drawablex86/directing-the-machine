@@ -12,7 +12,8 @@
 		Keyboard,
 		Brain,
 		Sliders,
-		Palette
+		Palette,
+		HelpCircle
 	} from '@lucide/svelte';
 
 	let { onOpenDrawer, onOpenFailure, onOpenStop, onOpenPreferences, onOpenShortcuts }: {
@@ -168,12 +169,24 @@
 				{/if}
 			</button>
 
+			<!-- Universal Help & Encyclopedia Trigger -->
+			<button
+				type="button"
+				onclick={() => practiceStore.openHelp()}
+				class="px-2.5 py-1.5 rounded-xl text-xs bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-400 font-semibold flex items-center gap-1.5 transition cursor-pointer"
+				title="Help & Encyclopedia (? / H)"
+				aria-label="Open Course & Studio Help Encyclopedia"
+			>
+				<HelpCircle class="w-3.5 h-3.5 text-amber-400" />
+				<span class="hidden sm:inline">Help</span>
+			</button>
+
 			<!-- Keyboard Shortcuts Trigger -->
 			<button
 				type="button"
 				onclick={onOpenShortcuts}
-				class="p-1.5 rounded-xl text-xs bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-400 hover:text-amber-400 transition hidden sm:flex items-center justify-center"
-				title="Keyboard Navigation Shortcuts (?)"
+				class="p-1.5 rounded-xl text-xs bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-400 hover:text-amber-400 transition hidden sm:flex items-center justify-center cursor-pointer"
+				title="Keyboard Navigation Shortcuts"
 				aria-label="Open Keyboard Shortcuts"
 			>
 				<Keyboard class="w-4 h-4" />

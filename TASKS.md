@@ -205,5 +205,14 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Integrate automated Log Decay scanning in `/logs` detecting rote phrase repetition and hollow logging compliance.
   - Implement intelligent retrospective narrative generator for Appendix L portfolio archive export.
 
+- [x] **Task 29: Comprehensive Studio & Course Knowledge Base Help Modal**
+  - Designed and authored comprehensive, type-safe knowledge base `src/lib/data/help-knowledge-base.ts` encompassing 66+ detailed terms across 7 categories: Diagnostic Ladders & Hierarchies, Lint Checks & Observation, Studio UI & Daily Routine, Core Concepts & Theses, Studio Modalities (M0–M7), Protocols & Refusals, and BYOK Inference.
+  - Formulated 3-part plain-English breakdowns for every entry: "What is it?" (plain definition), "What does it do?" (operational mechanics), and "How does it help?" (directorial value), complete with practical before/after examples, studio touchpoints, and related concept cross-links.
+  - Implemented loose, case-insensitive, multi-token fuzzy search engine `src/lib/engine/help-search.ts` with weighted relevance scoring (exact/prefix/alias/tag/definition matches) and category filtering.
+  - Built accessible, responsive `HelpModal.svelte` featuring live query input with instant clear, category filter pills, split-pane master-detail inspector, 1-click deep-link copier, keyboard navigation (`↑`/`↓`/`Esc`), and Stone & Paper contrast compliance.
+  - Integrated universal global accessibility: mounted `<HelpModal />` in `+layout.svelte`, wired hotkey listeners (`?` / `H`), added desktop/mobile triggers in `HomeNavbar.svelte`, quick action button in `TodayLoopHeader.svelte`, footer link in `HomeFooter.svelte`, and shortcut entry in `KeyboardShortcutsModal.svelte`.
+  - Added URL query parameter support (`?help=<term-id>`) enabling direct 1-click external linking and bookmarking.
+  - Verified 0 TypeScript errors (`pnpm run check`) and verified successful static pre-rendering of all 9 routes with `pnpm run build`.
+
 
 

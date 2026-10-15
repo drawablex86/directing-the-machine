@@ -4,8 +4,8 @@
 	let { isOpen, onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
 	const shortcuts = [
+		{ key: '? / H', desc: 'Open Course & Studio Help Encyclopedia (Ladders, Linter, Concepts)' },
 		{ key: 'Cmd/Ctrl + K', desc: 'Open Appendix Just-In-Time Reference Drawer' },
-		{ key: '?', desc: 'Open Keyboard Shortcuts Guide' },
 		{ key: 'P / S', desc: 'Open Studio Settings & BYOK Inference Configuration' },
 		{ key: 'F', desc: 'Toggle Single-Task Horizon (Focus Mode)' },
 		{ key: 'Esc', desc: 'Close any active modal or drawer' },

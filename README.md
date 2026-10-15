@@ -55,7 +55,13 @@ In an era where generative AI collapses the marginal cost of execution to zero, 
 - **12 Flagship Project Dossiers (`src/lib/data/projects.ts`)**: Full specifications, milestone checklists, and four-level evaluation rubrics (Novice to Mastery) for Projects 1 through 12.
 - **Interactive Appendix Reader**: Complete, unabridged text and operational protocols for **Appendices A through O**, featuring tables, callouts, and 1-click clipboard export.
 
-### 5. Client-Side BYOK (Bring Your Own Key) Inference Engine
+### 5. Universal Help & Concept Encyclopedia (`?` or `H`)
+- **66+ Categorized Plain Definitions**: Comprehensive dictionary covering all studio UX terms, ladders (Universal, Visual, Writing), lint checks (Regex & Semantic LLM), modalities (M0–M7), and protocols.
+- **Loose, Multi-Token Fuzzy Search**: Case-insensitive instant search with relevance scoring across terms, aliases, definitions, and studio touchpoints.
+- **3-Part Directorial Breakdown**: Every term clearly answers: *What is it?*, *What does it do?*, and *How does it help?*, accompanied by practical examples, studio touchpoints, and related concept cross-links.
+- **Universal Access & Deep Linking**: Instant trigger via navigation bars, studio top bar, footer, global hotkeys (<kbd>?</kbd> / <kbd>H</kbd>), and deep-link query parameters (`?help=<term-id>`).
+
+### 6. Client-Side BYOK (Bring Your Own Key) Inference Engine
 - **Direct-to-Provider Client Architecture**: Execute LLM inference directly from the browser without intermediary backends.
 - **Multi-Provider Support**:
   - **OpenRouter** (`https://openrouter.ai/api/v1`)

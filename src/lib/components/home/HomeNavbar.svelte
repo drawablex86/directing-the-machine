@@ -245,6 +245,16 @@
 			>
 				FAQ
 			</a>
+			<!-- Help Encyclopedia Modal Trigger -->
+			<button
+				type="button"
+				onclick={() => practiceStore.openHelp()}
+				class="px-3 py-1.5 rounded-lg text-neutral-300 hover:text-white hover:bg-neutral-900/70 transition flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 cursor-pointer"
+				title="Course & Studio Help Encyclopedia (Press ? or H)"
+			>
+				<HelpCircle class="w-3.5 h-3.5 text-amber-400" />
+				<span>Help</span>
+			</button>
 		</nav>
 
 		<!-- Right Side CTAs & Utilities -->
@@ -390,6 +400,17 @@
 						<HelpCircle class="w-3.5 h-3.5 text-amber-400" />
 						<span>Frequently Answered Questions</span>
 					</a>
+					<button
+						type="button"
+						onclick={() => { closeMobileMenu(); practiceStore.openHelp(); }}
+						class="flex items-center justify-between px-3 py-2 rounded-xl text-neutral-300 hover:bg-neutral-900 hover:text-white transition text-xs cursor-pointer w-full text-left"
+					>
+						<span class="flex items-center gap-2.5">
+							<HelpCircle class="w-3.5 h-3.5 text-amber-400" />
+							<span>Help & Concept Encyclopedia</span>
+						</span>
+						<span class="text-[10px] font-mono text-neutral-500 bg-neutral-950 px-1.5 py-0.5 rounded border border-neutral-800">? / H</span>
+					</button>
 				</div>
 			</div>
 
