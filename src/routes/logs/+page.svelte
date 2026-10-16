@@ -6,13 +6,27 @@
 	import HemingwayStopModal from '$lib/components/shell/HemingwayStopModal.svelte';
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import { generateAppendixLMarkdownTree } from '$lib/engine/archive-exporter';
-	import { Download, Flame, FileText, CheckCircle2, ArrowLeft, AlertTriangle, Target, Layers, FileCheck } from '@lucide/svelte';
+	import { Download, Flame, FileText, CheckCircle2, ArrowLeft, AlertTriangle, Target, Layers, FileCheck, Sparkles, BookOpen, FileDown, Check } from '@lucide/svelte';
+	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
+	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
+	import { executePrompt } from '$lib/engine/prompt-registry';
+	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
 
 	let isDrawerOpen = $state(false);
 	let isFailureModalOpen = $state(false);
 	let isStopModalOpen = $state(false);
 	let activeLogTab = $state<'problems' | 'calibrations' | 'decisions' | 'briefs' | 'drills' | 'attention' | 'play'>('problems');
 	let exportSuccess = $state(false);
+
+	// Log Decay Sentinel state
+	let logDecayCritique = $state<CritiqueResult | null>(null);
+	let isCheckingDecay = $state(false);
+	let decaySavedNotice = $state(false);
+
+	// Appendix L Synthesizer state
+	let synthesisCritique = $state<CritiqueResult | null>(null);
+	let isSynthesizing = $state(false);
+	let synthesisSavedNotice = $state(false);
 
 	function exportAppendixLArchive() {
 		const archive = generateAppendixLMarkdownTree({
@@ -37,8 +51,142 @@
 		URL.revokeObjectURL(url);
 
 		exportSuccess = true;
-		setTimeout(() => exportSuccess = false, 3000);
+		setTimeout(() => (exportSuccess = false), 3000);
 	}
+
+	function downloadMonographMarkdown(filename: string, content: string) {
+		const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	async function runLogDecayAudit() {
+		if (isCheckingDecay) return;
+		isCheckingDecay = true;
+		try {
+			const res = await executePrompt('log-decay-sentinel', {
+				logType: activeLogTab,
+				entries:
+					activeLogTab === 'problems'
+						? practiceStore.problems.slice(0, 10).map((p) => p.framedProblem)
+						: activeLogTab === 'calibrations'
+							? practiceStore.calibrations.slice(0, 10).map((c) => `${c.variableChanged}: ${c.confidencePct}% -> ${c.prediction}`)
+							: activeLogTab === 'decisions'
+								? practiceStore.decisions.slice(0, 10).map((d) => d.decision)
+								: practiceStore.playLines.slice(0, 10).map((p) => p.line),
+				recentProblems: practiceStore.problems.slice(0, 5).map((p) => p.framedProblem),
+				recentCalibrations: practiceStore.calibrations.slice(0, 5).map((c) => `${c.variableChanged} (${c.confidencePct}%): ${c.prediction}`),
+				recentDecisions: practiceStore.decisions.slice(0, 5).map((d) => d.decision),
+				recentBriefs: practiceStore.briefs.slice(0, 5).map((b) => b.title)
+			});
+			logDecayCritique = res;
+		} catch (err) {
+			console.error('Failed to run log decay audit:', err);
+		} finally {
+			isCheckingDecay = false;
+		}
+	}
+
+	async function runAppendixLSynthesis() {
+		if (isSynthesizing) return;
+		isSynthesizing = true;
+		try {
+			const res = await executePrompt('appendix-l-synthesis', {
+				problemCount: practiceStore.problems.length,
+				decisionCount: practiceStore.decisions.length,
+				calibrationCount: practiceStore.calibrations.length,
+				briefCount: practiceStore.briefs.length,
+				sampleProblems: practiceStore.problems.slice(0, 6).map((p) => `"${p.framedProblem}" (${p.mode})`),
+				sampleDecisions: practiceStore.decisions.slice(0, 8).map((d) => `Decision: "${d.decision}" | Rejected: "${d.alternativesRejected}" | Justification: "${d.justification}"`),
+				sampleCalibrations: practiceStore.calibrations.slice(0, 6).map((c) => `Var: ${c.variableChanged} | Conf: ${c.confidencePct}% | Model Rev: "${c.modelRevision}"`),
+				sampleBriefs: practiceStore.briefs.slice(0, 5).map((b) => `Title: "${b.title}" | Intention: "${b.intention}"`)
+			});
+			synthesisCritique = res;
+		} catch (err) {
+			console.error('Failed to run Appendix L synthesis:', err);
+		} finally {
+			isSynthesizing = false;
+		}
+	}
+
+	const decayActions: LlmAction[] = [
+		{
+			label: 'Adopt Sharpened Sample to Decision Log',
+			primary: true,
+			onClick: (result) => {
+				if (result.logDecayAudit?.sharpenedSampleEntry) {
+					practiceStore.saveDecision({
+						project: 'Studio Logbook Anti-Decay',
+						decision: `Adopted Sharpened Log Standard: ${result.logDecayAudit.sharpenedSampleEntry.slice(0, 80)}...`,
+						highestUnresolvedLevel: 'Level 1 (Intent)',
+						alternativesRejected: 'Continuing with repetitive logging theatre or uniform confidence ratings',
+						justification: `Anti-Decay Intervention: ${result.logDecayAudit.prescribedIntervention}`,
+						feedbackIncorporated: 'Log Decay Sentinel Audit',
+						refusals: 'Logging Theatre'
+					});
+					decaySavedNotice = true;
+					setTimeout(() => (decaySavedNotice = false), 3000);
+				}
+			}
+		},
+		{
+			label: 'Save Anti-Decay Audit to Decision Log',
+			variant: 'secondary',
+			onClick: (result) => {
+				if (result.logDecayAudit) {
+					practiceStore.saveDecision({
+						project: 'Studio Logbook Anti-Decay',
+						decision: `Log Rigor Audit: ${result.logDecayAudit.decayStatus} (Score ${result.logDecayAudit.decayScore}/10)`,
+						highestUnresolvedLevel: 'Level 2 (Diagnostic)',
+						alternativesRejected: 'Passive checkbox compliance',
+						justification: `Prescription: ${result.logDecayAudit.prescribedIntervention} Symptoms: ${result.logDecayAudit.symptomsDetected.join('; ')}`,
+						feedbackIncorporated: 'Log Decay Sentinel Audit',
+						refusals: 'None'
+					});
+					decaySavedNotice = true;
+					setTimeout(() => (decaySavedNotice = false), 3000);
+				}
+			}
+		}
+	];
+
+	const synthesisActions: LlmAction[] = [
+		{
+			label: 'Download Directorial Monograph (.md)',
+			primary: true,
+			onClick: (result) => {
+				if (result.appendixLSynthesis?.appendixLMarkdownExport) {
+					downloadMonographMarkdown(
+						`appendix_l_directorial_monograph_${new Date().toISOString().slice(0, 10)}.md`,
+						result.appendixLSynthesis.appendixLMarkdownExport
+					);
+				}
+			}
+		},
+		{
+			label: 'Save Retrospective Summary to Decision Log',
+			variant: 'secondary',
+			onClick: (result) => {
+				if (result.appendixLSynthesis) {
+					practiceStore.saveDecision({
+						project: 'Appendix L Portfolio Monograph',
+						decision: `Synthesized Directorial Evolution: "${result.appendixLSynthesis.title}"`,
+						highestUnresolvedLevel: 'Level 1 (Intent)',
+						alternativesRejected: 'Leaving studio logs fragmented and unexamined across separate files',
+						justification: `Breakthroughs: ${result.appendixLSynthesis.majorBreakthroughs.join('; ')} | Blind Spots: ${result.appendixLSynthesis.persistentBlindSpots.join('; ')}`,
+						feedbackIncorporated: 'Master Archivist Appendix L Synthesis',
+						refusals: result.appendixLSynthesis.refusalChronicleSummary
+					});
+					synthesisSavedNotice = true;
+					setTimeout(() => (synthesisSavedNotice = false), 3000);
+				}
+			}
+		}
+	];
 </script>
 
 <div class="flex flex-col min-h-screen">
@@ -112,6 +260,101 @@
 				<span>Successfully exported Appendix L directory structure (00-problem through 06-play)!</span>
 			</div>
 		{/if}
+
+		<!-- Studio Logbook Anti-Decay Intelligence Sentinel -->
+		<div class="p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-4 text-xs">
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-3">
+				<div>
+					<div class="flex items-center gap-2">
+						<Sparkles class="w-4 h-4 text-amber-400" />
+						<h2 class="text-sm font-bold text-white uppercase tracking-wider">Log Decay & Theatre Sentinel</h2>
+					</div>
+					<p class="text-[11px] text-neutral-400 mt-0.5">
+						Scans across problems, calibrations, and decisions for rote phrases, flatline confidence, and pseudo-refusals (Appendix M).
+					</p>
+				</div>
+				<LlmTriggerButton
+					label="Audit Logbook for Decay"
+					onclick={runLogDecayAudit}
+					loading={isCheckingDecay}
+					title="Audits studio records for rote repetition, default confidence ratings, and pseudo-refusals"
+				/>
+			</div>
+
+			{#if decaySavedNotice}
+				<div class="p-3 bg-emerald-950/60 border border-emerald-800/60 rounded-xl text-xs text-emerald-300 flex items-center gap-2 font-mono">
+					<Check class="w-4 h-4 text-emerald-400" />
+					<span>Anti-Decay audit commitment saved to Studio Decision Log!</span>
+				</div>
+			{/if}
+
+			{#if logDecayCritique?.logDecayAudit}
+				{@const decay = logDecayCritique.logDecayAudit}
+				<div class="p-4 rounded-xl bg-neutral-950 border border-amber-500/30 space-y-4">
+					<div class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+						<div class="flex items-center gap-2">
+							<span
+								class="text-xs font-mono font-bold px-2.5 py-0.5 rounded border {decay.decayStatus === 'PRISTINE_RIGOR'
+									? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+									: decay.decayStatus === 'EARLY_SLIPPAGE'
+										? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+										: 'bg-rose-500/10 text-rose-400 border-rose-500/30'}"
+							>
+								{decay.decayStatus}
+							</span>
+							<span class="text-xs font-mono text-neutral-400">
+								Rigor Score: <strong class="text-amber-400">{decay.decayScore}</strong>/10
+							</span>
+						</div>
+						<span class="text-[11px] font-mono text-neutral-500">
+							{decay.decayScore >= 8 ? 'High Observational Acuity' : decay.decayScore >= 5 ? 'Emerging Habit Slippage' : 'Logging Theatre Detected'}
+						</span>
+					</div>
+
+					{#if decay.symptomsDetected.length > 0}
+						<div class="space-y-1.5 p-3 rounded-lg bg-rose-950/20 border border-rose-900/40">
+							<div class="flex items-center gap-1.5 text-xs font-bold text-rose-400">
+								<AlertTriangle class="w-3.5 h-3.5 shrink-0" />
+								<span>Detected Decay Symptoms & Rote Patterns:</span>
+							</div>
+							<ul class="text-[11px] text-rose-200/90 list-disc list-inside space-y-0.5">
+								{#each decay.symptomsDetected as sym}
+									<li>{sym}</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+
+					<div class="p-3 rounded-lg bg-neutral-900 border border-neutral-800 space-y-1">
+						<div class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+							Prescribed Anti-Decay Intervention:
+						</div>
+						<p class="text-xs text-neutral-200 leading-relaxed">
+							{decay.prescribedIntervention}
+						</p>
+					</div>
+
+					{#if decay.sharpenedSampleEntry}
+						<div class="p-3 rounded-lg bg-emerald-950/20 border border-emerald-900/40 space-y-1.5">
+							<div class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">
+								Exemplary Directorial Standard (Zero-Adjective Rewrite):
+							</div>
+							<p class="text-xs text-neutral-100 font-serif italic leading-relaxed">
+								"{decay.sharpenedSampleEntry}"
+							</p>
+						</div>
+					{/if}
+				</div>
+			{/if}
+
+			{#if logDecayCritique}
+				<LlmCritiqueCard
+					result={logDecayCritique}
+					onDismiss={() => (logDecayCritique = null)}
+					actions={decayActions}
+				/>
+			{/if}
+		</div>
 
 		<!-- Log tabs -->
 		<div class="flex items-center gap-1 bg-neutral-900 p-1.5 rounded-xl border border-neutral-800 text-xs overflow-x-auto">
@@ -366,6 +609,100 @@
 						{/each}
 					</div>
 				{/if}
+			{/if}
+		</div>
+
+		<!-- Appendix L Directorial Portfolio Synthesizer Section -->
+		<div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-5 text-xs">
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
+				<div>
+					<div class="flex items-center gap-2">
+						<BookOpen class="w-4 h-4 text-amber-400" />
+						<h2 class="text-base font-bold text-white">Appendix L Directorial Portfolio Synthesizer</h2>
+					</div>
+					<p class="text-xs text-neutral-400 mt-0.5">
+						Synthesize your entire studio trajectory into an executive Directorial Evolution Monograph for portfolio publication.
+					</p>
+				</div>
+				<LlmTriggerButton
+					label="Synthesize Directorial Monograph"
+					onclick={runAppendixLSynthesis}
+					loading={isSynthesizing}
+					title="Generates a cohesive directorial evolution narrative from all historical studio logs"
+				/>
+			</div>
+
+			{#if synthesisSavedNotice}
+				<div class="p-3 bg-emerald-950/60 border border-emerald-800/60 rounded-xl text-xs text-emerald-300 flex items-center gap-2 font-mono">
+					<Check class="w-4 h-4 text-emerald-400" />
+					<span>Directorial Monograph synthesis recorded into Studio Decision Log!</span>
+				</div>
+			{/if}
+
+			{#if synthesisCritique?.appendixLSynthesis}
+				{@const synth = synthesisCritique.appendixLSynthesis}
+				<div class="p-5 rounded-xl bg-neutral-950 border border-amber-500/30 space-y-4">
+					<div class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+						<div class="space-y-0.5">
+							<span class="text-[10px] font-mono uppercase text-amber-400 font-bold tracking-wider">Appendix L Retrospective</span>
+							<h3 class="text-base font-bold text-white tracking-tight">{synth.title}</h3>
+						</div>
+						<button
+							type="button"
+							onclick={() => downloadMonographMarkdown(`appendix_l_directorial_monograph_${new Date().toISOString().slice(0, 10)}.md`, synth.appendixLMarkdownExport)}
+							class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center gap-1.5 cursor-pointer text-xs"
+						>
+							<FileDown class="w-3.5 h-3.5" />
+							<span>Download Monograph (.md)</span>
+						</button>
+					</div>
+
+					<div class="p-3.5 rounded-lg bg-neutral-900 border border-neutral-800 space-y-2">
+						<div class="text-[11px] font-bold uppercase tracking-wider text-neutral-400">Directorial Evolution Trajectory</div>
+						<p class="text-xs text-neutral-200 font-serif leading-relaxed">
+							{synth.evolutionNarrative}
+						</p>
+					</div>
+
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+						{#if synth.majorBreakthroughs.length > 0}
+							<div class="p-3.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40 space-y-1.5">
+								<div class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Key Directorial Breakthroughs:</div>
+								<ul class="text-[11px] text-emerald-200/90 list-disc list-inside space-y-1">
+									{#each synth.majorBreakthroughs as b}
+										<li>{b}</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
+
+						{#if synth.persistentBlindSpots.length > 0}
+							<div class="p-3.5 rounded-lg bg-amber-950/20 border border-amber-900/40 space-y-1.5">
+								<div class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">Persistent Growth Edges:</div>
+								<ul class="text-[11px] text-amber-200/90 list-disc list-inside space-y-1">
+									{#each synth.persistentBlindSpots as spot}
+										<li>{spot}</li>
+									{/each}
+								</ul>
+							</div>
+						{/if}
+					</div>
+
+					<div class="p-3.5 rounded-lg bg-neutral-900 border border-neutral-800 space-y-1">
+						<div class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">The Chronicle of Refusal</div>
+						<p class="text-xs text-neutral-300 leading-relaxed font-serif">
+							{synth.refusalChronicleSummary}
+						</p>
+					</div>
+				</div>
+			{/if}
+
+			{#if synthesisCritique}
+				<LlmCritiqueCard
+					result={synthesisCritique}
+					onDismiss={() => (synthesisCritique = null)}
+					actions={synthesisActions}
+				/>
 			{/if}
 		</div>
 	</main>

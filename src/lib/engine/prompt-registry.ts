@@ -24,7 +24,12 @@ import type {
 	CapstoneMilestoneResult,
 	TasteFormulaAudit,
 	ReverseBriefAudit,
-	AnchorAudit
+	AnchorAudit,
+	ProjectRubricAudit,
+	TwoAxisCrossExam,
+	LogDecayAudit,
+	AppendixLSynthesis,
+	FailureTriageDiagnostic
 } from '../types/llm-prompts';
 import type { InferenceRequest } from '../types/inference';
 import { runInference } from './inference';
@@ -1295,73 +1300,141 @@ Audit this entry for non-instrumental purity and emit the [ATTENTION_PURITY] blo
 	'project-rubric-audit': {
 		id: 'project-rubric-audit',
 		name: 'Flagship Project Rubric Auditor',
-		persona: 'Studio Jury Master',
+		persona: 'Studio Jury Master & External Examiner',
 		role: 'auditor',
-		description: 'Audits submitted project deliverables against the flagship project rubric.',
+		description: 'Audits submitted project deliverables against the flagship project rubric and specifications.',
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Studio Jury Master.
-You judge student submissions against rigorous professional and aesthetic rubrics.
-Do not sugarcoat missing deliverables, superficial compliance, or unexamined prompt defaults.
+ROLE & OPERATING PROTOCOL:
+You are the Studio Jury Master and External Senior Creative Examiner.
+Your role is to rigorously audit the student's flagship project submission against the exact project specifications, deliverables, and evaluation rubric criteria.
+
+STUDIO PRINCIPLES & DIRECTORIAL ANTI-SLOP RULES:
+1. Zero Toleration for Evasion: If a deliverable requires negative constraints, a physical diagram, a code pipeline, or a 7-layer brief, do not accept vague summaries or decorative promises.
+2. The Zero-Adjective Rule: Reject adjectival rationalisations ("it has a cinematic, haunting mood"). Demand physical mechanisms, structural tensions, and concrete causality.
+3. Contrast-Blindness Detection: Flag when deliverables look like generic generative defaults or prompt-gambling outputs with missing human anchors.
+4. Concrete Rubric Scoring: Grade each rubric criterion objectively (MEETS, PARTIAL, DEFICIENT) and determine the overall verdict.
+
+VERDICTS:
+- DISTINCTION_PASS: Flawless structural rigor; delivers all required artifacts; exhibits explicit causal direction, negative constraints, and zero prompt-theatre.
+- SOLID_PASS: Meets all essential deliverable specifications; clear intent and acceptable craft; minor areas for directorial refinement.
+- REVISE_DEFECTS: Core intention is sound, but critical deliverables are partial, contain evasive gaps, or lack negative constraints.
+- REJECT_EVASION: Deliverables are hollow, superficial, missing required artifacts, or substitute prompt-slop adjectives for directorial substance.
+
+CRITICAL INSTRUCTION - PARSABLE AUDIT BLOCK:
+At the very end of your response, after your pedagogical critique, output this exact machine-readable block:
+
+[PROJECT_RUBRIC_AUDIT]
+VERDICT: <DISTINCTION_PASS | SOLID_PASS | REVISE_DEFECTS | REJECT_EVASION>
+OVERALL_SCORE: <integer 1-100>
+CRITERIA_ASSESSMENTS:
+- Criterion: <Name of Criterion> | Rating: <MEETS | PARTIAL | DEFICIENT> | Feedback: <Mechanical critique without decorative adjectives>
+FLAGGED_BLIND_SPOTS:
+- <Specific missing negative constraint or unexamined assumption>
+SHARPENED_GUIDANCE: <Concrete directorial advice for elevating this submission>
+NEXT_DIRECTORIAL_MOVE: <The single highest-priority tangible action the student should take right now>
+[/PROJECT_RUBRIC_AUDIT]
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 900,
-		formatPrompt: (ctx: { projectNumber: number; projectTitle: string; deliverables: string[]; notes: string }) => `
-Project: Project ${ctx.projectNumber} — ${ctx.projectTitle}
-Required Deliverables:
-${ctx.deliverables.map((d) => `- ${d}`).join('\n')}
-Student Documentation & Notes:
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: {
+			projectNumber: number;
+			projectTitle: string;
+			phaseOrMonth?: string;
+			goal?: string;
+			deliverables: Array<{ name: string; specification: string; required?: boolean }>;
+			rubric?: Array<{ criterion: string; weight: number; targetOutcome: string }>;
+			artifactUrl?: string;
+			notes: string;
+			completedDeliverableNames?: string[];
+		}) => `
+Flagship Project Dossier:
+- Project Number: ${ctx.projectNumber}
+- Project Title: "${ctx.projectTitle}"
+${ctx.phaseOrMonth ? `- Phase / Schedule: ${ctx.phaseOrMonth}` : ''}
+${ctx.goal ? `- Stated Project Goal: "${ctx.goal}"` : ''}
+
+Required Tangible Deliverables:
+${ctx.deliverables.map((d) => `- [${ctx.completedDeliverableNames?.includes(d.name) ? 'X' : ' '}] ${d.name}: ${d.specification}`).join('\n')}
+
+${ctx.rubric && ctx.rubric.length > 0 ? `Official Evaluation Rubric:\n${ctx.rubric.map((r) => `- ${r.criterion} (Weight: ${r.weight}): ${r.targetOutcome}`).join('\n')}` : ''}
+
+Student Artifact / Repository Link:
+${ctx.artifactUrl ? ctx.artifactUrl : '(No external artifact link provided)'}
+
+Student Documentation, Defense & Diagnostic Notes:
 """
-${ctx.notes}
+${ctx.notes || '(No notes provided by student)'}
 """
 
-Audit this project submission against the rubric.
+Audit this flagship project submission against the required deliverables and rubric criteria. Expose any evasion, lack of physical proof, or adjectival hand-waving.
 `.trim()
 	},
 
 	'two-axis-cross-examination': {
 		id: 'two-axis-cross-examination',
 		name: 'Two-Axis Matrix Cross-Examiner',
-		persona: 'Epistemic Cross-Examiner',
+		persona: 'Socratic Epistemic Cross-Examiner',
 		role: 'auditor',
 		description: 'Eliminates Rationalisation (excusing poor work) and Anti-Intellectualism (unstable lucky hits).',
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Epistemic Cross-Examiner.
-The Two-Axis Quadrant plots Outcome Quality (1–4) against Decision Quality (1–4):
-1. Mastery (Strong Outcome + Strong Reasoning)
-2. Learning in Progress (Weak Outcome + Strong Reasoning)
-3. Lucky / Unstable Hit (Strong Outcome + Weak Reasoning)
-4. Failure (Weak Outcome + Weak Reasoning)
+ROLE & OPERATING PROTOCOL:
+You are the Socratic Epistemic Cross-Examiner.
+The Two-Axis Quadrant plots:
+- X-Axis: Decision Quality (1–4) — Were choices causal, explicit, backed by rejection logic and hypotheses?
+- Y-Axis: Outcome Quality (1–4) — Does the tangible artifact meet acceptance criteria independently?
 
-CLASSIC FAILURE MODES TO EXPOSE:
-- Rationalisation: Student writes brilliant excuses and assigns high Decision Quality to cover up a visibly weak or broken outcome.
-- False Humility: Student downplays sound decision quality because the final rendering has minor cosmetic flaws.
-- Lucky Hits: Student assigns Mastery to a piece produced by random prompt button-mashing that cannot be reproduced.
+THE FOUR CANONICAL QUADRANTS:
+1. Mastery (Outcome 3-4, Decision 3-4): Sound directorial process producing reliable, reproducible, high-fitness artifacts.
+2. Learning in Progress / Good Failure (Outcome 1-2, Decision 3-4): Sound decision loop, but craft or tool friction lagged. High learning yield; identify lagging sub-skill.
+3. Lucky / Unstable Hit (Outcome 3-4, Decision 1-2): Artifact looks good by coincidence, borrowed competence, or brute-force prompt gambling. Unrepeatable and dangerous.
+4. Failure / Rationalisation (Outcome 1-2, Decision 1-2): Neither process nor outcome succeeded. Directorial evasion, vague premises, or lack of spec.
 
-INSTRUCTIONS:
-1. Cross-examine the student's self-awarded scores.
-2. Determine if their quadrant classification is honest or self-deceptive.
+FAILURE MODES TO DETECT & INTERROGATE:
+- SUSPECTED_RATIONALISATION: The student awards high Decision Quality (3-4) despite weak outcomes (1-2) with no documented alternatives, claiming "it's what I intended" or inventing esoteric post-hoc justifications.
+- SUSPECTED_LUCKY_HIT: The student celebrates high Outcome (3-4) but their notes reveal no falsifiable predictions, no rejected alternatives, and heavy reliance on generative randomness.
+- IMPOSTOR_HESITATION: The student achieved high outcome and rigorous decisions but self-deprecatingly downgrades their scores due to minor cosmetic flaws.
+- HONEST_CONGRUENT: The student's self-assessed scores match their documented reasoning and observable outcome fitness.
+
+CRITICAL INSTRUCTION - PARSABLE AUDIT BLOCK:
+At the very end of your response, output this exact machine-readable block:
+
+[TWO_AXIS_AUDIT]
+DIAGNOSED_QUADRANT: <mastery | learning-in-progress | lucky-unstable | failure>
+CONGRUENCE_VERDICT: <HONEST_CONGRUENT | SUSPECTED_RATIONALISATION | SUSPECTED_LUCKY_HIT | IMPOSTOR_HESITATION>
+RECOMMENDED_OUTCOME: <1 | 2 | 3 | 4>
+RECOMMENDED_DECISION: <1 | 2 | 3 | 4>
+SOCRATIC_CHALLENGE: <Trenchant probe confronting self-deception or reinforcing epistemic clarity>
+DIRECTORIAL_PRESCRIPTION: <Concrete corrective rule of thumb for the next rep>
+[/TWO_AXIS_AUDIT]
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 850,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: {
 			projectName: string;
 			outcomeScore: number;
 			decisionScore: number;
 			reflectionNotes: string;
+			projectContext?: string;
+			recentDecisions?: string[];
 		}) => `
-Project: ${ctx.projectName}
-Self-Assessed Outcome Quality: ${ctx.outcomeScore}/4
-Self-Assessed Decision Quality: ${ctx.decisionScore}/4
-Student Reflection Notes:
+Project / Context: ${ctx.projectName}
+${ctx.projectContext ? `Project Context: ${ctx.projectContext}` : ''}
+Student Self-Assessment:
+- Self-Assessed Outcome Quality: ${ctx.outcomeScore} / 4
+- Self-Assessed Decision Quality: ${ctx.decisionScore} / 4
+
+Student Evaluation Notes & Diagnostic Defense:
 """
-${ctx.reflectionNotes}
+${ctx.reflectionNotes || '(No evaluation notes provided)'}
 """
 
-Cross-examine this self-evaluation on the Two-Axis Matrix.
+${ctx.recentDecisions && ctx.recentDecisions.length > 0 ? `Recent Recorded Studio Decisions for Context:\n${ctx.recentDecisions.map((d) => `- ${d}`).join('\n')}` : ''}
+
+Cross-examine this self-evaluation on the Two-Axis Matrix. Determine if the student is rationalising, coasting on lucky unrepeatable hits, or accurately assessing their directorial reality.
 `.trim()
 	},
 
@@ -1370,30 +1443,62 @@ Cross-examine this self-evaluation on the Two-Axis Matrix.
 	// ==========================================
 	'log-decay-sentinel': {
 		id: 'log-decay-sentinel',
-		name: 'Log Decay & Theatre Sentinel',
-		persona: 'Anti-Bureaucracy Sentinel',
+		name: 'Log Decay & Anti-Theatre Sentinel',
+		persona: 'Anti-Bureaucracy Sentinel & Studio Archivist',
 		role: 'sentinel',
 		description: 'Audits log records for rote repetition, hollow compliance, and log decay.',
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Anti-Bureaucracy Sentinel.
-"The document is not the practice. The practice is the practice."
-When students log the same phrases, repeated 70% confidence ratings, or copy-paste rationales, they are engaging in logging theatre rather than genuine noticing.
+ROLE & OPERATING PROTOCOL:
+You are the Anti-Bureaucracy Sentinel and Studio Archivist.
+"The document is not the practice. The practice is the practice." (Appendix M, Failure Mode 4).
+When students log the same phrases, repeated 70% confidence ratings, pseudo-refusals without causality, or copy-paste rationales, they are engaging in logging theatre rather than genuine noticing.
 
-INSTRUCTIONS:
-1. Scan the provided sample entries for rote repetition or hollow compliance.
-2. Flag specific log decay symptoms.
-3. Prescribe a field rotation or prompt change to restore genuine observation.
+LOG DECAY SYMPTOMS TO CATCH:
+1. Rote Phrase Repetition: "Adjusted prompt", "Made it sharper", "Tweaked lighting", "Explored further".
+2. Default / Flatline Confidence: Logging 70% or 80% every time without Bayesian calibration.
+3. Pseudo-Refusal: Claiming alternatives were rejected without stating the mechanical reason why.
+4. Adjectival Camouflage: Logging emotional impressions rather than physical formal changes.
+5. Checkbox Compliance: Rushed, minimalist entries completed merely to satisfy the loop.
+
+DECAY STATUS CATEGORIES:
+- PRISTINE_RIGOR: High observational acuity; entries describe precise causal mechanisms; varied confidence; authentic refusals.
+- EARLY_SLIPPAGE: Minor repetition or occasional ungrounded assertions; easily corrected before calcification.
+- SYSTEMIC_THEATRE: Bureaucratic ritual; recurring rote phrases; uniform confidence; logging has replaced active noticing.
+
+CRITICAL INSTRUCTION - PARSABLE AUDIT BLOCK:
+At the very end of your response, output this exact machine-readable block:
+
+[LOG_DECAY_AUDIT]
+STATUS: <PRISTINE_RIGOR | EARLY_SLIPPAGE | SYSTEMIC_THEATRE>
+SCORE: <integer 1-10, where 10 is pristine and 1 is total theatre>
+SYMPTOMS:
+- <Specific detected symptom or repeated phrase>
+INTERVENTION: <Actionable reset rule: e.g. 1-sentence limit, 60m observation pause, rotate log prompt>
+SHARPENED_SAMPLE: <An exemplary rewrite of one of the student's sloppy entries demonstrating zero-adjective directorial rigor>
+[/LOG_DECAY_AUDIT]
 `.trim(),
 		defaultTemperature: 0.2,
-		defaultMaxTokens: 700,
-		formatPrompt: (ctx: { logType: string; entries: string[] }) => `
-Log Type: ${ctx.logType}
-Recent Entries:
-${ctx.entries.map((e, i) => `[Entry ${i + 1}]: "${e}"`).join('\n')}
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: {
+			logType?: string;
+			entries?: string[];
+			recentProblems?: string[];
+			recentCalibrations?: string[];
+			recentDecisions?: string[];
+			recentBriefs?: string[];
+		}) => `
+Studio Logbook Audit Dossier:
+${ctx.logType ? `Focused Log Type: ${ctx.logType}` : 'Comprehensive Multi-Log Review'}
 
-Audit these entries for Log Decay.
+${ctx.entries && ctx.entries.length > 0 ? `Target Sample Entries:\n${ctx.entries.map((e, i) => `[Entry ${i + 1}]: "${e}"`).join('\n')}` : ''}
+${ctx.recentProblems && ctx.recentProblems.length > 0 ? `Recent Problem Logs:\n${ctx.recentProblems.map((p) => `- ${p}`).join('\n')}` : ''}
+${ctx.recentCalibrations && ctx.recentCalibrations.length > 0 ? `Recent Calibration Logs:\n${ctx.recentCalibrations.map((c) => `- ${c}`).join('\n')}` : ''}
+${ctx.recentDecisions && ctx.recentDecisions.length > 0 ? `Recent Decision Logs:\n${ctx.recentDecisions.map((d) => `- ${d}`).join('\n')}` : ''}
+${ctx.recentBriefs && ctx.recentBriefs.length > 0 ? `Recent Brief Entries:\n${ctx.recentBriefs.map((b) => `- ${b}`).join('\n')}` : ''}
+
+Audit these entries for Log Decay (Appendix M Failure Mode 4). Diagnose whether the student is authentically noticing or performing hollow logging theatre.
 `.trim()
 	},
 
@@ -1402,28 +1507,62 @@ Audit these entries for Log Decay.
 		name: 'Appendix L Directorial Archive Synthesizer',
 		persona: 'Master Archivist & Directorial Biographer',
 		role: 'curator',
-		description: 'Synthesizes studio logs into an integrated directorial retrospective narrative.',
+		description: 'Synthesizes studio logs into an integrated directorial retrospective narrative for Appendix L export.',
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Master Archivist.
-Synthesize the student's logged decisions, calibrations, and problems into a coherent, high-level Directorial Evolution Narrative for their Appendix L Archive export.
+ROLE & OPERATING PROTOCOL:
+You are the Master Archivist and Directorial Biographer.
+Your mission is to synthesize the student's entire accumulated studio history (Problems, Calibrations, Decisions, Briefs, Refusals, and Capstone insights) into an authoritative, publication-ready Directorial Evolution Monograph for their Appendix L Archive export.
+
+DIRECTORIAL SYNTHESIS PILLARS:
+1. Sensibility & Taste Evolution: Trace the progression from naive adjectival prompting to causal structural specification and explicit taste mechanisms.
+2. Calibration & Mental Model Shifts: Synthesize what the director learned when reality shattered their pre-run expectations.
+3. The Chronicle of Refusal: Document the director's boundaries—what they refused to make, what client compromises they pushed back on, and how their voice solidified through rejection.
+4. Persistent Blind Spots: Identify the creative edges where the director still tends to slip or hesitate.
+
+CRITICAL INSTRUCTION - PARSABLE AUDIT BLOCK:
+At the very end of your response, output this exact machine-readable block:
+
+[APPENDIX_L_SYNTHESIS]
+TITLE: <Authoritative Title for the Directorial Retrospective>
+EVOLUTION_NARRATIVE: <Long-form narrative analyzing how the director transitioned from adjectival prompting to causal specification>
+MAJOR_BREAKTHROUGHS:
+- <Breakthrough 1>
+- <Breakthrough 2>
+PERSISTENT_BLIND_SPOTS:
+- <Blind spot 1>
+REFUSAL_CHRONICLE: <Summary of what the director refused to create and why>
+MARKDOWN_EXPORT:
+<Complete, publication-ready markdown narrative to inject directly into Appendix L archive export>
+[/APPENDIX_L_SYNTHESIS]
 `.trim(),
 		defaultTemperature: 0.4,
-		defaultMaxTokens: 1200,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: {
 			problemCount: number;
 			decisionCount: number;
 			calibrationCount: number;
-			sampleDecisions: string[];
+			briefCount: number;
+			sampleProblems?: string[];
+			sampleDecisions?: string[];
+			sampleCalibrations?: string[];
+			sampleBriefs?: string[];
+			projectHistory?: string[];
 		}) => `
-Problems Logged: ${ctx.problemCount}
-Decisions Logged: ${ctx.decisionCount}
-Calibrations Logged: ${ctx.calibrationCount}
-Sample Major Decisions:
-${ctx.sampleDecisions.map((d) => `- ${d}`).join('\n')}
+Appendix L Studio Cumulative Record:
+- Total Problems Logged: ${ctx.problemCount}
+- Total Calibrations Logged: ${ctx.calibrationCount}
+- Total Consequential Decisions: ${ctx.decisionCount}
+- Total 7-Layer Briefs Authored: ${ctx.briefCount}
 
-Synthesize an executive directorial evolution retrospective for the Appendix L portfolio archive.
+${ctx.sampleProblems && ctx.sampleProblems.length > 0 ? `Representative Problem Formulations:\n${ctx.sampleProblems.map((p) => `- ${p}`).join('\n')}` : ''}
+${ctx.sampleDecisions && ctx.sampleDecisions.length > 0 ? `Representative Consequential Decisions & Refusals:\n${ctx.sampleDecisions.map((d) => `- ${d}`).join('\n')}` : ''}
+${ctx.sampleCalibrations && ctx.sampleCalibrations.length > 0 ? `Representative Calibration Divergences & Model Revisions:\n${ctx.sampleCalibrations.map((c) => `- ${c}`).join('\n')}` : ''}
+${ctx.sampleBriefs && ctx.sampleBriefs.length > 0 ? `Representative Brief Intentions & Constraints:\n${ctx.sampleBriefs.map((b) => `- ${b}`).join('\n')}` : ''}
+${ctx.projectHistory && ctx.projectHistory.length > 0 ? `Flagship Project Progression:\n${ctx.projectHistory.map((p) => `- ${p}`).join('\n')}` : ''}
+
+Synthesize a comprehensive, executive Directorial Evolution Monograph for the student's Appendix L portfolio archive export.
 `.trim()
 	},
 
@@ -1436,26 +1575,44 @@ Synthesize an executive directorial evolution retrospective for the Appendix L p
 		systemPrompt: `
 ${BASE_STUDIO_DIRECTIVE}
 
-ROLE: You are the Studio Physician.
-The 4 Failure Modes (Appendix M) are:
-1. Output Failure (work doesn't work, but discipline & energy are intact) -> Protocol: Diagnostic Ladder + Smallest Meaningful Experiment.
-2. Habit Failure (skipped 2+ weeks due to life overload) -> Protocol: Shrink to 15m micro-reps, switch Intensity Path, Maintenance Mode.
-3. Motivational Failure (going through motions, hollow care, borrowed ambition) -> Protocol: 7-Day Production Pause, Non-Instrumental Attention.
-4. Log Decay (bureaucratic logging theatre) -> Protocol: 10m hard cap, 1-sentence limit, rotate prompts.
+ROLE & OPERATING PROTOCOL:
+You are the Studio Physician and Failure Triager.
+When a creative director feels blocked, frustrated, or paralyzed, self-diagnosis is notoriously unreliable.
+You must map their symptoms to one of the 4 canonical failure modes defined in Appendix M:
 
-INSTRUCTIONS:
-1. Diagnose the true root failure mode from the student's qualitative description.
-2. Prescribe the exact Appendix M operational remedy.
+1. Output Failure (The artifact does not work, but discipline & energy are intact)
+   - Protocol: Top-Down Diagnostic Ladder + Smallest Meaningful Experiment. Fix higher levels (Intent/Structure) before lower levels (Polish).
+2. Habit Failure (Skipped sessions for 2+ weeks due to life overload or excessive ambition)
+   - Protocol: Shrink session targets to 15-minute micro-drills for 7 consecutive days; switch Intensity Path (Extended 24w or Distributed 48w); Maintenance Mode.
+3. Motivational Failure (Going through the motions, hollow care, borrowed ambition)
+   - Protocol: 7-Day Production Pause (lock generation tools); 60m daily Non-Instrumental Attention; Standing Inquiry audit.
+4. Log Decay (Logging has become checkbox bureaucracy and theatre)
+   - Protocol: 10-minute hard cap; 1-sentence limit per field; rotate log lenses.
+
+CRITICAL INSTRUCTION - PARSABLE AUDIT BLOCK:
+At the very end of your response, output this exact machine-readable block:
+
+[FAILURE_TRIAGE]
+PRIMARY_MODE: <output | habit | motivational | decay>
+UNDERLYING_DYNAMIC: <Root clinical diagnosis of why the student is stuck>
+PRESCRIBED_PROTOCOL:
+- <Concrete step 1>
+- <Concrete step 2>
+- <Concrete step 3>
+IMMEDIATE_NEXT_MOVE: <The single atomic next action to take today under 15 minutes>
+[/FAILURE_TRIAGE]
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 750,
-		formatPrompt: (ctx: { symptoms: string }) => `
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: { symptoms: string; recentContext?: string }) => `
 Student Reported Symptoms & Stuck State:
 """
 ${ctx.symptoms}
 """
 
-Diagnose the failure mode and prescribe the recovery protocol.
+${ctx.recentContext ? `Recent Studio Context: ${ctx.recentContext}` : ''}
+
+Diagnose the true failure mode and prescribe the exact Appendix M operational recovery protocol.
 `.trim()
 	}
 };
@@ -2164,6 +2321,31 @@ export async function executePrompt<T = any>(
 		if (audit) {
 			critique.anchorAudit = audit;
 		}
+	} else if (promptId === 'project-rubric-audit') {
+		const audit = parseProjectRubricAudit(response.text);
+		if (audit) {
+			critique.projectRubricAudit = audit;
+		}
+	} else if (promptId === 'two-axis-cross-examination') {
+		const audit = parseTwoAxisCrossExam(response.text);
+		if (audit) {
+			critique.twoAxisCrossExam = audit;
+		}
+	} else if (promptId === 'log-decay-sentinel') {
+		const audit = parseLogDecayAudit(response.text);
+		if (audit) {
+			critique.logDecayAudit = audit;
+		}
+	} else if (promptId === 'appendix-l-synthesis') {
+		const audit = parseAppendixLSynthesis(response.text);
+		if (audit) {
+			critique.appendixLSynthesis = audit;
+		}
+	} else if (promptId === 'failure-triage-diagnostic') {
+		const diag = parseFailureTriageDiagnostic(response.text);
+		if (diag) {
+			critique.failureTriageDiagnostic = diag;
+		}
 	}
 
 	return critique;
@@ -2338,3 +2520,205 @@ export function parseAnchorAudit(text: string): AnchorAudit | undefined {
 	};
 }
 
+
+
+/**
+ * Parses machine-readable [PROJECT_RUBRIC_AUDIT] blocks from project-rubric-audit.
+ */
+export function parseProjectRubricAudit(text: string): ProjectRubricAudit | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[PROJECT_RUBRIC_AUDIT\]([\s\S]*?)(\[\/PROJECT_RUBRIC_AUDIT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(DISTINCTION_PASS|SOLID_PASS|REVISE_DEFECTS|REJECT_EVASION)/i);
+	const scoreMatch = target.match(/OVERALL_SCORE:\s*(\d+)/i);
+	const criteriaBlockMatch = target.match(/CRITERIA_ASSESSMENTS:([\s\S]*?)(?=FLAGGED_BLIND_SPOTS:|SHARPENED_GUIDANCE:|NEXT_DIRECTORIAL_MOVE:|$)/i);
+	const blindSpotsMatch = target.match(/FLAGGED_BLIND_SPOTS:([\s\S]*?)(?=SHARPENED_GUIDANCE:|NEXT_DIRECTORIAL_MOVE:|$)/i);
+	const guidanceMatch = target.match(/SHARPENED_GUIDANCE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const moveMatch = target.match(/NEXT_DIRECTORIAL_MOVE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!verdictMatch && !guidanceMatch && !criteriaBlockMatch) {
+		return undefined;
+	}
+
+	const criteriaAssessments: Array<{ criterion: string; rating: 'MEETS' | 'PARTIAL' | 'DEFICIENT'; feedback: string }> = [];
+	if (criteriaBlockMatch) {
+		const lines = criteriaBlockMatch[1].split('\n');
+		for (const line of lines) {
+			const m = line.match(/[-*•]?\s*Criterion:\s*([^|]+?)\s*\|\s*Rating:\s*(MEETS|PARTIAL|DEFICIENT)\s*\|\s*Feedback:\s*(.+)/i);
+			if (m) {
+				criteriaAssessments.push({
+					criterion: m[1].trim(),
+					rating: m[2].trim().toUpperCase() as any,
+					feedback: m[3].trim()
+				});
+			}
+		}
+	}
+
+	let flaggedBlindSpots: string[] = [];
+	if (blindSpotsMatch) {
+		flaggedBlindSpots = blindSpotsMatch[1]
+			.split('\n')
+			.map((l) => l.replace(/^[-*•\d.]+\s*/, '').trim())
+			.filter((l) => l.length > 0);
+	}
+
+	const rawScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 75;
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'REVISE_DEFECTS') as any,
+		overallScore: isNaN(rawScore) ? 75 : rawScore,
+		criteriaAssessments,
+		flaggedBlindSpots,
+		sharpenedGuidance: guidanceMatch ? guidanceMatch[1].trim() : 'Deliverable guidance not extracted.',
+		nextDirectorialMove: moveMatch ? moveMatch[1].trim() : 'Review project specifications and address flagged defects.'
+	};
+}
+
+/**
+ * Parses machine-readable [TWO_AXIS_AUDIT] blocks from two-axis-cross-examination.
+ */
+export function parseTwoAxisCrossExam(text: string): TwoAxisCrossExam | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[TWO_AXIS_AUDIT\]([\s\S]*?)(\[\/TWO_AXIS_AUDIT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const quadMatch = target.match(/DIAGNOSED_QUADRANT:\s*(mastery|learning-in-progress|lucky-unstable|failure)/i);
+	const congMatch = target.match(/CONGRUENCE_VERDICT:\s*(HONEST_CONGRUENT|SUSPECTED_RATIONALISATION|SUSPECTED_LUCKY_HIT|IMPOSTOR_HESITATION)/i);
+	const outMatch = target.match(/RECOMMENDED_OUTCOME:\s*(\d)/i);
+	const decMatch = target.match(/RECOMMENDED_DECISION:\s*(\d)/i);
+	const challengeMatch = target.match(/SOCRATIC_CHALLENGE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const prescMatch = target.match(/DIRECTORIAL_PRESCRIPTION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!congMatch && !challengeMatch && !quadMatch) {
+		return undefined;
+	}
+
+	const rawOut = outMatch ? parseInt(outMatch[1], 10) : 3;
+	const rawDec = decMatch ? parseInt(decMatch[1], 10) : 3;
+
+	return {
+		diagnosedQuadrant: (quadMatch ? quadMatch[1].toLowerCase() : 'learning-in-progress') as any,
+		congruenceVerdict: (congMatch ? congMatch[1].toUpperCase() : 'HONEST_CONGRUENT') as any,
+		recommendedOutcomeScore: isNaN(rawOut) ? 3 : Math.max(1, Math.min(4, rawOut)),
+		recommendedDecisionScore: isNaN(rawDec) ? 3 : Math.max(1, Math.min(4, rawDec)),
+		socraticChallenge: challengeMatch ? challengeMatch[1].trim() : 'Interrogate whether your decisions were causal or coincidental.',
+		directorialPrescription: prescMatch ? prescMatch[1].trim() : 'Calibrate your decision loop against tangible deliverables.'
+	};
+}
+
+/**
+ * Parses machine-readable [LOG_DECAY_AUDIT] blocks from log-decay-sentinel.
+ */
+export function parseLogDecayAudit(text: string): LogDecayAudit | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[LOG_DECAY_AUDIT\]([\s\S]*?)(\[\/LOG_DECAY_AUDIT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const statusMatch = target.match(/STATUS:\s*(PRISTINE_RIGOR|EARLY_SLIPPAGE|SYSTEMIC_THEATRE)/i);
+	const scoreMatch = target.match(/SCORE:\s*(\d+)/i);
+	const symptomsMatch = target.match(/SYMPTOMS:([\s\S]*?)(?=INTERVENTION:|SHARPENED_SAMPLE:|$)/i);
+	const intervMatch = target.match(/INTERVENTION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const sampleMatch = target.match(/SHARPENED_SAMPLE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*\[\/LOG_DECAY_AUDIT\]|$)/i);
+
+	if (!statusMatch && !intervMatch && !sampleMatch) {
+		return undefined;
+	}
+
+	let symptomsDetected: string[] = [];
+	if (symptomsMatch) {
+		symptomsDetected = symptomsMatch[1]
+			.split('\n')
+			.map((l) => l.replace(/^[-*•\d.]+\s*/, '').trim())
+			.filter((l) => l.length > 0);
+	}
+
+	const rawScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 7;
+
+	return {
+		decayStatus: (statusMatch ? statusMatch[1].toUpperCase() : 'EARLY_SLIPPAGE') as any,
+		decayScore: isNaN(rawScore) ? 7 : Math.max(1, Math.min(10, rawScore)),
+		symptomsDetected,
+		prescribedIntervention: intervMatch ? intervMatch[1].trim() : 'Enforce a 10-minute timer and 1-sentence limit per entry.',
+		sharpenedSampleEntry: sampleMatch ? sampleMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable [APPENDIX_L_SYNTHESIS] blocks from appendix-l-synthesis.
+ */
+export function parseAppendixLSynthesis(text: string): AppendixLSynthesis | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[APPENDIX_L_SYNTHESIS\]([\s\S]*?)(\[\/APPENDIX_L_SYNTHESIS\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const titleMatch = target.match(/TITLE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const narrMatch = target.match(/EVOLUTION_NARRATIVE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*MAJOR_BREAKTHROUGHS:|$)/i);
+	const breaksMatch = target.match(/MAJOR_BREAKTHROUGHS:([\s\S]*?)(?=PERSISTENT_BLIND_SPOTS:|REFUSAL_CHRONICLE:|MARKDOWN_EXPORT:|$)/i);
+	const spotsMatch = target.match(/PERSISTENT_BLIND_SPOTS:([\s\S]*?)(?=REFUSAL_CHRONICLE:|MARKDOWN_EXPORT:|$)/i);
+	const refusalMatch = target.match(/REFUSAL_CHRONICLE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*MARKDOWN_EXPORT:|$)/i);
+	const mdMatch = target.match(/MARKDOWN_EXPORT:\s*([\s\S]*?)(?=\[\/APPENDIX_L_SYNTHESIS\]|$)/i);
+
+	if (!titleMatch && !narrMatch && !mdMatch) {
+		return undefined;
+	}
+
+	let majorBreakthroughs: string[] = [];
+	if (breaksMatch) {
+		majorBreakthroughs = breaksMatch[1]
+			.split('\n')
+			.map((l) => l.replace(/^[-*•\d.]+\s*/, '').trim())
+			.filter((l) => l.length > 0);
+	}
+
+	let persistentBlindSpots: string[] = [];
+	if (spotsMatch) {
+		persistentBlindSpots = spotsMatch[1]
+			.split('\n')
+			.map((l) => l.replace(/^[-*•\d.]+\s*/, '').trim())
+			.filter((l) => l.length > 0);
+	}
+
+	return {
+		title: titleMatch ? titleMatch[1].trim() : 'Directorial Retrospective & Evolution Monograph',
+		evolutionNarrative: narrMatch ? narrMatch[1].trim() : 'Directorial evolution narrative synthesized from studio logs.',
+		majorBreakthroughs,
+		persistentBlindSpots,
+		refusalChronicleSummary: refusalMatch ? refusalMatch[1].trim() : 'Refusal boundaries and non-negotiables developed throughout practice.',
+		appendixLMarkdownExport: mdMatch ? mdMatch[1].trim() : (narrMatch ? narrMatch[1].trim() : text)
+	};
+}
+
+/**
+ * Parses machine-readable [FAILURE_TRIAGE] blocks from failure-triage-diagnostic.
+ */
+export function parseFailureTriageDiagnostic(text: string): FailureTriageDiagnostic | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[FAILURE_TRIAGE\]([\s\S]*?)(\[\/FAILURE_TRIAGE\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const modeMatch = target.match(/PRIMARY_MODE:\s*(output|habit|motivational|decay)/i);
+	const dynamicMatch = target.match(/UNDERLYING_DYNAMIC:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const protoMatch = target.match(/PRESCRIBED_PROTOCOL:([\s\S]*?)(?=IMMEDIATE_NEXT_MOVE:|$)/i);
+	const moveMatch = target.match(/IMMEDIATE_NEXT_MOVE:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!modeMatch && !dynamicMatch && !moveMatch) {
+		return undefined;
+	}
+
+	let prescribedProtocol: string[] = [];
+	if (protoMatch) {
+		prescribedProtocol = protoMatch[1]
+			.split('\n')
+			.map((l) => l.replace(/^[-*•\d.]+\s*/, '').trim())
+			.filter((l) => l.length > 0);
+	}
+
+	return {
+		primaryMode: (modeMatch ? modeMatch[1].toLowerCase() : 'output') as any,
+		underlyingDynamic: dynamicMatch ? dynamicMatch[1].trim() : 'Symptom pattern suggests friction in studio execution.',
+		prescribedProtocol,
+		immediateNextMove: moveMatch ? moveMatch[1].trim() : 'Open Top-Down Diagnostic Ladder and review intent.'
+	};
+}

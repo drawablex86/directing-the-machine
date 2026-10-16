@@ -233,6 +233,54 @@ export interface CapstoneMilestoneResult {
 	nextDirectorialMove: string;
 }
 
+export interface ProjectRubricCriterionAssessment {
+	criterion: string;
+	rating: 'MEETS' | 'PARTIAL' | 'DEFICIENT';
+	feedback: string;
+}
+
+export interface ProjectRubricAudit {
+	verdict: 'DISTINCTION_PASS' | 'SOLID_PASS' | 'REVISE_DEFECTS' | 'REJECT_EVASION';
+	overallScore: number;
+	criteriaAssessments: ProjectRubricCriterionAssessment[];
+	flaggedBlindSpots: string[];
+	sharpenedGuidance: string;
+	nextDirectorialMove: string;
+}
+
+export interface TwoAxisCrossExam {
+	diagnosedQuadrant: 'mastery' | 'learning-in-progress' | 'lucky-unstable' | 'failure';
+	congruenceVerdict: 'HONEST_CONGRUENT' | 'SUSPECTED_RATIONALISATION' | 'SUSPECTED_LUCKY_HIT' | 'IMPOSTOR_HESITATION';
+	recommendedOutcomeScore: number;
+	recommendedDecisionScore: number;
+	socraticChallenge: string;
+	directorialPrescription: string;
+}
+
+export interface LogDecayAudit {
+	decayStatus: 'PRISTINE_RIGOR' | 'EARLY_SLIPPAGE' | 'SYSTEMIC_THEATRE';
+	decayScore: number;
+	symptomsDetected: string[];
+	prescribedIntervention: string;
+	sharpenedSampleEntry?: string;
+}
+
+export interface AppendixLSynthesis {
+	title: string;
+	evolutionNarrative: string;
+	majorBreakthroughs: string[];
+	persistentBlindSpots: string[];
+	refusalChronicleSummary: string;
+	appendixLMarkdownExport: string;
+}
+
+export interface FailureTriageDiagnostic {
+	primaryMode: 'output' | 'habit' | 'motivational' | 'decay';
+	underlyingDynamic: string;
+	prescribedProtocol: string[];
+	immediateNextMove: string;
+}
+
 export interface CritiqueResult {
 	id: string;
 	timestamp: string;
@@ -274,6 +322,11 @@ export interface CritiqueResult {
 	tasteFormulaAudit?: TasteFormulaAudit;
 	reverseBriefAudit?: ReverseBriefAudit;
 	anchorAudit?: AnchorAudit;
+	projectRubricAudit?: ProjectRubricAudit;
+	twoAxisCrossExam?: TwoAxisCrossExam;
+	logDecayAudit?: LogDecayAudit;
+	appendixLSynthesis?: AppendixLSynthesis;
+	failureTriageDiagnostic?: FailureTriageDiagnostic;
 }
 
 export interface LlmAction {

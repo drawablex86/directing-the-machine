@@ -1,10 +1,59 @@
 <script lang="ts">
-	import { X, ShieldAlert, Sparkles, RefreshCw, EyeOff, RotateCcw } from '@lucide/svelte';
+	import { X, ShieldAlert, Sparkles, RefreshCw, EyeOff, RotateCcw, Target, Check } from '@lucide/svelte';
 	import { practiceStore } from '$lib/state/practice.svelte';
+	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
+	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
+	import { executePrompt } from '$lib/engine/prompt-registry';
+	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
 
 	let { isOpen, onClose }: { isOpen: boolean; onClose: () => void } = $props();
 
 	let selectedFailureType = $state<'output' | 'habit' | 'motivational' | 'decay'>('output');
+	let symptomsText = $state('');
+	let triageCritique = $state<CritiqueResult | null>(null);
+	let isDiagnosing = $state(false);
+	let triageSavedNotice = $state(false);
+
+	async function runFailureTriage() {
+		if (isDiagnosing || !symptomsText.trim()) return;
+		isDiagnosing = true;
+		try {
+			const res = await executePrompt('failure-triage-diagnostic', {
+				symptoms: symptomsText.trim(),
+				recentContext: `Active Part ${practiceStore.activePart}, Week ${practiceStore.activeWeek}, Day ${practiceStore.activeDay}`
+			});
+			triageCritique = res;
+			if (res.failureTriageDiagnostic?.primaryMode) {
+				selectedFailureType = res.failureTriageDiagnostic.primaryMode;
+			}
+		} catch (err) {
+			console.error('Failed to diagnose failure mode:', err);
+		} finally {
+			isDiagnosing = false;
+		}
+	}
+
+	const triageActions: LlmAction[] = [
+		{
+			label: 'Commit Recovery Plan to Decision Log',
+			primary: true,
+			onClick: (result) => {
+				if (result.failureTriageDiagnostic) {
+					practiceStore.saveDecision({
+						project: 'Failure Mode Triage (Appendix M)',
+						decision: `Diagnosed ${result.failureTriageDiagnostic.primaryMode.toUpperCase()} Failure: ${result.failureTriageDiagnostic.immediateNextMove}`,
+						highestUnresolvedLevel: 'Level 1 (Intent)',
+						alternativesRejected: 'Continuing to push through exhaustion or applying lower-level tweaks to broken intent',
+						justification: `${result.failureTriageDiagnostic.underlyingDynamic} | Protocol: ${result.failureTriageDiagnostic.prescribedProtocol.join('; ')}`,
+						feedbackIncorporated: 'Studio Physician 4-Way Triage Diagnosis',
+						refusals: 'Self-Blame & Unexamined Pushing'
+					});
+					triageSavedNotice = true;
+					setTimeout(() => (triageSavedNotice = false), 3000);
+				}
+			}
+		}
+	];
 
 	const failureModes = [
 		{
@@ -84,6 +133,74 @@
 				>
 					<X class="w-5 h-5" />
 				</button>
+			</div>
+
+			<!-- Intelligent Symptom Diagnosis Input -->
+			<div class="p-3.5 bg-neutral-950 border-b border-neutral-800 space-y-2 text-xs">
+				<div class="flex items-center justify-between">
+					<label for="symptoms-input" class="font-bold text-neutral-200 flex items-center gap-1.5">
+						<Sparkles class="w-3.5 h-3.5 text-amber-400" />
+						<span>Intelligent Studio Triage (Describe what feels stuck or broken):</span>
+					</label>
+					<span class="text-[10px] text-neutral-500 font-mono">Appendix M Clinical Advisor</span>
+				</div>
+				<textarea
+					id="symptoms-input"
+					rows="2"
+					bind:value={symptomsText}
+					placeholder="e.g. 'I am generating dozens of images but none feel personal. I feel like I am just running an automated pipeline without real skin in the game...'"
+					class="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500 font-sans leading-relaxed"
+				></textarea>
+
+				<div class="flex items-center justify-between pt-1">
+					{#if triageSavedNotice}
+						<span class="text-emerald-400 font-mono text-[11px] flex items-center gap-1">
+							<Check class="w-3.5 h-3.5" />
+							<span>Recovery plan committed to Decision Log!</span>
+						</span>
+					{:else}
+						<span class="text-[10px] text-neutral-500 italic">Auto-detects Output, Habit, Motivation, or Log Decay</span>
+					{/if}
+
+					<LlmTriggerButton
+						label="Diagnose Failure Mode & Prescribe Protocol"
+						onclick={runFailureTriage}
+						loading={isDiagnosing}
+						disabled={!symptomsText.trim()}
+						size="xs"
+						title="Socratically maps your qualitative symptoms to one of the 4 canonical Appendix M failure modes"
+					/>
+				</div>
+
+				{#if triageCritique?.failureTriageDiagnostic}
+					{@const diag = triageCritique.failureTriageDiagnostic}
+					<div class="mt-2 p-3 rounded-lg bg-neutral-900 border border-amber-500/30 space-y-2">
+						<div class="flex items-center justify-between">
+							<div class="flex items-center gap-2">
+								<span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500 text-neutral-950 font-bold">
+									Diagnosed: {diag.primaryMode.toUpperCase()} FAILURE
+								</span>
+							</div>
+						</div>
+						<p class="text-[11px] text-neutral-300 leading-relaxed font-serif">
+							{diag.underlyingDynamic}
+						</p>
+						<div class="p-2 rounded bg-amber-950/20 border border-amber-900/40 text-[11px] text-amber-300 font-semibold flex items-center gap-1.5">
+							<Target class="w-3.5 h-3.5 text-amber-400 shrink-0" />
+							<span>Immediate Action: {diag.immediateNextMove}</span>
+						</div>
+					</div>
+				{/if}
+
+				{#if triageCritique}
+					<div class="pt-1">
+						<LlmCritiqueCard
+							result={triageCritique}
+							onDismiss={() => (triageCritique = null)}
+							actions={triageActions}
+						/>
+					</div>
+				{/if}
 			</div>
 
 			<!-- Selector Tabs -->

@@ -15,8 +15,16 @@
 		Sliders,
 		Link as LinkIcon,
 		FileCheck,
-		AlertCircle
+		AlertCircle,
+		AlertTriangle,
+		Trash2,
+		Check,
+		HelpCircle
 	} from '@lucide/svelte';
+	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
+	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
+	import { executePrompt } from '$lib/engine/prompt-registry';
+	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
 
 	let {
 		project,
@@ -44,6 +52,14 @@
 
 	let artifactUrl = $state('');
 	let urlSavedNotice = $state(false);
+
+	// LLM states & loading indicators
+	let rubricCritique = $state<CritiqueResult | null>(null);
+	let twoAxisCritique = $state<CritiqueResult | null>(null);
+	let isCheckingRubric = $state(false);
+	let isCheckingTwoAxis = $state(false);
+	let rubricSavedNotice = $state(false);
+	let twoAxisSavedNotice = $state(false);
 
 	$effect(() => {
 		outcomeScore = progress.twoAxisEvaluation?.outcomeScore ?? 3;
@@ -74,14 +90,144 @@
 	function saveEvaluation() {
 		practiceStore.saveProjectEvaluation(project.id, outcomeScore, decisionScore, evalNotes);
 		evalSavedNotice = true;
-		setTimeout(() => evalSavedNotice = false, 3000);
+		setTimeout(() => (evalSavedNotice = false), 3000);
 	}
 
 	function saveArtifactUrl() {
 		practiceStore.setProjectArtifactUrl(project.id, artifactUrl.trim());
 		urlSavedNotice = true;
-		setTimeout(() => urlSavedNotice = false, 2500);
+		setTimeout(() => (urlSavedNotice = false), 2500);
 	}
+
+	// Filtered decisions for this project
+	let projectDecisions = $derived(
+		practiceStore.decisions.filter(
+			(d) =>
+				d.project.toLowerCase().includes(project.id.toLowerCase()) ||
+				d.project.toLowerCase().includes(`p${project.number}`) ||
+				d.project.toLowerCase().includes(`project ${project.number}`)
+		)
+	);
+
+	function deleteDecision(id: string) {
+		practiceStore.decisions = practiceStore.decisions.filter((d) => d.id !== id);
+		practiceStore.saveToStorage();
+	}
+
+	async function runRubricAudit() {
+		if (isCheckingRubric) return;
+		isCheckingRubric = true;
+		try {
+			const result = await executePrompt('project-rubric-audit', {
+				projectNumber: project.number,
+				projectTitle: project.title,
+				phaseOrMonth: project.phaseOrMonth,
+				goal: project.goal,
+				deliverables: project.deliverables,
+				rubric: project.evaluationRubric.map((r) => ({
+					criterion: r.level,
+					weight: 1,
+					targetOutcome: r.criteria
+				})),
+				artifactUrl,
+				notes: evalNotes,
+				completedDeliverableNames: progress.completedDeliverableNames
+			});
+			rubricCritique = result;
+		} catch (err) {
+			console.error('Failed to run rubric audit:', err);
+		} finally {
+			isCheckingRubric = false;
+		}
+	}
+
+	async function runTwoAxisCrossExam() {
+		if (isCheckingTwoAxis) return;
+		isCheckingTwoAxis = true;
+		try {
+			const result = await executePrompt('two-axis-cross-examination', {
+				projectName: `Project ${project.number}: ${project.title}`,
+				outcomeScore,
+				decisionScore,
+				reflectionNotes: evalNotes,
+				projectContext: project.goal,
+				recentDecisions: projectDecisions.map((d) => `${d.decision} (Justification: ${d.justification})`)
+			});
+			twoAxisCritique = result;
+		} catch (err) {
+			console.error('Failed to run two-axis cross examination:', err);
+		} finally {
+			isCheckingTwoAxis = false;
+		}
+	}
+
+	// 1-Click actions for Project Rubric Critique
+	const rubricActions: LlmAction[] = [
+		{
+			label: 'Append Guidance to Evaluation Notes',
+			primary: true,
+			onClick: (result) => {
+				if (result.projectRubricAudit?.sharpenedGuidance) {
+					const addition = `[Rubric Guidance (${result.projectRubricAudit.verdict})]: ${result.projectRubricAudit.sharpenedGuidance}`;
+					evalNotes = evalNotes ? `${evalNotes}\n\n${addition}` : addition;
+					saveEvaluation();
+				}
+			}
+		},
+		{
+			label: 'Record Audit to Studio Decision Log',
+			variant: 'secondary',
+			onClick: (result) => {
+				if (result.projectRubricAudit) {
+					practiceStore.saveDecision({
+						project: `P${project.number}: ${project.title}`,
+						decision: `Project Rubric Audit: ${result.projectRubricAudit.verdict} (${result.projectRubricAudit.overallScore}/100)`,
+						highestUnresolvedLevel: 'Level 1 (Intent)',
+						alternativesRejected: 'Proceeding with unexamined deliverable gaps or missing negative constraints',
+						justification: `${result.projectRubricAudit.sharpenedGuidance} Next move: ${result.projectRubricAudit.nextDirectorialMove}`,
+						feedbackIncorporated: 'Studio Jury Master Rubric Audit',
+						refusals: 'None'
+					});
+					rubricSavedNotice = true;
+					setTimeout(() => (rubricSavedNotice = false), 3000);
+				}
+			}
+		}
+	];
+
+	// 1-Click actions for Two-Axis Cross-Examination
+	const twoAxisActions: LlmAction[] = [
+		{
+			label: 'Adopt Calibrated Quadrant Scores',
+			primary: true,
+			onClick: (result) => {
+				if (result.twoAxisCrossExam) {
+					outcomeScore = result.twoAxisCrossExam.recommendedOutcomeScore;
+					decisionScore = result.twoAxisCrossExam.recommendedDecisionScore;
+					saveEvaluation();
+				}
+			}
+		},
+		{
+			label: 'Record Cross-Examination to Decision Log',
+			variant: 'secondary',
+			onClick: (result) => {
+				if (result.twoAxisCrossExam) {
+					practiceStore.saveDecision({
+						project: `P${project.number}: ${project.title}`,
+						decision: `Two-Axis Calibrated: ${result.twoAxisCrossExam.diagnosedQuadrant.toUpperCase()} (${result.twoAxisCrossExam.recommendedOutcomeScore}/4 Outcome, ${result.twoAxisCrossExam.recommendedDecisionScore}/4 Decision)`,
+						highestUnresolvedLevel: 'Level 3 (Structure)',
+						alternativesRejected: `Self-assessed bias (${result.twoAxisCrossExam.congruenceVerdict})`,
+						justification: `${result.twoAxisCrossExam.socraticChallenge} Prescription: ${result.twoAxisCrossExam.directorialPrescription}`,
+						feedbackIncorporated: 'Two-Axis Socratic Cross-Examination',
+						refusals: 'None'
+					});
+					twoAxisSavedNotice = true;
+					setTimeout(() => (twoAxisSavedNotice = false), 3000);
+				}
+			}
+		}
+	];
 </script>
 
 <div class="space-y-6">
@@ -239,6 +385,133 @@
 				</div>
 			{/if}
 		</div>
+
+		<!-- AI Deliverable Rubric Auditor Trigger & Output -->
+		<div class="pt-4 border-t border-neutral-800 space-y-4">
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+				<div>
+					<div class="flex items-center gap-2">
+						<Sparkles class="w-4 h-4 text-amber-400" />
+						<span class="text-xs font-bold text-white uppercase tracking-wider">Studio Jury Rubric Auditor</span>
+					</div>
+					<p class="text-[11px] text-neutral-400 mt-0.5">
+						Evaluates your completed deliverables, links, and reflection against Project {project.number} rubrics.
+					</p>
+				</div>
+				<LlmTriggerButton
+					label="Audit Submission Against Rubric"
+					onclick={runRubricAudit}
+					loading={isCheckingRubric}
+					disabled={!evalNotes.trim() && !artifactUrl.trim()}
+					title="Audit completed project deliverables and diagnostic notes against project rubrics"
+				/>
+			</div>
+
+			{#if rubricSavedNotice}
+				<div class="p-3 bg-emerald-950/60 border border-emerald-800/60 rounded-xl text-xs text-emerald-300 flex items-center gap-2 font-mono">
+					<Check class="w-4 h-4 text-emerald-400" />
+					<span>Project rubric audit saved to Studio Decision Log!</span>
+				</div>
+			{/if}
+
+			{#if rubricCritique?.projectRubricAudit}
+				{@const audit = rubricCritique.projectRubricAudit}
+				<div class="p-4 rounded-xl bg-neutral-950 border border-amber-500/30 space-y-4">
+					<div class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+						<div class="flex items-center gap-2">
+							<span
+								class="text-xs font-mono font-bold px-2.5 py-0.5 rounded border {audit.verdict === 'DISTINCTION_PASS'
+									? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+									: audit.verdict === 'SOLID_PASS'
+										? 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+										: audit.verdict === 'REVISE_DEFECTS'
+											? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+											: 'bg-rose-500/10 text-rose-400 border-rose-500/30'}"
+							>
+								{audit.verdict}
+							</span>
+							<span class="text-xs font-mono text-neutral-400">
+								Score: <strong class="text-amber-400">{audit.overallScore}</strong>/100
+							</span>
+						</div>
+						<span class="text-[11px] font-mono text-neutral-500">
+							{audit.criteriaAssessments.length} Rubric Criteria Audited
+						</span>
+					</div>
+
+					<!-- Criteria assessments breakdown -->
+					{#if audit.criteriaAssessments.length > 0}
+						<div class="space-y-2">
+							<div class="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+								Criteria Breakdown:
+							</div>
+							<div class="grid grid-cols-1 gap-2">
+								{#each audit.criteriaAssessments as crit}
+									<div class="p-3 rounded-lg bg-neutral-900 border border-neutral-800 space-y-1 text-xs">
+										<div class="flex items-center justify-between gap-2">
+											<span class="font-bold text-neutral-200">{crit.criterion}</span>
+											<span
+												class="text-[10px] font-mono px-2 py-0.5 rounded border {crit.rating === 'MEETS'
+													? 'bg-emerald-950/60 text-emerald-400 border-emerald-800'
+													: crit.rating === 'PARTIAL'
+														? 'bg-amber-950/60 text-amber-400 border-amber-800'
+														: 'bg-rose-950/60 text-rose-400 border-rose-800'}"
+											>
+												{crit.rating}
+											</span>
+										</div>
+										<p class="text-[11px] text-neutral-400 leading-relaxed">
+											{crit.feedback}
+										</p>
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+
+					<!-- Blind spots -->
+					{#if audit.flaggedBlindSpots.length > 0}
+						<div class="p-3 rounded-lg bg-rose-950/20 border border-rose-900/40 space-y-1.5">
+							<div class="flex items-center gap-1.5 text-xs font-bold text-rose-400">
+								<AlertCircle class="w-3.5 h-3.5 shrink-0" />
+								<span>Flagged Deliverable Blind Spots & Evasions:</span>
+							</div>
+							<ul class="text-[11px] text-rose-200/90 list-disc list-inside space-y-0.5">
+								{#each audit.flaggedBlindSpots as spot}
+									<li>{spot}</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+
+					<!-- Sharpened guidance -->
+					<div class="p-3 rounded-lg bg-amber-950/20 border border-amber-900/40 space-y-1">
+						<div class="text-[11px] font-bold text-amber-400 uppercase tracking-wider">
+							Directorial Elevation Guidance:
+						</div>
+						<p class="text-xs text-neutral-200 leading-relaxed font-serif">
+							{audit.sharpenedGuidance}
+						</p>
+					</div>
+
+					<!-- Next directorial move -->
+					<div class="p-2.5 rounded-lg bg-neutral-900 border border-neutral-800 text-xs flex items-center justify-between gap-3">
+						<div class="flex items-center gap-2 text-neutral-300">
+							<Target class="w-3.5 h-3.5 text-amber-400 shrink-0" />
+							<span><strong>Next Action:</strong> {audit.nextDirectorialMove}</span>
+						</div>
+					</div>
+				</div>
+			{/if}
+
+			{#if rubricCritique}
+				<LlmCritiqueCard
+					result={rubricCritique}
+					onDismiss={() => (rubricCritique = null)}
+					actions={rubricActions}
+				/>
+			{/if}
+		</div>
 	</div>
 
 	<!-- Two-Axis Project Evaluation Section -->
@@ -302,26 +575,156 @@
 				></textarea>
 			</div>
 
-			<div class="flex items-center justify-between pt-1">
-				<button
-					type="button"
-					onclick={saveEvaluation}
-					class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 transition flex items-center gap-2 cursor-pointer shadow"
-				>
-					<Award class="w-3.5 h-3.5" />
-					<span>Commit Project Evaluation</span>
-				</button>
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+				<div class="flex items-center gap-3">
+					<button
+						type="button"
+						onclick={saveEvaluation}
+						class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 transition flex items-center gap-2 cursor-pointer shadow"
+					>
+						<Award class="w-3.5 h-3.5" />
+						<span>Commit Project Evaluation</span>
+					</button>
 
-				{#if evalSavedNotice}
-					<span class="text-xs text-emerald-400 font-mono animate-in fade-in">
-						✓ Evaluation saved to Project Record!
-					</span>
-				{:else if progress.twoAxisEvaluation}
-					<span class="text-[11px] text-neutral-500 font-mono">
-						Last graded: {progress.twoAxisEvaluation.date} ({progress.twoAxisEvaluation.outcomeScore}/4 Outcome, {progress.twoAxisEvaluation.decisionScore}/4 Decision)
-					</span>
-				{/if}
+					{#if evalSavedNotice}
+						<span class="text-xs text-emerald-400 font-mono animate-in fade-in">
+							✓ Evaluation saved to Project Record!
+						</span>
+					{:else if progress.twoAxisEvaluation}
+						<span class="text-[11px] text-neutral-500 font-mono">
+							Last graded: {progress.twoAxisEvaluation.date} ({progress.twoAxisEvaluation.outcomeScore}/4 Outcome, {progress.twoAxisEvaluation.decisionScore}/4 Decision)
+						</span>
+					{/if}
+				</div>
+
+				<!-- AI Cross-Examiner Trigger -->
+				<LlmTriggerButton
+					label="Cross-Examine Scores & Reasoning"
+					onclick={runTwoAxisCrossExam}
+					loading={isCheckingTwoAxis}
+					title="Cross-examine self-assessed Outcome and Decision scores on the Two-Axis Matrix"
+				/>
 			</div>
+
+			{#if twoAxisSavedNotice}
+				<div class="p-3 bg-emerald-950/60 border border-emerald-800/60 rounded-xl text-xs text-emerald-300 flex items-center gap-2 font-mono">
+					<Check class="w-4 h-4 text-emerald-400" />
+					<span>Two-Axis cross-examination saved to Studio Decision Log!</span>
+				</div>
+			{/if}
+
+			{#if twoAxisCritique?.twoAxisCrossExam}
+				{@const exam = twoAxisCritique.twoAxisCrossExam}
+				<div class="p-4 rounded-xl bg-neutral-950 border border-blue-500/30 space-y-3">
+					<div class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+						<div class="flex items-center gap-2">
+							<span
+								class="text-xs font-mono font-bold px-2.5 py-0.5 rounded border {exam.congruenceVerdict === 'HONEST_CONGRUENT'
+									? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+									: exam.congruenceVerdict === 'SUSPECTED_RATIONALISATION'
+										? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+										: exam.congruenceVerdict === 'SUSPECTED_LUCKY_HIT'
+											? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+											: 'bg-blue-500/10 text-blue-400 border-blue-500/30'}"
+							>
+								{exam.congruenceVerdict}
+							</span>
+							<span class="text-xs text-neutral-400 font-mono">
+								Diagnosed: <strong class="capitalize text-white">{exam.diagnosedQuadrant.replace('-', ' ')}</strong>
+							</span>
+						</div>
+
+						<div class="text-xs font-mono px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-300">
+							Recommended: <span class="text-amber-400 font-bold">{exam.recommendedOutcomeScore}/4</span> Outcome • <span class="text-amber-400 font-bold">{exam.recommendedDecisionScore}/4</span> Decision
+						</div>
+					</div>
+
+					<!-- Socratic Challenge Probe -->
+					<div class="p-3 rounded-lg bg-blue-950/20 border border-blue-900/40 space-y-1">
+						<div class="text-[11px] font-bold uppercase tracking-wider text-blue-400">
+							Socratic Epistemic Challenge:
+						</div>
+						<p class="text-xs text-neutral-200 leading-relaxed font-serif italic">
+							"{exam.socraticChallenge}"
+						</p>
+					</div>
+
+					<!-- Directorial Prescription -->
+					<div class="p-3 rounded-lg bg-neutral-900 border border-neutral-800 space-y-1">
+						<div class="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
+							Directorial Prescription:
+						</div>
+						<p class="text-xs text-neutral-300 leading-relaxed">
+							{exam.directorialPrescription}
+						</p>
+					</div>
+				</div>
+			{/if}
+
+			{#if twoAxisCritique}
+				<LlmCritiqueCard
+					result={twoAxisCritique}
+					onDismiss={() => (twoAxisCritique = null)}
+					actions={twoAxisActions}
+				/>
+			{/if}
 		</div>
+	</div>
+
+	<!-- Recent Project Decisions History Table -->
+	<div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-4">
+		<div class="flex items-center justify-between border-b border-neutral-800 pb-3">
+			<div class="flex items-center gap-2">
+				<Layers class="w-4 h-4 text-amber-400" />
+				<h3 class="text-sm font-bold text-white">Project {project.number} Decision Logbook</h3>
+			</div>
+			<span class="text-xs font-mono text-neutral-400">
+				{projectDecisions.length} Decisions Recorded
+			</span>
+		</div>
+
+		{#if projectDecisions.length === 0}
+			<div class="text-center py-6 text-xs text-neutral-500 font-mono">
+				No recorded decisions for Project {project.number} yet. Use the Rubric Auditor or Two-Axis Cross-Examiner to commit directorial commitments.
+			</div>
+		{:else}
+			<div class="space-y-2">
+				{#each projectDecisions as decision}
+					<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800/80 space-y-2 text-xs">
+						<div class="flex items-start justify-between gap-3">
+							<div class="space-y-1">
+								<div class="font-bold text-neutral-200 text-sm">
+									{decision.decision}
+								</div>
+								<div class="text-[10px] font-mono text-neutral-500">
+									{decision.date} • {decision.project}
+								</div>
+							</div>
+							<button
+								type="button"
+								onclick={() => deleteDecision(decision.id)}
+								class="p-1 rounded hover:bg-neutral-800 text-neutral-500 hover:text-rose-400 transition cursor-pointer shrink-0"
+								title="Delete decision"
+							>
+								<Trash2 class="w-3.5 h-3.5" />
+							</button>
+						</div>
+
+						<div class="space-y-1 pt-1 border-t border-neutral-900">
+							{#if decision.alternativesRejected}
+								<div class="text-neutral-400">
+									<strong class="text-neutral-500">Alternatives Rejected:</strong> {decision.alternativesRejected}
+								</div>
+							{/if}
+							{#if decision.justification}
+								<div class="text-neutral-300">
+									<strong class="text-neutral-500">Justification:</strong> {decision.justification}
+								</div>
+							{/if}
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
 	</div>
 </div>
