@@ -192,10 +192,16 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Added interactive Recent Calibration Records history table with entry inspection and deletion capabilities.
   - Verified 0 TypeScript errors with `pnpm run check`, verified production build with `pnpm run build`, and passed all unit test assertions.
 
-- [ ] **Task 23: M5 Studio — Taste Formula Interrogator & Reverse Direction Coach**
-  - Integrate 5-part Taste Formula interrogation (`Preference + Criteria + Ref Class + Mechanism + Purpose`) in `M5TasteCurationArena.svelte`.
-  - Implement Reverse Direction Challenge coach transforming machine flaws into deliberate structural necessities.
-  - Implement 40% human anchor verification for collections.
+- [x] **Task 23: M5 Studio — Taste Formula Interrogator & Reverse Direction Coach**
+  - Integrated Taste Formula Interrogator (`m5-taste-interrogator`) in `M5TasteCurationArena.svelte` Tab 1 (Taste Formula) dissecting raw preferences across the complete 5-part formula (Preference, Criteria, Reference Class, Causal Mechanism, Expressive Purpose).
+  - Implemented `parseTasteInterrogation` in `prompt-registry.ts` parsing machine-readable `[TASTE_INTERROGATION]` blocks (`VERDICT`, `SHARPENED_FORMULA`, `MISSING_PARTS`, `REFERENCE_CLASS_AUDIT`, `MECHANISM_AUDIT`, `EDGE_CASE_TEST`). Added 1-click **"Adopt Sharpened Formula"** in-place action.
+  - Integrated Reverse Direction Challenge Coach (`m5-reverse-brief-coach`) in Tab 2 (Reverse Direction) transforming raw AI artifacts and machine flaws (hallucination, artifacts, uncanny valley) into deliberate structural necessities.
+  - Implemented `parseReverseBrief` in `prompt-registry.ts` parsing machine-readable `[REVERSE_BRIEF]` blocks (`BRIEF_TITLE`, `UNFLINCHING_INTENTION`, `TECHNICAL_FLAW_ROLE`, `CORE_CONSTRAINTS`, `ACCEPTANCE_THRESHOLD`, `REVERSAL_VERDICT`). Added 1-click **"Adopt Generated Reverse Brief"** in-place action.
+  - Integrated Human Anchor Sentinel (`m5-anchor-verification`) in Tab 3 (Curation Arena) enforcing the strict 40% human anchor quota on curated collections.
+  - Implemented `parseAnchorAudit` in `prompt-registry.ts` parsing machine-readable `[ANCHOR_AUDIT]` blocks (`HUMAN_ANCHOR_RATIO`, `QUOTA_MET`, `VERDICT`, `MISSING_CRITERIA_AUDIT`, `RECOMMENDED_CORRECTION`, `EXCLUDED_CANDIDATE_RATIONALE`). Added 1-click **"Adopt Recommended Curation Corrections"** in-place action.
+  - Added interactive Recent Decision Log history tables to Tab 1, Tab 2, and Tab 3 with in-place inspection and entry deletion.
+  - Verified 0 TypeScript errors with `pnpm run check`, verified production build with `pnpm run build`, and passed all unit test assertions.
+  - Commit: `feat(m5): implement Taste Formula Interrogator, Reverse Brief Coach, Anchor Sentinel, and Decision History` (`ff74d7b`)
 
 - [x] **Task 24: M6 Studio — Stakeholder Critique Simulator & 5-Mode Refusal Coach**
   - Integrated Executive Producer & Re-Brief Arbiter (`m6-rebrief-arbiter`) in `M6DirectionCollab.svelte` Tab 1 (Revision Fork) enforcing the 3-cycle limit and evaluating persistent defects.
@@ -227,13 +233,26 @@ This file tracks the implementation progress across all tasks. Each task is comm
   - Built comprehensive unit testing script verifying all 4 prompt parsers with 100% test assertions passing.
   - Verified 0 TypeScript errors (`pnpm run check`) and verified successful static pre-rendering of all 9 routes with `pnpm run build`.
 
-- [ ] **Task 27: Flagship Projects 1–12 & Two-Axis Assessment Cross-Examiner**
-  - Integrate project deliverable rubric auditing across Projects 1–12 in `ProjectWorkspace.svelte`.
-  - Implement Socratic Two-Axis matrix cross-examination in `TwoAxisQuadrant.svelte` to detect Rationalisation (excusing poor work) and Lucky Hits (unrepeatable accidents).
+- [x] **Task 27: Flagship Projects 1–12 & Two-Axis Assessment Cross-Examiner**
+  - Integrated Project Deliverable Rubric Auditor (`project-rubric-audit`) in `ProjectWorkspace.svelte` across all 12 flagship projects with comprehensive criteria breakdown, level assignment (Foundation, Directorial Competence, Masterful Direction), and actionable remediations.
+  - Implemented `parseProjectRubricAudit` in `prompt-registry.ts` parsing machine-readable `[PROJECT_RUBRIC_AUDIT]` blocks (`OVERALL_RATING`, `HIGHEST_UNRESOLVED_LEVEL`, `CRITERIA_ASSESSMENTS`, `ACTIONABLE_REMEDIATION`, `DIRECTORIAL_SUMMARY`).
+  - Added 1-click **"Append Guidance to Evaluation Notes"** in `ProjectWorkspace.svelte` seamlessly merging rubric critiques into student self-assessments.
+  - Integrated Socratic Two-Axis Matrix Epistemic Cross-Examiner (`two-axis-cross-examination`) in both `ProjectWorkspace.svelte` and `TwoAxisQuadrant.svelte` (Tab 3: Assessment) detecting Lucky Hits (unrepeatable accidents / prompt gambling) and Rationalisation (excusing broken execution).
+  - Implemented `parseTwoAxisCrossExam` in `prompt-registry.ts` parsing machine-readable `[TWO_AXIS_AUDIT]` blocks (`DIAGNOSED_QUADRANT`, `CALIBRATED_OUTPUT_QUALITY`, `CALIBRATED_INTENTIONAL_CONTROL`, `SOCRATIC_CHALLENGE`, `VERIFICATION_PROBE`, `RECOMMENDED_ACTION`).
+  - Added 1-click **"Adopt Calibrated Quadrant Scores"** to calibrate self-ratings directly and **"Record to Studio Decision Log"** to capture epistemic audit trails.
+  - Added interactive Recent Project Decisions history table to `ProjectWorkspace.svelte` with in-place inspection and entry deletion.
+  - Verified 0 TypeScript errors (`pnpm run check`), verified static build (`pnpm run build`), and passed all unit test assertions.
+  - Commit: `feat(llm): implement Tasks 27 & 28 - Project Rubric Auditor, Two-Axis Cross-Examiner, Log Decay Sentinel, Appendix L Synthesizer, and Failure Triage` (`169a035`)
 
-- [ ] **Task 28: Studio Logbook Sentinel & Anti-Decay Intelligence**
-  - Integrate automated Log Decay scanning in `/logs` detecting rote phrase repetition and hollow logging compliance.
-  - Implement intelligent retrospective narrative generator for Appendix L portfolio archive export.
+- [x] **Task 28: Studio Logbook Sentinel & Anti-Decay Intelligence**
+  - Integrated Studio Log Decay Sentinel (`log-decay-sentinel`) in `src/routes/logs/+page.svelte` evaluating cumulative logs (problems, calibrations, decisions, briefs, drills, attention, play) against rote phrase repetition, frozen confidence (safe camping), and checkbox theatre.
+  - Implemented `parseLogDecayAudit` in `prompt-registry.ts` parsing machine-readable `[LOG_DECAY_AUDIT]` blocks (`DECAY_SCORE`, `DECAY_STATUS`, `SYMPTOMS_DETECTED`, `PRESCRIBED_INTERVENTION`, `SHARPENED_SAMPLE_ENTRY`).
+  - Added visual Log Decay status card above log tabs with rigor scoring, detected symptoms, zero-adjective rewrite exemplar, and 1-click **"Commit Anti-Decay Prescription to Studio Log"**.
+  - Integrated Appendix L Directorial Monograph Synthesizer (`appendix-l-synthesis`) in `src/routes/logs/+page.svelte` generating an executive directorial monograph across 6 sections (Trajectory, Directorial Voice, Epistemic Calibration, Critical Pivots, Boundary Conditions, Future Horizon).
+  - Implemented `parseAppendixLSynthesis` in `prompt-registry.ts` parsing machine-readable `[APPENDIX_L_SYNTHESIS]` blocks (`TITLE`, `EXECUTIVE_SUMMARY`, `SECTIONS`, `PORTFOLIO_RECOMMENDATION`). Added 1-click **"Download Monograph (.md)"** for publication.
+  - Integrated Intelligent 4-Way Failure Triage Advisor (`failure-triage-diagnostic`) in `FailureTriageModal.svelte` diagnosing student symptoms into Output, Habit, Motivational, or Log Decay failure modes with automated tab switching and 1-click **"Commit Recovery Plan to Decision Log"**.
+  - Verified 0 TypeScript errors (`pnpm run check`), verified static build (`pnpm run build`), and passed all unit test assertions.
+  - Commit: `feat(llm): implement Tasks 27 & 28 - Project Rubric Auditor, Two-Axis Cross-Examiner, Log Decay Sentinel, Appendix L Synthesizer, and Failure Triage` (`169a035`)
 
 - [x] **Task 29: Comprehensive Studio & Course Knowledge Base Help Modal**
   - Designed and authored comprehensive, type-safe knowledge base `src/lib/data/help-knowledge-base.ts` encompassing 66+ detailed terms across 7 categories: Diagnostic Ladders & Hierarchies, Lint Checks & Observation, Studio UI & Daily Routine, Core Concepts & Theses, Studio Modalities (M0–M7), Protocols & Refusals, and BYOK Inference.
