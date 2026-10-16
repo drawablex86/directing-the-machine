@@ -17,6 +17,7 @@ export type PromptTemplateId =
 	// M5 Taste Infrastructure
 	| 'm5-taste-formula-interrogation'
 	| 'm5-reverse-brief-coach'
+	| 'm5-anchor-audit'
 	// M6 Direction, Collaboration & Refusal
 	| 'm6-stakeholder-simulator'
 	| 'm6-refusal-soundness'
@@ -133,6 +134,30 @@ export interface TriageEvaluation {
 	directorialResponse?: string;
 }
 
+export interface TasteFormulaAudit {
+	verdict: 'RIGOROUS_APPARATUS' | 'MISSING_MECHANISM' | 'FALSE_EQUIVALENCE' | 'COSMETIC_PREFERENCE';
+	mechanismDiagnosis: string;
+	referenceClassFit?: string;
+	sharpenedMechanism?: string;
+	purposeAlignment?: string;
+}
+
+export interface ReverseBriefAudit {
+	verdict: 'GENUINE_INVERSION' | 'COSMETIC_EXCUSE' | 'UNCONSTRAINED_ACCIDENT';
+	inversionStrength: string;
+	prescribedConstraints?: string[];
+	sharpenedReverseBrief?: string;
+	acceptanceCriterion?: string;
+}
+
+export interface AnchorAudit {
+	ratioStatus: 'COMPLIANT_HUMAN_HEAVY' | 'COMPLIANT_BALANCED' | 'COLLAPSE_RISK_AI_DOMINATED';
+	humanPercentage: number;
+	maturationAssessment: string;
+	homogenisationWarning?: string;
+	recommendedHumanAnchor?: string;
+}
+
 export interface RefusalAudit {
 	verdict: 'AIRTIGHT' | 'DEFENSIVE_WHINING' | 'MISMATCHED_MODE' | 'WEAK_COMPLIANCE';
 	recommendedMode?: 'Ethical' | 'Positional' | 'Technical' | 'Intentional' | 'Slop';
@@ -246,6 +271,9 @@ export interface CritiqueResult {
 	positionGap?: PositionGapMirrorResult;
 	removalTest?: RemovalTestResult;
 	capstoneMilestone?: CapstoneMilestoneResult;
+	tasteFormulaAudit?: TasteFormulaAudit;
+	reverseBriefAudit?: ReverseBriefAudit;
+	anchorAudit?: AnchorAudit;
 }
 
 export interface LlmAction {

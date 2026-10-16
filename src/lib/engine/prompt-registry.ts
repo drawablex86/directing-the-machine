@@ -21,7 +21,10 @@ import type {
 	AttentionPurity,
 	PositionGapMirrorResult,
 	RemovalTestResult,
-	CapstoneMilestoneResult
+	CapstoneMilestoneResult,
+	TasteFormulaAudit,
+	ReverseBriefAudit,
+	AnchorAudit
 } from '../types/llm-prompts';
 import type { InferenceRequest } from '../types/inference';
 import { runInference } from './inference';
@@ -526,20 +529,46 @@ Audit this record for Taste Narrowness and prescribe a boundary-pushing experime
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are the Curatorial Theorist.
-Taste is not "I like this". Taste is an articulated apparatus:
-1. Preference (what catches attention)
-2. Criteria (the explicit standards of evaluation)
-3. Reference Class (what other works it is being evaluated against)
-4. Mechanism (the formal cause that creates the effect)
-5. Purpose (what the work is intended to accomplish)
+In the "Directing the Machine" curriculum (Module 10: Taste as an Articulated Apparatus), aesthetic attraction is NOT project fitness.
+Taste is not vague subjective sentiment ("I love this vibe", "It feels cinematic"). Taste is an operational, 5-part articulated apparatus:
+1. Preference: What immediately catches subjective attention.
+2. Criteria: The explicit, measurable standards applied to evaluate the work.
+3. Reference Class: The specific comparative benchmark or canon the work is measured against.
+4. Mechanism: The physical, formal, or causal cause (value compression, tonal contrast, acoustic frequency, syntactic rhythm) producing the psychological effect.
+5. Purpose: What the work is intended to accomplish within the project's foundational tension.
+
+FAILURE MODES TO AUDIT:
+1. Missing Mechanism: The director uses adjectives (moody, striking, elegant) instead of formal causes (e.g. 15% warm key light piercing 85% low-key cool shadows).
+2. False Equivalence: Measuring an uncalibrated raw generative output against an authored masterwork without accounting for differing physical/technical constraints.
+3. Cosmetic Preference: Personal sensory preference disguised as universal objective criteria.
+4. Purpose Disconnect: The formula does not serve the specific project brief or underlying tension.
 
 INSTRUCTIONS:
-1. Interrogate the mechanism: Did the user explain HOW the formal moves create the aesthetic consequence?
-2. Interrogate the reference class: Is the reference class appropriate or a false equivalence?
-3. Challenge any unexamined subjective biases disguised as universal principles.
+1. Audit the 5 parts of the student's formula.
+2. Determine Verdict:
+   - RIGOROUS_APPARATUS: Formal causal mechanism identified, benchmark sound, purpose aligned.
+   - MISSING_MECHANISM: Described what they feel/want, but failed to state HOW the formal properties physically create the effect.
+   - FALSE_EQUIVALENCE: Inappropriate or unearned reference class.
+   - COSMETIC_PREFERENCE: Subjective liking disguised as rigorous criteria.
+3. Diagnose Mechanism: Surgical analysis of whether physical/formal causes were identified.
+4. Evaluate Reference Class: Assess the comparative benchmark.
+5. Formulate Sharpened Mechanism: Provide an authoritative, zero-adjective rewrite of the physical/formal causal mechanism.
+6. Evaluate Purpose Alignment: State whether this formula serves project tension.
+
+OUTPUT FORMAT:
+Provide your critical curatorial critique.
+Then, you MUST append a machine-readable block exactly as formatted below:
+
+[TASTE_FORMULA_AUDIT]
+VERDICT: <RIGOROUS_APPARATUS | MISSING_MECHANISM | FALSE_EQUIVALENCE | COSMETIC_PREFERENCE>
+MECHANISM_DIAGNOSIS: <Surgical analysis of whether formal physical causes were identified>
+REFERENCE_CLASS_FIT: <Evaluation of the benchmark work chosen>
+SHARPENED_MECHANISM: <A concrete physical/formal causal mechanism rewrite>
+PURPOSE_ALIGNMENT: <Evaluation of whether this serves the intended artistic tension>
+[/TASTE_FORMULA_AUDIT]
 `.trim(),
 		defaultTemperature: 0.3,
-		defaultMaxTokens: 800,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: {
 			preference: string;
 			criteria: string;
@@ -553,7 +582,7 @@ Reference Class: "${ctx.referenceClass}"
 Mechanism: "${ctx.mechanism}"
 Purpose: "${ctx.purpose}"
 
-Interrogate this 5-part Taste Formula.
+Interrogate this 5-part Taste Formula, audit its causal mechanism, and emit the [TASTE_FORMULA_AUDIT] block.
 `.trim()
 	},
 
@@ -568,21 +597,115 @@ Interrogate this 5-part Taste Formula.
 ${BASE_STUDIO_DIRECTIVE}
 
 ROLE: You are the Aesthetic Inversion Engineer.
-In the Reverse Direction Challenge, the director takes an uncalibrated machine defect, hallucination, or flaw from a rejected artifact and authors a new brief where that exact flaw becomes the core aesthetic necessity.
+In the Reverse Direction Challenge (Module 11: The Reverse-Direction Challenge: Authoring Flaws as Virtues), the director takes an uncalibrated machine defect, hallucination, or artifact from a rejected output and authors a new brief where that exact flaw becomes the core expressive necessity and mandatory aesthetic condition.
+This separates personal taste from directorial range: amateur directors discard glitches; masters direct the machine's specific failure modes into authored art.
+
+FAILURE MODES TO AUDIT:
+1. Cosmetic Excuse: Slapping a lofty philosophical title on poor craft without modifying structural constraints.
+2. Unconstrained Accident: The idea is interesting, but lacks explicit negative constraints (rejection conditions), meaning a random glitch could still be mistaken for incompetence.
+3. Timid Inversion: The flaw is tolerated as background texture rather than elevated to the primary expressive necessity.
 
 INSTRUCTIONS:
-1. Examine the rejected artifact and diagnosed flaw.
-2. Determine how that flaw can be reframed from an accidental defect into a deliberate structural expressive virtue.
-3. Provide 2 concrete constraints that ensure the flaw cannot be mistaken for an accident.
+1. Examine the rejected artifact, diagnosed flaw, and proposed reverse intention.
+2. Determine Verdict:
+   - GENUINE_INVERSION: The flaw is structurally indispensable to the new premise; removing the flaw would cause the premise to collapse.
+   - COSMETIC_EXCUSE: Rationalising bad generation without changing structural constraints.
+   - UNCONSTRAINED_ACCIDENT: Lacks rejection conditions to prove deliberate intent.
+3. Diagnose Inversion Strength: 1-2 sentences on whether the defect is essential to the new premise.
+4. Prescribe 2 Concrete Constraints: Mandatory negative constraints / rejection conditions ensuring intentionality.
+5. Author Sharpened Reverse Brief: A crisp, zero-adjective brief that makes the machine defect an expressive necessity.
+6. State Acceptance Criterion: A single binary observable condition proving the flaw is deliberate.
+
+OUTPUT FORMAT:
+Provide your directorial analysis.
+Then, you MUST append a machine-readable block exactly as formatted below:
+
+[REVERSE_BRIEF_AUDIT]
+VERDICT: <GENUINE_INVERSION | COSMETIC_EXCUSE | UNCONSTRAINED_ACCIDENT>
+INVERSION_STRENGTH: <1-2 sentences on whether the defect is essential to the new premise>
+PRESCRIBED_CONSTRAINTS: <Two concrete negative constraints to prove intentionality>
+SHARPENED_REVERSE_BRIEF: <A directable, zero-adjective brief that makes the flaw an expressive necessity>
+ACCEPTANCE_CRITERION: <Concrete observable condition proving the flaw is deliberate>
+[/REVERSE_BRIEF_AUDIT]
 `.trim(),
-		defaultTemperature: 0.5,
-		defaultMaxTokens: 800,
+		defaultTemperature: 0.4,
+		defaultMaxTokens: 8192,
 		formatPrompt: (ctx: { rejectedArtifact: string; observedFlaw: string; proposedBrief: string }) => `
 Rejected Artifact: "${ctx.rejectedArtifact}"
 Observed Flaw: "${ctx.observedFlaw}"
 Student Proposed Reverse Intention: "${ctx.proposedBrief}"
 
-Coach this reverse brief to elevate the diagnosed flaw into deliberate authorship.
+Coach this reverse brief to elevate the diagnosed flaw into deliberate authorship, and emit the [REVERSE_BRIEF_AUDIT] block.
+`.trim()
+	},
+
+	'm5-anchor-audit': {
+		id: 'm5-anchor-audit',
+		name: 'Human Anchor & Demotion Sentinel',
+		persona: 'Curatorial Theorist',
+		role: 'auditor',
+		modalityId: 'm5',
+		description: 'Audits active anchor library for ≥40% human ratio and evaluates demotion rationales.',
+		systemPrompt: `
+${BASE_STUDIO_DIRECTIVE}
+
+ROLE: You are the Curatorial Theorist and Anchor Sentinel.
+In Appendix E (The ≥40% Human-Anchor Rule and Demotion Workflow), a director must maintain at least 40% verified human works in their reference anchor library.
+Without human anchors, generative model feedback channels collapse: models trained on AI art reproduce homogenized dataset averages (the "slop sinkhole").
+Furthermore, taste maturation requires active DEMOTION: periodically removing 3 early anchors you previously admired and articulating the specific mechanical reason you now see through them.
+
+INSTRUCTIONS:
+1. Audit the Human Anchor Ratio:
+   - If human anchors < 40%: classify as COLLAPSE_RISK_AI_DOMINATED.
+   - If human anchors between 40% and 60%: classify as COMPLIANT_BALANCED.
+   - If human anchors > 60%: classify as COMPLIANT_HUMAN_HEAVY.
+2. Assess Demotion Maturation:
+   - Evaluate whether demoted anchors reflect structural discernment (e.g. spotting cliché centering, unearned atmospheric haze, borrowed polish) or superficial boredom.
+3. Issue Homogenisation Warning:
+   - Pinpoint what default AI aesthetic biases threaten the student's active library.
+4. Recommend Human Anchor:
+   - Suggest a concrete historic human masterwork or practitioner whose formal physical commitments directly counter the detected generative biases.
+
+OUTPUT FORMAT:
+Provide your curatorial audit.
+Then, you MUST append a machine-readable block exactly as formatted below:
+
+[ANCHOR_AUDIT]
+RATIO_STATUS: <COMPLIANT_HUMAN_HEAVY | COMPLIANT_BALANCED | COLLAPSE_RISK_AI_DOMINATED>
+HUMAN_PERCENTAGE: <Integer percentage 0-100>
+MATURATION_ASSESSMENT: <Analysis of why the student demoted early anchors>
+HOMOGENISATION_WARNING: <Specific risk of model dataset collapse if human anchors are dropped>
+RECOMMENDED_HUMAN_ANCHOR: <Suggested historic human master or structural benchmark>
+[/ANCHOR_AUDIT]
+`.trim(),
+		defaultTemperature: 0.3,
+		defaultMaxTokens: 8192,
+		formatPrompt: (ctx: {
+			totalAnchors: number;
+			humanAnchors: number;
+			hybridAnchors: number;
+			aiAnchors: number;
+			humanPercentage: number;
+			activeAnchorsList: Array<{ title: string; type: string }>;
+			demotedAnchorsList?: Array<{ title: string; rationale: string }>;
+		}) => `
+Anchor Library Telemetry:
+- Total Anchors: ${ctx.totalAnchors}
+- Human Anchors: ${ctx.humanAnchors} (${ctx.humanPercentage}%)
+- Hybrid Anchors: ${ctx.hybridAnchors}
+- AI Default Anchors: ${ctx.aiAnchors}
+
+Active Anchors:
+${ctx.activeAnchorsList.map((a) => `- [${a.type}] ${a.title}`).join('\n') || 'None recorded.'}
+
+${
+	ctx.demotedAnchorsList && ctx.demotedAnchorsList.length > 0
+		? `Demoted Anchors & Maturation Rationales:
+${ctx.demotedAnchorsList.map((d) => `- "${d.title}": ${d.rationale}`).join('\n')}`
+		: 'No demoted anchors logged yet.'
+}
+
+Audit the anchor ratio compliance, evaluate demotion rationales, and emit the [ANCHOR_AUDIT] block.
 `.trim()
 	},
 
@@ -2026,6 +2149,21 @@ export async function executePrompt<T = any>(
 		if (milestone) {
 			critique.capstoneMilestone = milestone;
 		}
+	} else if (promptId === 'm5-taste-formula-interrogation') {
+		const audit = parseTasteFormulaAudit(response.text);
+		if (audit) {
+			critique.tasteFormulaAudit = audit;
+		}
+	} else if (promptId === 'm5-reverse-brief-coach') {
+		const audit = parseReverseBriefAudit(response.text);
+		if (audit) {
+			critique.reverseBriefAudit = audit;
+		}
+	} else if (promptId === 'm5-anchor-audit') {
+		const audit = parseAnchorAudit(response.text);
+		if (audit) {
+			critique.anchorAudit = audit;
+		}
 	}
 
 	return critique;
@@ -2107,3 +2245,96 @@ export function parseCapstoneMilestone(text: string): CapstoneMilestoneResult | 
 		nextDirectorialMove: moveMatch ? moveMatch[1].trim() : 'Complete active milestone requirements.'
 	};
 }
+
+/**
+ * Parses machine-readable [TASTE_FORMULA_AUDIT] blocks from m5-taste-formula-interrogation.
+ */
+export function parseTasteFormulaAudit(text: string): TasteFormulaAudit | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[TASTE_FORMULA_AUDIT\]([\s\S]*?)(\[\/TASTE_FORMULA_AUDIT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(RIGOROUS_APPARATUS|MISSING_MECHANISM|FALSE_EQUIVALENCE|COSMETIC_PREFERENCE)/i);
+	const diagMatch = target.match(/MECHANISM_DIAGNOSIS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const refMatch = target.match(/REFERENCE_CLASS_FIT:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const sharpMatch = target.match(/SHARPENED_MECHANISM:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const purpMatch = target.match(/PURPOSE_ALIGNMENT:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!verdictMatch && !diagMatch && !sharpMatch) {
+		return undefined;
+	}
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'MISSING_MECHANISM') as any,
+		mechanismDiagnosis: diagMatch ? diagMatch[1].trim() : 'Mechanism diagnosis not extracted.',
+		referenceClassFit: refMatch ? refMatch[1].trim() : undefined,
+		sharpenedMechanism: sharpMatch ? sharpMatch[1].trim() : undefined,
+		purposeAlignment: purpMatch ? purpMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable [REVERSE_BRIEF_AUDIT] blocks from m5-reverse-brief-coach.
+ */
+export function parseReverseBriefAudit(text: string): ReverseBriefAudit | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[REVERSE_BRIEF_AUDIT\]([\s\S]*?)(\[\/REVERSE_BRIEF_AUDIT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const verdictMatch = target.match(/VERDICT:\s*(GENUINE_INVERSION|COSMETIC_EXCUSE|UNCONSTRAINED_ACCIDENT)/i);
+	const strengthMatch = target.match(/INVERSION_STRENGTH:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const constrMatch = target.match(/PRESCRIBED_CONSTRAINTS:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const briefMatch = target.match(/SHARPENED_REVERSE_BRIEF:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const critMatch = target.match(/ACCEPTANCE_CRITERION:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!verdictMatch && !strengthMatch && !briefMatch) {
+		return undefined;
+	}
+
+	let prescribedConstraints: string[] | undefined = undefined;
+	if (constrMatch) {
+		const raw = constrMatch[1].trim();
+		prescribedConstraints = raw
+			.split(/\n|;|\d+\.\s+/)
+			.map((c) => c.replace(/^[-•*]\s*/, '').trim())
+			.filter((c) => c.length > 0);
+	}
+
+	return {
+		verdict: (verdictMatch ? verdictMatch[1].toUpperCase() : 'COSMETIC_EXCUSE') as any,
+		inversionStrength: strengthMatch ? strengthMatch[1].trim() : 'Inversion strength not extracted.',
+		prescribedConstraints,
+		sharpenedReverseBrief: briefMatch ? briefMatch[1].trim() : undefined,
+		acceptanceCriterion: critMatch ? critMatch[1].trim() : undefined
+	};
+}
+
+/**
+ * Parses machine-readable [ANCHOR_AUDIT] blocks from m5-anchor-audit.
+ */
+export function parseAnchorAudit(text: string): AnchorAudit | undefined {
+	if (!text) return undefined;
+	const blockMatch = text.match(/\[ANCHOR_AUDIT\]([\s\S]*?)(\[\/ANCHOR_AUDIT\]|$)/i);
+	const target = blockMatch ? blockMatch[1] : text;
+
+	const ratioMatch = target.match(/RATIO_STATUS:\s*(COMPLIANT_HUMAN_HEAVY|COMPLIANT_BALANCED|COLLAPSE_RISK_AI_DOMINATED)/i);
+	const pctMatch = target.match(/HUMAN_PERCENTAGE:\s*(\d+)/i);
+	const maturMatch = target.match(/MATURATION_ASSESSMENT:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const warnMatch = target.match(/HOMOGENISATION_WARNING:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+	const recMatch = target.match(/RECOMMENDED_HUMAN_ANCHOR:\s*["“']?([\s\S]*?)["”']?(?=\n\s*[A-Z0-9_]+:|$)/i);
+
+	if (!ratioMatch && !maturMatch && !recMatch) {
+		return undefined;
+	}
+
+	const rawPct = pctMatch ? parseInt(pctMatch[1], 10) : 50;
+
+	return {
+		ratioStatus: (ratioMatch ? ratioMatch[1].toUpperCase() : 'COMPLIANT_BALANCED') as any,
+		humanPercentage: isNaN(rawPct) ? 50 : rawPct,
+		maturationAssessment: maturMatch ? maturMatch[1].trim() : 'Maturation assessment not extracted.',
+		homogenisationWarning: warnMatch ? warnMatch[1].trim() : undefined,
+		recommendedHumanAnchor: recMatch ? recMatch[1].trim() : undefined
+	};
+}
+
