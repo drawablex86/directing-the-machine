@@ -313,17 +313,17 @@
 				<div class="flex items-center justify-between pb-3 border-b border-neutral-800">
 					<div class="flex items-center gap-2">
 						<div class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></div>
-						<span class="font-bold text-neutral-100 text-sm">Action Mission: Baseline Skills Audit</span>
+						<span class="font-bold text-neutral-100 text-sm">Action Mission: Orientation Runway</span>
 					</div>
-					<span class="text-xs font-mono text-amber-400">Est. Time: ~5–10 mins</span>
+					<span class="text-xs font-mono text-amber-400">Est. Time: ~10–15 mins</span>
 				</div>
 
 				<div class="space-y-2 text-xs sm:text-sm text-neutral-300 leading-relaxed">
 					<p>
-						In this first exercise, you will assess yourself across 12 directorial competencies (Observation, Premise, Direction, Curation, etc.) on a simple 1–4 scale.
+						You will now enter the <strong>Orientation Runway</strong>: read the deliberate practice mindset, audit your 12 creative capabilities, review your diagnostic profile, establish your weekly schedule, and set up daily observation and free play habits.
 					</p>
 					<p class="text-neutral-400">
-						Completing this unlocks the <strong>Problem Discovery Lab</strong> and <strong>Observation Precision Linter</strong>, tailoring your practice roadmap.
+						Locking this contract completes Week 0 and unlocks Week 1 practice studios.
 					</p>
 				</div>
 
@@ -333,7 +333,7 @@
 						onclick={completeAndLaunch}
 						class="w-full py-3.5 px-6 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-sm shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
 					>
-						<span>Begin Baseline Skills Audit</span>
+						<span>Enter Orientation Runway</span>
 						<ArrowRight class="w-4 h-4" />
 					</button>
 				</div>

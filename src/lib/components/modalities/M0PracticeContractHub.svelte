@@ -3,32 +3,23 @@
 	import type { IntensityPath } from '$lib/schemas/course.schema';
 	import {
 		Target,
-		Shield,
+		ShieldCheck,
 		Clock,
-		Award,
-		CheckCircle,
+		ArrowRight,
+		ArrowLeft,
+		Check,
 		CheckCircle2,
-		RotateCcw,
 		Sparkles,
 		Eye,
-		Filter,
-		BarChart3,
-		ArrowLeft,
-		ArrowRight,
-		Check,
-		ListChecks,
-		LayoutGrid,
-		HelpCircle,
-		AlertTriangle,
-		Flame,
+		BookOpen,
 		FileCheck,
-		Compass,
-		Layers
+		ChevronRight,
+		Sliders
 	} from '@lucide/svelte';
 	import BaselineCompetencyCard from './BaselineCompetencyCard.svelte';
 	import { COMPETENCY_DETAILS } from '$lib/schemas/competency-details';
-	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
-	import { getDrillById } from '$lib/data/drills';
+	import ReadingModal from '$lib/components/shell/ReadingModal.svelte';
+	import { getReadingByCode, type CoreReading } from '$lib/data/core-readings';
 
 	let {
 		onNavigateTab,
@@ -38,69 +29,79 @@
 		onSelectModality?: (modId: string) => void;
 	} = $props();
 
-	let activeSubTab = $state<'baseline' | 'intensity' | 'play' | 'attention' | 'synthesis' | 'drills'>('baseline');
-	let activeDrillId = $state<'m0-attention-sprint' | 'm0-play-rep'>('m0-attention-sprint');
-	let activeDrill = $derived(getDrillById(activeDrillId));
-	let baselineViewMode = $state<'step' | 'grid'>('step');
-	let currentStepIndex = $state(0);
-	let baselineLayerFilter = $state<number | 'all'>('all');
-	let contractSigned = $state(false);
+	// 6-Stage Sequential Week 0 Journey:
+	// 0: Theory & Mindset (Module 0: Deliberate Practice)
+	// 1: Diagnostic Skills Audit (12 Competencies)
+	// 2: Diagnostic Synthesis (Strengths & Primary Growth Target)
+	// 3: Schedule & Weekly Commitment (Intensity Path)
+	// 4: Observation & Free Play Habits (Attention & Play logs)
+	// 5: Lock Contract & Launch Week 1
+	type FlowStage = 0 | 1 | 2 | 3 | 4 | 5;
+	let currentStage = $state<FlowStage>(0);
 
-	let synthesis = $derived(practiceStore.getBaselineSynthesis());
+	// Competency Step Sub-Index inside Stage 1
+	let currentCompetencyIndex = $state(0);
 
-	let filteredBaseline = $derived(
-		baselineLayerFilter === 'all'
-			? practiceStore.baseline
-			: practiceStore.baseline.filter((item) => {
-					const detail = COMPETENCY_DETAILS[item.id];
-					return detail && detail.layer === baselineLayerFilter;
-				})
-	);
+	// Free Play & Attention Inputs for Stage 4
+	let playText = $state('');
+	let attentionText = $state('');
+	let playSaved = $state(false);
+	let attentionSaved = $state(false);
 
-	let auditedCount = $derived(
+	// Reading Modal State for Stage 0
+	let isReadingModalOpen = $state(false);
+	let module0Reading = $derived(getReadingByCode('Module 0'));
+
+	const synthesis = $derived(practiceStore.getBaselineSynthesis());
+
+	const auditedCount = $derived(
 		practiceStore.baseline.filter((b) => b.notes.trim().length > 0 || b.score !== 2).length
 	);
 
-	let avgScore = $derived(
+	const avgScore = $derived(
 		(practiceStore.baseline.reduce((sum, b) => sum + b.score, 0) / practiceStore.baseline.length).toFixed(1)
 	);
 
-	let currentCompetency = $derived(practiceStore.baseline[currentStepIndex] || practiceStore.baseline[0]);
-	let currentDetail = $derived(COMPETENCY_DETAILS[currentCompetency.id]);
+	const currentCompetency = $derived(
+		practiceStore.baseline[currentCompetencyIndex] || practiceStore.baseline[0]
+	);
 
-	function nextStep() {
-		if (currentStepIndex < practiceStore.baseline.length - 1) {
-			currentStepIndex += 1;
-		}
-	}
-
-	function prevStep() {
-		if (currentStepIndex > 0) {
-			currentStepIndex -= 1;
-		}
-	}
-
-	function goToStep(index: number) {
-		currentStepIndex = index;
-		baselineViewMode = 'step';
-	}
-
-
-	// Intensity options from Appendix O
-	const paths: { id: IntensityPath; title: string; hours: string; weeks: string; desc: string }[] = [
-		{ id: 'full-time-12w', title: 'Full-Time Intensive', hours: '18–25h/w (up to 35h)', weeks: '12 Weeks', desc: 'Accelerated immersion. Requires dedicated study without full-time employment.' },
-		{ id: 'extended-24w', title: 'Extended Intensive', hours: '12–18h/w', weeks: '24 Weeks', desc: 'Balanced pacing for practitioners balancing part-time work or commitments.' },
-		{ id: 'distributed-48w', title: 'Distributed Practice', hours: '6–10h/w', weeks: '48 Weeks', desc: 'Sustainable year-long mastery for practitioners with full-time careers.' },
-		{ id: 'maintenance-4h', title: 'Maintenance Mode', hours: '~4h/w', weeks: 'Flexible', desc: 'Preserves reliable capacity when life or client work peaks. Pauses mastery gates.' }
+	const stages = [
+		{ id: 0, label: 'Theory & Mindset' },
+		{ id: 1, label: 'Skills Audit' },
+		{ id: 2, label: 'Diagnostic Profile' },
+		{ id: 3, label: 'Weekly Schedule' },
+		{ id: 4, label: 'Observation & Play' },
+		{ id: 5, label: 'Sign Contract' }
 	];
 
-	// Non-instrumental & play inputs
-	let playText = $state('');
-	let attentionText = $state('');
-	let playLogged = $state(false);
-	let attentionLogged = $state(false);
+	// Pacing Runway Options
+	const paths: { id: IntensityPath; title: string; hours: string; weeks: string; desc: string }[] = [
+		{ id: 'full-time-12w', title: 'Full-Time Intensive', hours: '18–25h/w', weeks: '12 Weeks', desc: 'Accelerated immersion for practitioners with uninterrupted time.' },
+		{ id: 'extended-24w', title: 'Extended Intensive', hours: '12–18h/w', weeks: '24 Weeks', desc: 'Balanced pacing for practitioners balancing client work or commitments.' },
+		{ id: 'distributed-48w', title: 'Distributed Practice', hours: '6–10h/w', weeks: '48 Weeks', desc: 'Sustainable pacing for working designers and engineers.' },
+		{ id: 'maintenance-4h', title: 'Maintenance Mode', hours: '~4h/w', weeks: 'Self-Paced', desc: 'Preserves baseline capacity during heavy work seasons.' }
+	];
 
-	function logPlay() {
+	function nextCompetency() {
+		if (currentCompetencyIndex < practiceStore.baseline.length - 1) {
+			currentCompetencyIndex++;
+		} else {
+			currentStage = 2; // Move to Diagnostic Synthesis
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
+	}
+
+	function prevCompetency() {
+		if (currentCompetencyIndex > 0) {
+			currentCompetencyIndex--;
+		} else {
+			currentStage = 0; // Return to Theory
+			window.scrollTo({ top: 0, behavior: 'smooth' });
+		}
+	}
+
+	function savePlay() {
 		if (!playText.trim()) return;
 		practiceStore.playLines.unshift({
 			id: crypto.randomUUID(),
@@ -109,11 +110,11 @@
 		});
 		practiceStore.saveToStorage();
 		playText = '';
-		playLogged = true;
-		setTimeout(() => playLogged = false, 2000);
+		playSaved = true;
+		setTimeout(() => (playSaved = false), 2500);
 	}
 
-	function logAttention() {
+	function saveAttention() {
 		if (!attentionText.trim()) return;
 		practiceStore.nonInstrumentalLines.unshift({
 			id: crypto.randomUUID(),
@@ -122,756 +123,471 @@
 		});
 		practiceStore.saveToStorage();
 		attentionText = '';
-		attentionLogged = true;
-		setTimeout(() => attentionLogged = false, 2000);
+		attentionSaved = true;
+		setTimeout(() => (attentionSaved = false), 2500);
+	}
+
+	function lockContractAndAdvance() {
+		practiceStore.completeBaselineAndStartWeek1();
+		if (onNavigateTab) {
+			onNavigateTab('today');
+		} else if (onSelectModality) {
+			onSelectModality('m2');
+		}
 	}
 </script>
 
-<div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-6">
-	<!-- Studio Header -->
-	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
-		<div>
+<div class="max-w-4xl mx-auto w-full space-y-6">
+	<!-- Stage Indicator Stepper -->
+	<div class="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 shadow-md">
+		<div class="flex items-center justify-between pb-3 border-b border-neutral-800 text-xs">
 			<div class="flex items-center gap-2">
-				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-					Starting Hub
+				<span class="px-2 py-0.5 rounded-full font-mono text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">
+					Foundation Stage
 				</span>
-				<h2 class="text-base font-bold text-white">Baseline Skills & Learning Runway</h2>
+				<span class="font-bold text-white">Orientation Runway</span>
 			</div>
-			<p class="text-xs text-neutral-400 mt-1">
-				Evaluate your current confidence across 12 creative capabilities, choose a weekly pace, and set your baseline.
-			</p>
+			<span class="text-neutral-400 font-mono text-[11px]">
+				Step {currentStage + 1} of {stages.length}: <span class="text-amber-400 font-semibold">{stages[currentStage].label}</span>
+			</span>
 		</div>
 
-		<!-- Sub-tabs -->
-		<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
-			<button
-				type="button"
-				onclick={() => activeSubTab = 'baseline'}
-				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'baseline' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
-			>
-				Skills Audit (1–4)
-			</button>
-			<button
-				type="button"
-				onclick={() => activeSubTab = 'intensity'}
-				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'intensity' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
-			>
-				Weekly Schedule
-			</button>
-			<button
-				type="button"
-				onclick={() => activeSubTab = 'play'}
-				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'play' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
-			>
-				Free Play
-			</button>
-			<button
-				type="button"
-				onclick={() => activeSubTab = 'attention'}
-				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'attention' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
-			>
-				Daily Observation
-			</button>
-			<button
-				type="button"
-				onclick={() => activeSubTab = 'synthesis'}
-				class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeSubTab === 'synthesis' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
-			>
-				<FileCheck class="w-3.5 h-3.5" />
-				<span>Diagnostic Summary</span>
-				{#if synthesis.isBaselineLocked}
-					<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-				{:else if auditedCount >= 10}
-					<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span>
-				{/if}
-			</button>
-			<button
-				type="button"
-				onclick={() => activeSubTab = 'drills'}
-				class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeSubTab === 'drills' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
-			>
-				<Target class="w-3.5 h-3.5" />
-				<span>Practice Drills</span>
-			</button>
+		<!-- Stepper Pills -->
+		<div class="grid grid-cols-6 gap-1.5 pt-3">
+			{#each stages as s}
+				<button
+					type="button"
+					onclick={() => (currentStage = s.id as FlowStage)}
+					class="py-1.5 px-1 rounded-lg text-center text-[11px] font-mono transition cursor-pointer {currentStage === s.id ? 'bg-amber-500 text-neutral-950 font-bold shadow' : s.id < currentStage ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-neutral-950 text-neutral-500 border border-neutral-800/80 hover:text-neutral-300'}"
+				>
+					<span class="truncate block">{s.label}</span>
+				</button>
+			{/each}
 		</div>
 	</div>
 
-	<!-- TAB 1: Baseline Diagnostic Radar (12 competencies) -->
-	{#if activeSubTab === 'baseline'}
-		<div class="space-y-6">
-			<!-- Purpose & Orientation Banner -->
-			<div class="p-5 bg-neutral-950 rounded-2xl border border-neutral-800 space-y-3 shadow-sm">
-				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800/80 pb-3">
-					<div>
-						<h3 class="text-sm font-bold text-white flex items-center gap-2">
-							<Target class="w-4 h-4 text-amber-400" />
-							<span>12 Creative Directorial Competencies</span>
-						</h3>
-						<p class="text-xs text-neutral-400 mt-0.5">
-							An honest diagnostic mirror to identify your current strengths and blind spots before beginning focused training.
-						</p>
-					</div>
+	<!-- STAGE 0: Theory & Mindset -->
+	{#if currentStage === 0}
+		<div class="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
+			<div class="space-y-2">
+				<span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">
+					Foundational Theory
+				</span>
+				<h2 class="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
+					How Deliberate Practice Works in Generative Creative Work
+				</h2>
+				<p class="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+					Before generating thousands of synthetic variations, creative directors isolate specific perceptual mechanisms. This foundation establishes why and how this studio operates.
+				</p>
+			</div>
 
-					<div class="flex items-center gap-3 shrink-0">
-						<div class="px-3 py-1 rounded-xl bg-neutral-900 border border-neutral-800 text-xs flex items-center gap-1.5 font-mono">
-							<span class="text-neutral-500">Audited:</span>
-							<span class="font-bold text-amber-400">{auditedCount}/12</span>
-						</div>
-						<div class="px-3 py-1 rounded-xl bg-neutral-900 border border-neutral-800 text-xs flex items-center gap-1.5 font-mono">
-							<span class="text-neutral-500">Avg Score:</span>
-							<span class="font-bold text-white">{avgScore} / 4.0</span>
-						</div>
+			<!-- Core Mental Model Card -->
+			<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
+				<div class="flex items-center justify-between border-b border-neutral-800/80 pb-3">
+					<div class="flex items-center gap-2 text-xs font-bold text-amber-400">
+						<Sparkles class="w-4 h-4" />
+						<span>The 70–80% Challenge Principle</span>
 					</div>
+					{#if module0Reading}
+						<button
+							type="button"
+							onclick={() => (isReadingModalOpen = true)}
+							class="text-xs font-mono text-amber-400 hover:text-amber-300 underline flex items-center gap-1 cursor-pointer"
+						>
+							<BookOpen class="w-3.5 h-3.5" />
+							<span>Read Full Text (Theory)</span>
+						</button>
+					{/if}
 				</div>
 
-				<!-- Scoring Legend -->
-				<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-					<div class="p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center gap-2">
-						<span class="w-5 h-5 rounded-md bg-red-950/60 text-red-400 font-mono font-bold flex items-center justify-center text-xs shrink-0">1</span>
-						<span class="text-neutral-300"><strong>Not Yet</strong> · Waits or defaults</span>
-					</div>
-					<div class="p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center gap-2">
-						<span class="w-5 h-5 rounded-md bg-amber-950/60 text-amber-400 font-mono font-bold flex items-center justify-center text-xs shrink-0">2</span>
-						<span class="text-neutral-300"><strong>Emerging</strong> · Theory over reflex</span>
-					</div>
-					<div class="p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center gap-2">
-						<span class="w-5 h-5 rounded-md bg-blue-950/60 text-blue-400 font-mono font-bold flex items-center justify-center text-xs shrink-0">3</span>
-						<span class="text-neutral-300"><strong>Functional</strong> · Operates reliably</span>
-					</div>
-					<div class="p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center gap-2">
-						<span class="w-5 h-5 rounded-md bg-emerald-950/60 text-emerald-400 font-mono font-bold flex items-center justify-center text-xs shrink-0">4</span>
-						<span class="text-neutral-300"><strong>Transferable</strong> · Autonomous</span>
-					</div>
+				<div class="space-y-3 text-xs sm:text-sm text-neutral-300 leading-relaxed">
+					<p>
+						<strong>Mere Production</strong> feels productive because outputs appear instantly. But effortless generation builds no permanent taste or editorial stamina.
+					</p>
+					<p class="text-neutral-400">
+						<strong>Deliberate Practice</strong> isolates narrow micro-skills in your 70–80% difficulty zone: describing visual hierarchy with zero emotional adjectives, predicting prompt shifts before generating, and establishing explicit criteria for refusal.
+					</p>
 				</div>
 			</div>
 
-			<!-- View Mode & Navigation Controls -->
-			<div class="flex items-center justify-between gap-3 flex-wrap border-b border-neutral-800 pb-3">
-				<!-- Stepper Tabs / View Mode Switcher -->
-				<div class="flex items-center gap-1.5 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
-					<button
-						type="button"
-						onclick={() => baselineViewMode = 'step'}
-						class="px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition {baselineViewMode === 'step' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
-					>
-						<ListChecks class="w-3.5 h-3.5" />
-						<span>Step-by-Step Diagnostic</span>
-					</button>
-					<button
-						type="button"
-						onclick={() => baselineViewMode = 'grid'}
-						class="px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition {baselineViewMode === 'grid' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
-					>
-						<LayoutGrid class="w-3.5 h-3.5" />
-						<span>Overview & Review Grid</span>
-					</button>
+			<div class="flex items-center justify-between pt-2">
+				<div class="text-xs text-neutral-500 font-mono">
+					Next: 12-Competency Self-Audit
 				</div>
-
-				<div class="flex items-center gap-2 text-xs">
-					<div class="px-2.5 py-1 rounded-lg bg-neutral-950 border border-neutral-800 text-neutral-400 text-[11px] flex items-center gap-1.5">
-						<HelpCircle class="w-3.5 h-3.5 text-amber-400" />
-						<span>Evaluated in Week 0 & re-audited at Phase Gates (Weeks 4, 8, 12)</span>
-					</div>
-				</div>
+				<button
+					type="button"
+					onclick={() => (currentStage = 1)}
+					class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs transition flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/20"
+				>
+					<span>Begin Skills Audit</span>
+					<ArrowRight class="w-4 h-4" />
+				</button>
 			</div>
-
-			<!-- MODE 1: STEP-BY-STEP DIAGNOSTIC WIZARD (One competency at a time) -->
-			{#if baselineViewMode === 'step'}
-				<div class="space-y-5">
-					<!-- Step Progress Bar & Quick Jump Navigation -->
-					<div class="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
-						<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-							<div class="flex items-center gap-2">
-								<span class="font-mono font-bold text-amber-400">Step {currentStepIndex + 1} of 12</span>
-								<span class="text-neutral-500">•</span>
-								<span class="text-neutral-300 font-semibold">{currentDetail?.name}</span>
-								<span class="text-[10px] font-mono px-2 py-0.5 rounded {currentDetail?.layer === 1 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : currentDetail?.layer === 2 ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
-									Layer {currentDetail?.layer}: {currentDetail?.layerName}
-								</span>
-							</div>
-
-							<div class="flex items-center gap-1 text-[11px] text-neutral-400 font-mono">
-								<span>{auditedCount} of 12 Audited</span>
-							</div>
-						</div>
-
-						<!-- Visual Step Indicator Pills -->
-						<div class="grid grid-cols-12 gap-1.5">
-							{#each practiceStore.baseline as comp, idx}
-								{@const isAudited = comp.notes.trim().length > 0 || comp.score !== 2}
-								{@const isCurrent = idx === currentStepIndex}
-								<button
-									type="button"
-									onclick={() => goToStep(idx)}
-									title="{idx + 1}. {comp.name} (Score: {comp.score})"
-									class="h-2 rounded-full transition cursor-pointer relative group {isCurrent ? 'bg-amber-500 ring-2 ring-amber-500/40' : isAudited ? 'bg-emerald-500/70 hover:bg-emerald-400' : 'bg-neutral-800 hover:bg-neutral-700'}"
-								>
-									<span class="sr-only">Step {idx + 1}: {comp.name}</span>
-								</button>
-							{/each}
-						</div>
-
-						<!-- Mastery Layer Grouping Labels -->
-						<div class="flex items-center justify-between text-[10px] font-mono text-neutral-500 pt-1">
-							<span class="text-emerald-400/80">Foundations (1–4)</span>
-							<span class="text-blue-400/80">Systems & Calibration (5–9)</span>
-							<span class="text-amber-400/80">Agency & Direction (10–12)</span>
-						</div>
-					</div>
-
-					<!-- Active Competency Card in Guided Mode -->
-					<div class="w-full">
-						<BaselineCompetencyCard
-							item={currentCompetency}
-							onUpdate={() => practiceStore.saveToStorage()}
-							isStepMode={true}
-						/>
-					</div>
-
-					<!-- Step Navigation Toolbar -->
-					<div class="p-4 rounded-2xl bg-neutral-950 border border-neutral-800 flex items-center justify-between gap-3">
-						<button
-							type="button"
-							onclick={prevStep}
-							disabled={currentStepIndex === 0}
-							class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border border-neutral-800 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neutral-900 text-neutral-300"
-						>
-							<ArrowLeft class="w-3.5 h-3.5" />
-							<span>Previous Competency</span>
-						</button>
-
-						<div class="flex items-center gap-2">
-							{#if currentStepIndex < 11}
-								<button
-									type="button"
-									onclick={nextStep}
-									class="px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 transition cursor-pointer shadow-md"
-								>
-									<span>Next Competency</span>
-									<ArrowRight class="w-3.5 h-3.5" />
-								</button>
-							{:else}
-								<button
-									type="button"
-									onclick={() => activeSubTab = 'synthesis'}
-									class="px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 transition cursor-pointer shadow-md"
-								>
-									<Check class="w-3.5 h-3.5" />
-									<span>Finish & View Diagnostic Synthesis →</span>
-								</button>
-							{/if}
-						</div>
-					</div>
-				</div>
-
-			<!-- MODE 2: OVERVIEW & REVIEW GRID (All 12 cards side-by-side) -->
-			{:else}
-				<div class="space-y-6">
-					<!-- Filter Bar by Mastery Layer -->
-					<div class="flex items-center justify-between gap-3 flex-wrap">
-						<div class="flex items-center gap-1.5 text-xs">
-							<span class="text-neutral-500 font-medium flex items-center gap-1 mr-1">
-								<Filter class="w-3.5 h-3.5" />
-								Filter:
-							</span>
-							<button
-								type="button"
-								onclick={() => baselineLayerFilter = 'all'}
-								class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 'all' ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
-							>
-								All 12 Competencies
-							</button>
-							<button
-								type="button"
-								onclick={() => baselineLayerFilter = 1}
-								class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 1 ? 'bg-emerald-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
-							>
-								Layer 1: Foundations (4)
-							</button>
-							<button
-								type="button"
-								onclick={() => baselineLayerFilter = 2}
-								class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 2 ? 'bg-blue-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
-							>
-								Layer 2: Systems & Calibration (5)
-							</button>
-							<button
-								type="button"
-								onclick={() => baselineLayerFilter = 3}
-								class="px-3 py-1.5 rounded-xl font-medium transition cursor-pointer {baselineLayerFilter === 3 ? 'bg-amber-500 text-neutral-950 font-bold' : 'bg-neutral-950 border border-neutral-800 text-neutral-400 hover:text-neutral-200'}"
-							>
-								Layer 3: Agency & Direction (3)
-							</button>
-						</div>
-
-						<button
-							type="button"
-							onclick={() => baselineViewMode = 'step'}
-							class="text-xs text-amber-400 hover:text-amber-300 font-medium transition"
-						>
-							← Return to Step-by-Step View
-						</button>
-					</div>
-
-					<!-- Cards Grid -->
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-						{#each filteredBaseline as item}
-							<BaselineCompetencyCard
-								item={item}
-								onUpdate={() => practiceStore.saveToStorage()}
-								isStepMode={false}
-							/>
-						{/each}
-					</div>
-				</div>
-			{/if}
 		</div>
 
-	<!-- TAB 2: Intensity Path Selector (Appendix O) -->
-	{:else if activeSubTab === 'intensity'}
+	<!-- STAGE 1: The 12-Competency Diagnostic Audit -->
+	{:else if currentStage === 1}
 		<div class="space-y-4">
-			<div class="p-3 bg-neutral-950 rounded-xl border border-neutral-800 text-xs text-neutral-400 leading-relaxed">
-				<strong class="text-neutral-200">Adaptive Pace Selection:</strong> Burnout happens when expectations clash with reality. Choose an intensity compatible with your actual schedule. You can adjust this at any time without losing progress.
+			<!-- Stepper Tracker -->
+			<div class="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+				<div class="flex items-center gap-2">
+					<Target class="w-4 h-4 text-amber-400" />
+					<span class="font-bold text-white">Competency {currentCompetencyIndex + 1} of 12:</span>
+					<span class="text-amber-400 font-semibold">{currentCompetency.name}</span>
+				</div>
+				<div class="flex items-center gap-3 font-mono text-[11px] text-neutral-400">
+					<span>Audited: <strong class="text-white">{auditedCount}/12</strong></span>
+					<span>•</span>
+					<span>Current Avg: <strong class="text-white">{avgScore} / 4.0</strong></span>
+				</div>
 			</div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<!-- Stepper Progress Dots -->
+			<div class="grid grid-cols-12 gap-1.5">
+				{#each practiceStore.baseline as comp, idx}
+					{@const isAudited = comp.notes.trim().length > 0 || comp.score !== 2}
+					<button
+						type="button"
+						onclick={() => (currentCompetencyIndex = idx)}
+						class="h-2 rounded-full transition cursor-pointer {idx === currentCompetencyIndex ? 'bg-amber-500 ring-2 ring-amber-500/40' : isAudited ? 'bg-emerald-500/80' : 'bg-neutral-800'}"
+						title="{comp.name} ({comp.score}/4)"
+					></button>
+				{/each}
+			</div>
+
+			<!-- Active Competency Card -->
+			<div class="w-full">
+				<BaselineCompetencyCard
+					item={currentCompetency}
+					onUpdate={() => practiceStore.saveToStorage()}
+					isStepMode={true}
+				/>
+			</div>
+
+			<!-- Next / Previous Controls -->
+			<div class="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
+				<button
+					type="button"
+					onclick={prevCompetency}
+					class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-300 hover:text-white border border-neutral-800 hover:bg-neutral-800 transition flex items-center gap-2 cursor-pointer"
+				>
+					<ArrowLeft class="w-3.5 h-3.5" />
+					<span>Previous</span>
+				</button>
+
+				{#if currentCompetencyIndex < 11}
+					<button
+						type="button"
+						onclick={nextCompetency}
+						class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 transition flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/20"
+					>
+						<span>Next Competency</span>
+						<ArrowRight class="w-3.5 h-3.5" />
+					</button>
+				{:else}
+					<button
+						type="button"
+						onclick={() => (currentStage = 2)}
+						class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-neutral-950 transition flex items-center gap-2 cursor-pointer shadow-md shadow-emerald-500/20"
+					>
+						<Check class="w-3.5 h-3.5" />
+						<span>View Diagnostic Profile →</span>
+					</button>
+				{/if}
+			</div>
+		</div>
+
+	<!-- STAGE 2: Diagnostic Synthesis -->
+	{:else if currentStage === 2}
+		<div class="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
+			<div class="space-y-1">
+				<span class="text-xs font-mono uppercase tracking-widest text-emerald-400 font-semibold">
+					Diagnostic Mirror
+				</span>
+				<h2 class="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
+					Your Baseline Creative Profile
+				</h2>
+				<p class="text-xs sm:text-sm text-neutral-400 leading-relaxed">
+					Based on your self-assessment, here is your primary growth bottleneck and strengths breakdown across the three mastery layers.
+				</p>
+			</div>
+
+			<!-- Score Overview Grid -->
+			<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800">
+					<span class="text-[10px] text-neutral-500 uppercase">Overall Baseline</span>
+					<div class="text-lg font-bold text-white mt-1">{synthesis.avgScore} <span class="text-xs text-neutral-500">/ 4.0</span></div>
+				</div>
+				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800">
+					<span class="text-[10px] text-emerald-400 uppercase">Layer 1: Foundations</span>
+					<div class="text-lg font-bold text-emerald-300 mt-1">{synthesis.avgLayer1} <span class="text-xs text-neutral-500">/ 4.0</span></div>
+				</div>
+				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800">
+					<span class="text-[10px] text-blue-400 uppercase">Layer 2: Systems</span>
+					<div class="text-lg font-bold text-blue-300 mt-1">{synthesis.avgLayer2} <span class="text-xs text-neutral-500">/ 4.0</span></div>
+				</div>
+				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800">
+					<span class="text-[10px] text-amber-400 uppercase">Layer 3: Direction</span>
+					<div class="text-lg font-bold text-amber-300 mt-1">{synthesis.avgLayer3} <span class="text-xs text-neutral-500">/ 4.0</span></div>
+				</div>
+			</div>
+
+			<!-- Primary Leverage Bottleneck Card -->
+			<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
+				<div class="flex items-center justify-between pb-2 border-b border-neutral-800">
+					<span class="text-xs font-mono font-bold text-red-400 uppercase">Primary Growth Bottleneck</span>
+					<span class="text-xs font-mono bg-red-950/60 text-red-300 border border-red-500/30 px-2 py-0.5 rounded">
+						Score: {synthesis.primaryBottleneck.score}/4
+					</span>
+				</div>
+				<div class="font-bold text-base text-white">
+					{synthesis.primaryBottleneck.name}
+				</div>
+				<p class="text-xs text-neutral-300 leading-relaxed">
+					{synthesis.primaryBottleneck.exercise}
+				</p>
+			</div>
+
+			<!-- Navigation -->
+			<div class="flex items-center justify-between pt-2">
+				<button
+					type="button"
+					onclick={() => (currentStage = 1)}
+					class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white transition flex items-center gap-2 cursor-pointer"
+				>
+					<ArrowLeft class="w-3.5 h-3.5" />
+					<span>Review Scores</span>
+				</button>
+				<button
+					type="button"
+					onclick={() => (currentStage = 3)}
+					class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs transition flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/20"
+				>
+					<span>Select Weekly Schedule</span>
+					<ArrowRight class="w-4 h-4" />
+				</button>
+			</div>
+		</div>
+
+	<!-- STAGE 3: Schedule & Weekly Commitment -->
+	{:else if currentStage === 3}
+		<div class="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
+			<div class="space-y-1">
+				<span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">
+					Runway Calibration
+				</span>
+				<h2 class="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
+					Select Your Practice Runway
+				</h2>
+				<p class="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+					Burnout happens when arbitrary course timelines clash with real work commitments. Select the weekly commitment that aligns with your life. You can adjust this anytime.
+				</p>
+			</div>
+
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				{#each paths as path}
 					<button
 						type="button"
-						onclick={() => { practiceStore.intensityPath = path.id; practiceStore.saveToStorage(); }}
-						class="p-4 rounded-xl text-left border transition relative flex flex-col justify-between {practiceStore.intensityPath === path.id ? 'bg-neutral-950 border-amber-500 shadow-lg' : 'bg-neutral-950/40 border-neutral-800 hover:border-neutral-700'}"
+						onclick={() => {
+							practiceStore.intensityPath = path.id;
+							practiceStore.saveToStorage();
+						}}
+						class="p-5 rounded-2xl text-left border transition relative flex flex-col justify-between cursor-pointer {practiceStore.intensityPath === path.id ? 'bg-neutral-950 border-amber-500 shadow-xl shadow-amber-500/10' : 'bg-neutral-950/40 border-neutral-800 hover:border-neutral-700'}"
 					>
 						{#if practiceStore.intensityPath === path.id}
-							<div class="absolute top-3 right-3 text-amber-400">
+							<div class="absolute top-4 right-4 text-amber-400">
 								<CheckCircle2 class="w-4 h-4" />
 							</div>
 						{/if}
-						<div>
+						<div class="space-y-1">
 							<h3 class="font-bold text-sm text-neutral-100">{path.title}</h3>
-							<div class="flex items-center gap-2 mt-1 text-xs font-mono text-amber-400">
-								<span>{path.hours}</span>
-								<span>•</span>
-								<span>{path.weeks}</span>
-							</div>
-							<p class="text-xs text-neutral-400 mt-2 leading-relaxed">
-								{path.desc}
-							</p>
-						</div>
-						<div class="mt-4 pt-3 border-t border-neutral-800/80 text-[11px] font-medium {practiceStore.intensityPath === path.id ? 'text-amber-400' : 'text-neutral-500'}">
-							{practiceStore.intensityPath === path.id ? 'Active Intensity Mode' : 'Select Mode'}
+							<div class="text-xs font-mono text-amber-400 font-semibold">{path.hours}</div>
+							<p class="text-xs text-neutral-400 pt-2 leading-relaxed">{path.desc}</p>
 						</div>
 					</button>
 				{/each}
 			</div>
+
+			<!-- Navigation -->
+			<div class="flex items-center justify-between pt-2">
+				<button
+					type="button"
+					onclick={() => (currentStage = 2)}
+					class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white transition flex items-center gap-2 cursor-pointer"
+				>
+					<ArrowLeft class="w-3.5 h-3.5" />
+					<span>Back</span>
+				</button>
+				<button
+					type="button"
+					onclick={() => (currentStage = 4)}
+					class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs transition flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/20"
+				>
+					<span>Setup Daily Observation & Free Play</span>
+					<ArrowRight class="w-4 h-4" />
+				</button>
+			</div>
 		</div>
 
-	<!-- TAB 3: Protected Play Practice -->
-	{:else if activeSubTab === 'play'}
-		<div class="space-y-4">
-			<div class="p-4 bg-neutral-950 rounded-xl border border-neutral-800 text-xs text-neutral-400 space-y-2">
-				<div class="flex items-center gap-2 text-amber-400 font-semibold">
-					<Sparkles class="w-4 h-4" />
-					<span>Play Practice: Unstructured Making for Its Own Sake</span>
-				</div>
-				<p class="leading-relaxed">
-					Play has: <strong>no brief, no deliverable, no diagnosis, no criteria, and no audience</strong>. It prevents structural rigidity.
-					After play, log exactly one sentence: <em>What did I enjoy?</em> No analysis allowed.
+	<!-- STAGE 4: Observation & Play Habits -->
+	{:else if currentStage === 4}
+		<div class="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
+			<div class="space-y-1">
+				<span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">
+					Creative Resilience
+				</span>
+				<h2 class="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
+					Establish Observation & Free Play Habits
+				</h2>
+				<p class="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+					Two foundational daily counterweights: noticing the physical world without turning everything into a client project, and playing without grading or evaluation.
 				</p>
 			</div>
 
-			<div class="space-y-2">
-				<label for="play-enjoy" class="block text-xs font-medium text-neutral-300">
-					What did I enjoy? (Single 140-char unanalyzed line)
-				</label>
-				<div class="flex gap-2">
-					<input
-						id="play-enjoy"
-						type="text"
-						maxlength="140"
-						bind:value={playText}
-						placeholder="e.g. Drawing fast ink shapes without checking proportion or intent."
-						class="flex-1 bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
-					/>
-					<button
-						type="button"
-						onclick={logPlay}
-						disabled={!playText.trim()}
-						class="px-4 py-2 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-bold transition"
-					>
-						Record Play
-					</button>
-				</div>
-				{#if playLogged}
-					<span class="text-xs text-emerald-400">Recorded to Play log!</span>
-				{/if}
-			</div>
-
-			<!-- Recent Play log -->
-			{#if practiceStore.playLines.length > 0}
-				<div class="mt-4 space-y-2">
-					<h4 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Play History ({practiceStore.playLines.length})</h4>
-					<div class="space-y-1.5 max-h-48 overflow-y-auto">
-						{#each practiceStore.playLines as entry}
-							<div class="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800/80 text-xs flex items-center justify-between gap-3">
-								<span class="text-neutral-200 italic">"{entry.line}"</span>
-								<span class="text-[10px] font-mono text-neutral-500 shrink-0">{entry.date}</span>
-							</div>
-						{/each}
-					</div>
-				</div>
-			{/if}
-		</div>
-
-	<!-- TAB 4: Non-Instrumental Attention -->
-	{:else if activeSubTab === 'attention'}
-		<div class="space-y-4">
-			<div class="p-4 bg-neutral-950 rounded-xl border border-neutral-800 text-xs text-neutral-400 space-y-2">
-				<div class="flex items-center gap-2 text-amber-400 font-semibold">
-					<Eye class="w-4 h-4" />
-					<span>Non-Instrumental Attention (Module 3)</span>
-				</div>
-				<p class="leading-relaxed">
-					Observation with no output requirement. If every perception is immediately converted into a project, you lose access to the material you could not search for.
-					Log one sentence: <em>What did I encounter that I was not looking for?</em>
-				</p>
-			</div>
-
-			<div class="space-y-2">
-				<label for="attention-line" class="block text-xs font-medium text-neutral-300">
-					What did I encounter that I was not looking for? (Single line)
-				</label>
-				<div class="flex gap-2">
-					<input
-						id="attention-line"
-						type="text"
-						maxlength="140"
-						bind:value={attentionText}
-						placeholder="e.g. The sound of water dripping inside an electrical conduit at dusk."
-						class="flex-1 bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-100 placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
-					/>
-					<button
-						type="button"
-						onclick={logAttention}
-						disabled={!attentionText.trim()}
-						class="px-4 py-2 rounded-xl text-xs bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-neutral-950 font-bold transition"
-					>
-						Record Attention
-					</button>
-				</div>
-				{#if attentionLogged}
-					<span class="text-xs text-emerald-400">Recorded to Attention log!</span>
-				{/if}
-			</div>
-
-			<!-- Recent Attention log -->
-			{#if practiceStore.nonInstrumentalLines.length > 0}
-				<div class="mt-4 space-y-2">
-					<h4 class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Attention Entries ({practiceStore.nonInstrumentalLines.length})</h4>
-					<div class="space-y-1.5 max-h-48 overflow-y-auto">
-						{#each practiceStore.nonInstrumentalLines as entry}
-							<div class="p-2.5 rounded-lg bg-neutral-950 border border-neutral-800/80 text-xs flex items-center justify-between gap-3">
-								<span class="text-neutral-200">"{entry.line}"</span>
-								<span class="text-[10px] font-mono text-neutral-500 shrink-0">{entry.date}</span>
-							</div>
-						{/each}
-					</div>
-				</div>
-			{/if}
-		</div>
-
-	<!-- TAB 5: Diagnostic Synthesis & Week 1 Continuity Contract -->
-	{:else if activeSubTab === 'synthesis'}
-		<div class="space-y-6">
-			<!-- Milestone Header -->
-			<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
-				<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800/80 pb-3">
-					<div>
-						<div class="flex items-center gap-2">
-							<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-								Phase Gate 0
-							</span>
-							<h3 class="text-base font-bold text-white flex items-center gap-2">
-								<FileCheck class="w-4 h-4 text-emerald-400" />
-								<span>Diagnostic Mirror & Practice Contract Sign-Off</span>
-							</h3>
-						</div>
-						<p class="text-xs text-neutral-400 mt-1">
-							This synthesis translates your baseline scores into concrete deliberate practice priorities for Part I (Weeks 1–2).
-						</p>
-					</div>
-
-					<div class="flex items-center gap-2 shrink-0">
-						{#if synthesis.isBaselineLocked}
-							<span class="px-3 py-1 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex items-center gap-1.5">
-								<CheckCircle2 class="w-3.5 h-3.5" />
-								Contract Signed & Locked
-							</span>
-						{:else}
-							<span class="px-3 py-1 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-300 text-xs font-mono font-bold flex items-center gap-1.5">
-								<Sparkles class="w-3.5 h-3.5" />
-								Ready for Commitment
-							</span>
-						{/if}
-					</div>
-				</div>
-
-				<!-- Overview Stats Grid -->
-				<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-					<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800/80">
-						<span class="text-[10px] font-mono text-neutral-500 uppercase tracking-wider">Overall Baseline</span>
-						<div class="text-lg font-bold text-white font-mono mt-0.5">{synthesis.avgScore} <span class="text-xs text-neutral-400">/ 4.0</span></div>
-					</div>
-					<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800/80">
-						<span class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider">Layer 1: Foundations</span>
-						<div class="text-lg font-bold text-emerald-300 font-mono mt-0.5">{synthesis.avgLayer1} <span class="text-xs text-neutral-400">/ 4.0</span></div>
-					</div>
-					<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800/80">
-						<span class="text-[10px] font-mono text-blue-400 uppercase tracking-wider">Layer 2: Systems</span>
-						<div class="text-lg font-bold text-blue-300 font-mono mt-0.5">{synthesis.avgLayer2} <span class="text-xs text-neutral-400">/ 4.0</span></div>
-					</div>
-					<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800/80">
-						<span class="text-[10px] font-mono text-amber-400 uppercase tracking-wider">Layer 3: Agency</span>
-						<div class="text-lg font-bold text-amber-300 font-mono mt-0.5">{synthesis.avgLayer3} <span class="text-xs text-neutral-400">/ 4.0</span></div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Three Pillar Diagnostic Analysis -->
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<!-- Pillar 1: Where You Stand Today -->
-				<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
-					<div class="flex items-center gap-2 border-b border-neutral-800 pb-3">
-						<Target class="w-4 h-4 text-amber-400" />
-						<h4 class="text-sm font-bold text-white">Where You Stand Today</h4>
+				<!-- Free Play Card -->
+				<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
+					<div class="flex items-center gap-2 text-xs font-bold text-amber-400">
+						<Sparkles class="w-4 h-4" />
+						<span>1. Free Play Space</span>
 					</div>
-
-					<div class="space-y-3 text-xs text-neutral-300 leading-relaxed">
-						{#if synthesis.readinessLevel === 'emerging'}
-							<p>
-								<strong class="text-amber-400">Reflexive Default Mode:</strong> Your scores indicate reliance on theoretical knowledge and machine defaults rather than autonomous directional control. This is the normal starting point for Week 0.
-							</p>
-						{:else if synthesis.readinessLevel === 'developing'}
-							<p>
-								<strong class="text-blue-400">Functional Craft with Emerging Gaps:</strong> You possess foundational observation instincts, but calibration and causal systems still require systematic discipline to prevent lucky hits.
-							</p>
-						{:else}
-							<p>
-								<strong class="text-emerald-400">Grounded Directional Anchor:</strong> You have strong self-awareness across foundational observation. Your primary risk is complacency or over-relying on familiar tools without transfer.
-							</p>
-						{/if}
-
-						<div class="p-3.5 rounded-xl bg-neutral-900/90 border border-neutral-800/80 space-y-1.5">
-							<div class="text-[11px] font-mono text-neutral-400 uppercase tracking-wider">Audited Honesty Rate:</div>
-							<div class="flex items-center justify-between text-xs">
-								<span class="text-neutral-200">{synthesis.auditedCount} of 12 competencies contain notes or differentiated ratings</span>
-								<span class="font-bold font-mono {synthesis.auditedCount >= 10 ? 'text-emerald-400' : 'text-amber-400'}">
-									{Math.round((synthesis.auditedCount / 12) * 100)}%
-								</span>
-							</div>
-							<div class="h-1.5 w-full bg-neutral-800 rounded-full overflow-hidden">
-								<div class="h-full bg-amber-500 transition-all" style="width: {(synthesis.auditedCount / 12) * 100}%"></div>
-							</div>
-						</div>
-
-						<!-- Strengths list -->
-						{#if synthesis.strengths.length > 0}
-							<div class="space-y-1.5 pt-1">
-								<div class="text-[11px] font-semibold text-emerald-400">Current Strengths & Stabilizers (Scores 3–4):</div>
-								<div class="flex flex-wrap gap-1.5">
-									{#each synthesis.strengths as st}
-										<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px] font-medium">
-											{st.name} ({st.score}/4)
-										</span>
-									{/each}
-								</div>
-							</div>
-						{/if}
-					</div>
-				</div>
-
-				<!-- Pillar 2: What You Need to Improve First -->
-				<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
-					<div class="flex items-center gap-2 border-b border-neutral-800 pb-3">
-						<AlertTriangle class="w-4 h-4 text-red-400" />
-						<h4 class="text-sm font-bold text-white">What You Must Improve First (Part I Focus)</h4>
-					</div>
-
-					<div class="space-y-3 text-xs text-neutral-300 leading-relaxed">
-						<div class="p-3.5 rounded-xl bg-red-950/20 border border-red-500/30 space-y-2">
-							<div class="flex items-center justify-between">
-								<span class="text-[10px] font-mono text-red-400 font-bold uppercase tracking-wider">Primary Leverage Bottleneck</span>
-								<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-950/80 text-red-300 border border-red-500/40">
-									Score {synthesis.primaryBottleneck.score} / 4
-								</span>
-							</div>
-							<div class="font-bold text-sm text-white">
-								{synthesis.primaryBottleneck.name}
-							</div>
-							<p class="text-[11px] text-neutral-300">
-								{synthesis.primaryBottleneck.exercise}
-							</p>
-							{#if synthesis.primaryBottleneck.notes}
-								<div class="text-[11px] text-amber-300/90 italic bg-neutral-900/80 p-2 rounded-lg border border-neutral-800">
-									"{synthesis.primaryBottleneck.notes}"
-								</div>
-							{/if}
-						</div>
-
-						<!-- Vulnerability chips -->
-						<div class="space-y-1.5">
-							<div class="text-[11px] font-semibold text-neutral-400">Additional Priority Growth Targets (Scores 1–2):</div>
-							<div class="space-y-1.5">
-								{#each synthesis.vulnerabilities.slice(1, 4) as vuln}
-									<div class="p-2 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center justify-between gap-2">
-										<span class="font-medium text-neutral-200">{vuln.name}</span>
-										<span class="font-mono text-amber-400 text-[11px]">Level {vuln.score} (Emerging)</span>
-									</div>
-								{/each}
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- Pacing & Contract Summary -->
-			<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
-				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-3">
-					<div class="flex items-center gap-2">
-						<Clock class="w-4 h-4 text-amber-400" />
-						<h4 class="text-sm font-bold text-white">Your Selected Practice Schedule</h4>
-					</div>
-					<button
-						type="button"
-						onclick={() => activeSubTab = 'intensity'}
-						class="text-xs text-amber-400 hover:text-amber-300 underline font-medium cursor-pointer"
-					>
-						Modify Weekly Schedule →
-					</button>
-				</div>
-
-				<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-					<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
-						<span class="text-neutral-500 font-mono text-[10px] uppercase">Active Path</span>
-						<div class="text-sm font-bold text-amber-400 capitalize mt-0.5">
-							{practiceStore.intensityPath.replace('-', ' ')}
-						</div>
-					</div>
-					<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
-						<span class="text-neutral-500 font-mono text-[10px] uppercase">Weekly Commitment</span>
-						<div class="text-sm font-bold text-white mt-0.5">
-							{#if practiceStore.intensityPath === 'full-time-12w'}
-								18–25h / week (12 Weeks)
-							{:else if practiceStore.intensityPath === 'extended-24w'}
-								12–18h / week (24 Weeks)
-							{:else if practiceStore.intensityPath === 'distributed-48w'}
-								6–10h / week (48 Weeks)
-							{:else}
-								~4h / week (Maintenance)
-							{/if}
-						</div>
-					</div>
-					<div class="p-3 rounded-xl bg-neutral-900 border border-neutral-800">
-						<span class="text-neutral-500 font-mono text-[10px] uppercase">Part I Target</span>
-						<div class="text-sm font-bold text-emerald-400 mt-0.5">
-							Weeks 1–2: Project 1 Portfolio
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<!-- THE CONTINUITY HANDOFF: LOCK BASELINE & LAUNCH WEEK 1 -->
-			<div class="p-6 rounded-2xl bg-gradient-to-br from-neutral-950 via-neutral-900 to-amber-950/30 border-2 border-amber-500/40 space-y-4 shadow-xl">
-				<div class="space-y-1">
-					<span class="text-xs font-mono font-bold text-amber-400 uppercase tracking-widest">
-						Official Practice Contract Handoff
-					</span>
-					<h3 class="text-lg md:text-xl font-bold text-white tracking-tight">
-						Lock Baseline Diagnostic & Launch Week 1 Studio
-					</h3>
-					<p class="text-xs md:text-sm text-neutral-300 leading-relaxed max-w-2xl">
-						Signing the contract registers your Week 0 diagnostic gate, activates Week 1 in the curriculum roadmap, and initializes your daily 8-step practice loop targeting your primary vulnerability ({synthesis.primaryBottleneck.name}).
+					<p class="text-xs text-neutral-400 leading-relaxed">
+						Making with no brief, no rubric, and no audience. Prevents creative rigidity. Log one sentence on what you enjoyed exploring.
 					</p>
+					<div class="space-y-2 pt-1">
+						<input
+							type="text"
+							maxlength="140"
+							bind:value={playText}
+							placeholder="e.g. Mixing fluid gradients without a client brief."
+							class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
+						/>
+						<button
+							type="button"
+							onclick={savePlay}
+							disabled={!playText.trim()}
+							class="w-full py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 disabled:opacity-40 transition cursor-pointer"
+						>
+							Save Free Play Log
+						</button>
+						{#if playSaved}
+							<div class="text-[11px] text-emerald-400 font-mono text-center">Saved to your local studio log!</div>
+						{/if}
+					</div>
 				</div>
 
-				<div class="pt-2 flex flex-wrap items-center gap-3">
-					<button
-						type="button"
-						onclick={() => {
-							practiceStore.completeBaselineAndStartWeek1();
-							contractSigned = true;
-							if (onNavigateTab) {
-								onNavigateTab('today');
-							}
-						}}
-						class="px-6 py-3 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center gap-2 shadow-lg transition cursor-pointer scale-100 hover:scale-[1.02]"
-					>
-						<CheckCircle2 class="w-4 h-4" />
-						<span>Sign Contract & Enter Today's Practice (Week 1, Day 1)</span>
-						<ArrowRight class="w-4 h-4" />
-					</button>
-
-					<button
-						type="button"
-						onclick={() => {
-							practiceStore.completeBaselineAndStartWeek1();
-							contractSigned = true;
-							if (onSelectModality) {
-								onSelectModality('m2');
-							}
-						}}
-						class="px-5 py-3 rounded-xl text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-700 flex items-center gap-2 transition cursor-pointer"
-					>
-						<span>Open Project 1 in M2 Diagnostic Vision</span>
-						<ArrowRight class="w-4 h-4" />
-					</button>
-
-					<button
-						type="button"
-						onclick={() => {
-							if (onNavigateTab) {
-								onNavigateTab('curriculum');
-							}
-						}}
-						class="px-4 py-3 rounded-xl text-xs font-medium text-neutral-400 hover:text-white transition cursor-pointer"
-					>
-						View Full 12-Week Curriculum Roadmap →
-					</button>
+				<!-- Daily Observation Card -->
+				<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
+					<div class="flex items-center gap-2 text-xs font-bold text-amber-400">
+						<Eye class="w-4 h-4" />
+						<span>2. Daily Observation</span>
+					</div>
+					<p class="text-xs text-neutral-400 leading-relaxed">
+						Noticing physical traits without immediately instrumenting them. Log one line: What did you encounter today that you were not looking for?
+					</p>
+					<div class="space-y-2 pt-1">
+						<input
+							type="text"
+							maxlength="140"
+							bind:value={attentionText}
+							placeholder="e.g. Low afternoon sun casting cast-iron railing patterns."
+							class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-neutral-600 focus:outline-none focus:border-amber-500"
+						/>
+						<button
+							type="button"
+							onclick={saveAttention}
+							disabled={!attentionText.trim()}
+							class="w-full py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 disabled:opacity-40 transition cursor-pointer"
+						>
+							Save Observation Log
+						</button>
+						{#if attentionSaved}
+							<div class="text-[11px] text-emerald-400 font-mono text-center">Saved to your local studio log!</div>
+						{/if}
+					</div>
 				</div>
+			</div>
+
+			<!-- Navigation -->
+			<div class="flex items-center justify-between pt-2">
+				<button
+					type="button"
+					onclick={() => (currentStage = 3)}
+					class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white transition flex items-center gap-2 cursor-pointer"
+				>
+					<ArrowLeft class="w-3.5 h-3.5" />
+					<span>Back</span>
+				</button>
+				<button
+					type="button"
+					onclick={() => (currentStage = 5)}
+					class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs transition flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/20"
+				>
+					<span>Review & Sign Practice Contract</span>
+					<ArrowRight class="w-4 h-4" />
+				</button>
 			</div>
 		</div>
 
-	<!-- TAB 6: Deliberate Practice Drill Reps -->
-	{:else if activeSubTab === 'drills'}
-		<div class="space-y-4">
-			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-neutral-950 rounded-2xl border border-neutral-800 text-xs text-neutral-400">
+	<!-- STAGE 5: Sign Practice Contract & Launch Week 1 -->
+	{:else if currentStage === 5}
+		<div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-amber-950/30 border-2 border-amber-500/40 space-y-6 shadow-2xl">
+			<div class="space-y-2">
+				<span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">
+					Official Practice Commitment
+				</span>
+				<h2 class="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
+					Lock Foundation & Enter Active Practice
+				</h2>
+				<p class="text-xs sm:text-sm text-neutral-300 leading-relaxed max-w-2xl">
+					You have completed the orientation runway: audited your 12 competencies, established your schedule ({paths.find(p => p.id === practiceStore.intensityPath)?.hours}), and set your creative counterweights.
+				</p>
+			</div>
+
+			<!-- Summary Capsule -->
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-neutral-950 border border-neutral-800 text-xs font-mono">
 				<div>
-					<strong class="text-neutral-200">Module 0 Deliberate Practice Drills:</strong> High-repetition routines to separate noticing from instrumented production.
+					<span class="text-neutral-500 text-[10px] uppercase">Primary Target</span>
+					<div class="font-bold text-amber-400 mt-0.5 truncate">{synthesis.primaryBottleneck.name}</div>
 				</div>
-				<div class="flex items-center gap-2">
-					<button
-						type="button"
-						onclick={() => activeDrillId = 'm0-attention-sprint'}
-						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'm0-attention-sprint' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
-					>
-						Attention Sprint (10m)
-					</button>
-					<button
-						type="button"
-						onclick={() => activeDrillId = 'm0-play-rep'}
-						class="px-3 py-1.5 rounded-lg border text-xs font-mono transition {activeDrillId === 'm0-play-rep' ? 'bg-amber-500 text-neutral-950 font-bold border-amber-400' : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'}"
-					>
-						Uninstrumented Play (15m)
-					</button>
+				<div>
+					<span class="text-neutral-500 text-[10px] uppercase">Weekly Commitment</span>
+					<div class="font-bold text-white mt-0.5">{paths.find(p => p.id === practiceStore.intensityPath)?.hours}</div>
+				</div>
+				<div>
+					<span class="text-neutral-500 text-[10px] uppercase">Upcoming Milestone</span>
+					<div class="font-bold text-emerald-400 mt-0.5">Week 1: Observation Studio</div>
 				</div>
 			</div>
 
-			{#if activeDrill}
-				<DrillRunner
-					drill={activeDrill}
-					onComplete={() => {}}
-				/>
-			{/if}
+			<div class="pt-4 flex flex-col sm:flex-row items-center gap-3">
+				<button
+					type="button"
+					onclick={lockContractAndAdvance}
+					class="w-full sm:w-auto px-6 py-3.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 transition cursor-pointer"
+				>
+					<CheckCircle2 class="w-4 h-4" />
+					<span>Lock Contract & Start Week 1 Practice</span>
+					<ArrowRight class="w-4 h-4" />
+				</button>
+				<button
+					type="button"
+					onclick={() => (currentStage = 1)}
+					class="text-xs text-neutral-400 hover:text-white transition px-4 py-2 cursor-pointer"
+				>
+					Review Self-Audit
+				</button>
+			</div>
 		</div>
 	{/if}
 </div>
 
+<!-- Reading Modal for Module 0 Theory -->
+{#if module0Reading}
+	<ReadingModal
+		reading={module0Reading}
+		isOpen={isReadingModalOpen}
+		onClose={() => (isReadingModalOpen = false)}
+		onSelectReading={() => {}}
+	/>
+{/if}

@@ -21,27 +21,24 @@
 	} = $props();
 
 	// Check if user has completed baseline:
-	// Either they formally locked it via Phase Gate 0, audited notes/scores, logged problems, or passed week 0
+	// They have formally locked the baseline contract via Phase Gate 0 or advanced past Week 0
 	const hasBaselineCompleted = $derived(
-		practiceStore.passedMasteryGates.includes(0) ||
-		practiceStore.baseline.some((b) => b.score !== 2 || b.notes.trim().length > 0) ||
-		practiceStore.problems.length > 0 ||
-		practiceStore.activePart >= 1
+		practiceStore.passedMasteryGates.includes(0) || practiceStore.activePart >= 1
 	);
 
 	// Contextual active mission
 	const currentMission = $derived.by(() => {
 		if (!hasBaselineCompleted) {
 			return {
-				title: 'Milestone 1: Assess Your Creative Baseline',
-				subtitle: 'Calibrate your confidence across 12 creative capabilities to tailor your learning roadmap',
-				duration: '~5–10 mins',
-				actionLabel: 'Open Baseline Skills Audit',
+				title: 'Foundation: Complete Orientation Runway',
+				subtitle: 'Work through the 6-step orientation: theory, 12-skill audit, schedule, observation & free play habits',
+				duration: '~10–15 mins',
+				actionLabel: 'Enter Orientation Runway',
 				targetModality: 'm0',
-				tag: 'Current Focus'
+				tag: 'Orientation Stage'
 			};
 		}
-		if (practiceStore.activePart === 0 && !practiceStore.passedMasteryGates.includes(0)) {
+		if (practiceStore.activeWeek === 1 || practiceStore.activePart === 1) {
 			return {
 				title: 'Milestone 2: Precision Observation & Removing Buzzwords',
 				subtitle: 'Train your eyes to detect exact visual and structural mechanics with the Precision Linter',
@@ -52,7 +49,7 @@
 			};
 		}
 		return {
-			title: `Active Mission: Part ${practiceStore.activePart === 0 ? 'I' : practiceStore.activePart} Deliberate Practice`,
+			title: `Active Mission: Part ${practiceStore.activePart} Deliberate Practice`,
 			subtitle: 'Deliberate micro-drill and project execution in the 70–80% challenge zone',
 			duration: 'In Progress',
 			actionLabel: "Enter Active Practice Studio",

@@ -449,29 +449,6 @@
 		</div>
 	{/if}
 
-	<!-- First-Run Onboarding Banner (if baseline is un-audited) -->
-	{#if auditedBaselineCount < 6}
-		<div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-			<div class="flex items-center gap-3">
-				<Target class="w-5 h-5 text-amber-400 shrink-0" />
-				<div>
-					<div class="font-bold text-amber-300">Welcome to Directing the Machine · Week 0 Orientation</div>
-					<p class="text-neutral-300 text-[11px] mt-0.5">
-						Begin your training by auditing your 12-competency baseline mirror and signing your Deliberate Practice Contract.
-					</p>
-				</div>
-			</div>
-			<button
-				type="button"
-				onclick={() => onSelectModality('m0')}
-				class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer"
-			>
-				<span>Start Baseline Diagnostic (M0)</span>
-				<ArrowRight class="w-3.5 h-3.5" />
-			</button>
-		</div>
-	{/if}
-
 	<!-- Day Begins Card: Assigned Module & Concept -->
 	<div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-4 shadow-xl">
 		<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
