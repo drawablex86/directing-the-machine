@@ -49,7 +49,7 @@
 
 	// Active week and day models
 	let currentWeekData = $derived(
-		COURSE_WEEKS.find((w) => w.weekNumber === practiceStore.activeWeek) || COURSE_WEEKS[1]
+		COURSE_WEEKS.find((w) => w.weekNumber === practiceStore.activeWeek) || COURSE_WEEKS[0]
 	);
 
 	let currentDayData = $derived(

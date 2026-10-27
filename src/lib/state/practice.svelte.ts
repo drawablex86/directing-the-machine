@@ -149,7 +149,7 @@ export class PracticeEngine {
 	intensityPath = $state<IntensityPath>('full-time-12w');
 	showDeepening = $state<boolean>(false);
 	activePart = $state<number>(0); // 0 = Week 0, 1..6 = Parts I-VI, 7..12 = Months 4-9
-	activeWeek = $state<number>(1); // 0 to 18
+	activeWeek = $state<number>(0); // 0 = Week 0 (Baseline & Module 0), 1 to 18
 	activeDay = $state<number>(1); // 1 (Mon) to 7 (Sun)
 	currentStepIndex = $state<number>(0); // 0..7 within today's daily 8-step routine
 
