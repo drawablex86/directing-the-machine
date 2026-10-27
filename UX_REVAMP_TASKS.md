@@ -55,20 +55,20 @@
 ---
 
 ## Phase 4: Studio Header & Clutter Reduction
-- [ ] **Task 4.1: Redesign `TodayLoopHeader.svelte` for Human Readability**
+- [x] **Task 4.1: Redesign `TodayLoopHeader.svelte` for Human Readability**
   - File: `src/lib/components/shell/TodayLoopHeader.svelte`
-  - Declutter top bar:
-    - Hide secondary modal buttons (`Stop Gate`, `I'm Stuck`, `Ref ⌘K`, `Focus Horizon`) behind an elegant, organized `Tools & Assistance` dropdown or quick-action bar.
-    - Replace rigid `Step 2/8 (Practise · 60m)` with a human milestone tracker: *"Milestone 1: Establish Your Baseline"*.
-    - Provide unambiguous signifiers: plain icons and readable labels with tooltip descriptions.
+  - Decluttered top bar:
+    - Replaced 6 cluttered top buttons (`Focus Horizon`, `I'm Stuck`, `Stop Gate`, `Ref ⌘K`, `Shortcuts`) with a single organized **Studio Tools** dropdown menu.
+    - Simplified step display from rigid time burdens to a human progress indicator (*Step X/8 · Step Name* with expandable details).
+    - Added session-based pacing signifiers (*Session X · Part Y*) adhering to human schedules.
+    - Elevated Help and Settings into clear, high-contrast signifiers.
 
-- [ ] **Task 4.2: Replace Dismissible Weak Banner with Structured Focus Card**
-  - File: `src/lib/components/shell/WelcomeBanner.svelte`
-  - Transform from a cluttered wall of text to an uncluttered, purposeful milestone card.
-  - Clearly display:
-    - **Current Objective**
-    - **Estimated Effort** (e.g., *"10-15 mins • No rush"*)
-    - **Primary Action** (high-contrast button)
+- [x] **Task 4.2: Replace Dismissible Weak Banner with Structured Focus Card**
+  - Component: `src/lib/components/shell/ActiveFocusCard.svelte`
+  - Replaced the wall-of-text banner with an actionable, calm **Active Focus Card**:
+    - Contextual awareness: Prompts for Milestone 1 (M0 Baseline) if incomplete, or the active weekly milestone if baseline is complete.
+    - Displays estimated duration (~5-10 mins) and explicit action button.
+    - Hides automatically during active test/lab sessions to prevent distraction.
 
 ---
 

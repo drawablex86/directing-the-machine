@@ -5,7 +5,7 @@
 	import HemingwayStopModal from '$lib/components/shell/HemingwayStopModal.svelte';
 	import LearnerPreferencesModal from '$lib/components/shell/LearnerPreferencesModal.svelte';
 	import KeyboardShortcutsModal from '$lib/components/shell/KeyboardShortcutsModal.svelte';
-	import WelcomeBanner from '$lib/components/shell/WelcomeBanner.svelte';
+	import ActiveFocusCard from '$lib/components/shell/ActiveFocusCard.svelte';
 	import DailyPracticeView from '$lib/components/shell/DailyPracticeView.svelte';
 	import LabDirectory from '$lib/components/shell/LabDirectory.svelte';
 	import FieldManualView from '$lib/components/shell/FieldManualView.svelte';
@@ -217,6 +217,14 @@
 			<!-- Norman / DOET First-Time Handholding & Orientation Flow -->
 			<OrientationGuideView onBeginFirstMission={() => openLab('m0')} />
 		{:else}
+			<!-- Active Milestone Focus Card (Replaces Cluttered Wall of Text) -->
+			{#if activeTab !== 'lab-session'}
+				<ActiveFocusCard
+					onSelectModality={openLab}
+					onContinueSession={() => switchTab('today')}
+				/>
+			{/if}
+
 			<!-- Primary Studio Navigation Tabs (Hidden during an active lab/test session for pure focus) -->
 			{#if activeTab !== 'lab-session'}
 				<div class="flex items-center justify-between border-b border-neutral-800 pb-2">
