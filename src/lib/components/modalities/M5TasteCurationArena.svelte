@@ -20,11 +20,16 @@
 		Brain
 	} from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import LabFrictionPrimer from '$lib/components/course/LabFrictionPrimer.svelte';
+	import ReadingModal from '$lib/components/shell/ReadingModal.svelte';
+	import type { CoreReading } from '$lib/data/core-readings';
 	import { getDrillById } from '$lib/data/drills';
 	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
 	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
 	import { executePrompt } from '$lib/engine/prompt-registry';
 	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
+
+	let activeReadingForModal = $state<CoreReading | null>(null);
 
 	let activeSubTab = $state<'tasteFormula' | 'blindRanker' | 'anchors' | 'reverse' | 'drills'>('tasteFormula');
 	let activeDrillId = $state<'blind-ranking' | 'm5-taste-builder' | 'm5-reverse-brief'>('blind-ranking');
@@ -383,6 +388,17 @@
 </script>
 
 <div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-6">
+	<!-- Contextual Material Primer: Ingesting Theory Before Practice -->
+	<LabFrictionPrimer
+		modalityId="m5"
+		primaryReadingCode="Module 10"
+		failureMode="Evaluating work based on brand reputation, human vs AI origin bias, or unexamined subjective whim without explicit reference classes."
+		directorialDiscipline="Author 5-part taste formulas (Preference + Criteria + Reference Class + Mechanism + Purpose) and rank works blindly to eliminate origin bias."
+		benchmarkPass="Articulates the physical mechanism that causes an emotional or aesthetic reaction; maintains ranking criteria regardless of who made the work."
+		benchmarkFail="Changes evaluation upon learning whether a piece was AI-generated or human-made."
+		onOpenFullReading={(r) => activeReadingForModal = r}
+	/>
+
 	<!-- Studio Header -->
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
@@ -1153,5 +1169,15 @@
 				</table>
 			</div>
 		</div>
+	{/if}
+
+	<!-- Full Text Reading Modal for M5 Ingestion -->
+	{#if activeReadingForModal}
+		<ReadingModal
+			reading={activeReadingForModal}
+			isOpen={!!activeReadingForModal}
+			onClose={() => activeReadingForModal = null}
+			onSelectReading={(r) => activeReadingForModal = r}
+		/>
 	{/if}
 </div>

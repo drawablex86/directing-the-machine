@@ -2,11 +2,16 @@
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import { Award, Compass, Eye, Sliders, CheckCircle2, ArrowRight, Target, Trash2 } from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import LabFrictionPrimer from '$lib/components/course/LabFrictionPrimer.svelte';
+	import ReadingModal from '$lib/components/shell/ReadingModal.svelte';
+	import type { CoreReading } from '$lib/data/core-readings';
 	import { getDrillById } from '$lib/data/drills';
 	import { executePrompt } from '$lib/engine/prompt-registry';
 	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
 	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
 	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
+
+	let activeReadingForModal = $state<CoreReading | null>(null);
 
 	let activeSubTab = $state<'blanksheet' | 'gap' | 'synthesis' | 'drills'>('blanksheet');
 	let activeDrillId = $state<'m7-position-gap' | 'm7-removal-test'>('m7-position-gap');
@@ -303,6 +308,17 @@
 </script>
 
 <div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-6">
+	<!-- Contextual Material Primer: Ingesting Theory Before Practice -->
+	<LabFrictionPrimer
+		modalityId="m7"
+		primaryReadingCode="The Course Goal"
+		failureMode="Depending on assignments, prompts, or external mentors to tell you what to make, or claiming an artistic position that is nowhere visible in your unassisted work."
+		directorialDiscipline="Total agency from a blank sheet: originate problems, test for positional congruence between claim and artifact, and take full public responsibility for what you make."
+		benchmarkPass="Initiates and delivers work without a prompt; passes the removal test in cross-medium synthesis; demonstrates position congruence."
+		benchmarkFail="Freezes when no prompt is given; shows wide gap between claimed values and actual visual/written work."
+		onOpenFullReading={(r) => activeReadingForModal = r}
+	/>
+
 	<!-- Studio Header -->
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
@@ -823,5 +839,15 @@
 				</table>
 			</div>
 		</div>
+	{/if}
+
+	<!-- Full Text Reading Modal for M7 Ingestion -->
+	{#if activeReadingForModal}
+		<ReadingModal
+			reading={activeReadingForModal}
+			isOpen={!!activeReadingForModal}
+			onClose={() => activeReadingForModal = null}
+			onSelectReading={(r) => activeReadingForModal = r}
+		/>
 	{/if}
 </div>

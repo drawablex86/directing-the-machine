@@ -3,10 +3,15 @@
 	import type { Brief } from '$lib/schemas/course.schema';
 	import { FileText, Sliders, ShieldCheck, CheckCircle2, ArrowRight, Target, Sparkles, Wand2, AlertTriangle, Plus } from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import LabFrictionPrimer from '$lib/components/course/LabFrictionPrimer.svelte';
+	import ReadingModal from '$lib/components/shell/ReadingModal.svelte';
+	import type { CoreReading } from '$lib/data/core-readings';
 	import { getDrillById } from '$lib/data/drills';
 	import { LlmTriggerButton, LlmCritiqueCard } from '$lib/components/llm';
 	import { executePrompt } from '$lib/engine/prompt-registry';
 	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
+
+	let activeReadingForModal = $state<CoreReading | null>(null);
 
 	let activeTab = $state<'drill' | 'premise' | 'brief' | 'constraints' | 'provenance'>('brief');
 	let briefSavedNotice = $state(false);
@@ -271,6 +276,17 @@
 </script>
 
 <div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-6">
+	<!-- Contextual Material Primer: Ingesting Theory Before Practice -->
+	<LabFrictionPrimer
+		modalityId="m3"
+		primaryReadingCode="Module 5"
+		failureMode="Vague unconstrained prompting, producing generic aesthetic drift, or mistaking a subject ('a portrait of a woman') for a directional premise."
+		directorialDiscipline="Author a premise containing non-negotiable tension, engineer concrete acceptance and rejection criteria, and bind constraints before generating any output."
+		benchmarkPass="Premise introduces two opposing forces; brief includes negative rejection constraints."
+		benchmarkFail="Premise is merely a decorative topic description; brief contains only open-ended aesthetic adjectives."
+		onOpenFullReading={(r) => activeReadingForModal = r}
+	/>
+
 	<!-- Studio Header -->
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
@@ -745,5 +761,15 @@
 				></textarea>
 			</div>
 		</div>
+	{/if}
+
+	<!-- Full Text Reading Modal for M3 Ingestion -->
+	{#if activeReadingForModal}
+		<ReadingModal
+			reading={activeReadingForModal}
+			isOpen={!!activeReadingForModal}
+			onClose={() => activeReadingForModal = null}
+			onSelectReading={(r) => activeReadingForModal = r}
+		/>
 	{/if}
 </div>

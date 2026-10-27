@@ -3,10 +3,15 @@
 	import type { ProblemEntry } from '$lib/schemas/course.schema';
 	import { Compass, ShieldCheck, ShieldAlert, ArrowRight, CheckCircle2, Clock, Target, Wand2 } from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import LabFrictionPrimer from '$lib/components/course/LabFrictionPrimer.svelte';
+	import ReadingModal from '$lib/components/shell/ReadingModal.svelte';
+	import type { CoreReading } from '$lib/data/core-readings';
 	import { getDrillById } from '$lib/data/drills';
 	import { LlmTriggerButton, LlmCritiqueCard } from '$lib/components/llm';
 	import { executePrompt } from '$lib/engine/prompt-registry';
 	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
+
+	let activeReadingForModal = $state<CoreReading | null>(null);
 
 	type ActiveTab = 'drill' | 'funnel';
 	let activeTab = $state<ActiveTab>('funnel');
@@ -202,6 +207,17 @@
 </script>
 
 <div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-6">
+	<!-- Contextual Material Primer: Ingesting Theory Before Practice -->
+	<LabFrictionPrimer
+		modalityId="m1"
+		primaryReadingCode="Module 2"
+		failureMode="Defaulting to unreflective prompt engineering on given briefs, mistaking a broad topic for a problem, or speaking 'Over' subjects without ethical standing."
+		directorialDiscipline="Isolate high-friction observations, test for active tension rather than passive subject matter, and consciously choose a defensible positionality (From, With, For, About) or refuse the project."
+		benchmarkPass="Frames a specific tension where two desirable values collide, with stated standing and stakes."
+		benchmarkFail="Lists a general theme ('AI and nature') without tension or standing justification."
+		onOpenFullReading={(r) => activeReadingForModal = r}
+	/>
+
 	<!-- Studio Header -->
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
@@ -551,5 +567,15 @@
 			</div>
 		</div>
 	{/if}
+	{/if}
+
+	<!-- Full Text Reading Modal for M1 Ingestion -->
+	{#if activeReadingForModal}
+		<ReadingModal
+			reading={activeReadingForModal}
+			isOpen={!!activeReadingForModal}
+			onClose={() => activeReadingForModal = null}
+			onSelectReading={(r) => activeReadingForModal = r}
+		/>
 	{/if}
 </div>

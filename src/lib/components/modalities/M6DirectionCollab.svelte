@@ -18,11 +18,16 @@
 		ShieldAlert
 	} from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import LabFrictionPrimer from '$lib/components/course/LabFrictionPrimer.svelte';
+	import ReadingModal from '$lib/components/shell/ReadingModal.svelte';
+	import type { CoreReading } from '$lib/data/core-readings';
 	import { getDrillById } from '$lib/data/drills';
 	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
 	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
 	import { executePrompt } from '$lib/engine/prompt-registry';
 	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
+
+	let activeReadingForModal = $state<CoreReading | null>(null);
 
 	let activeSubTab = $state<'scope' | 'triage' | 'refusal' | 'transmission' | 'drills'>('scope');
 	let activeDrillId = $state<'m6-refusal-pressure' | 'm6-feedback-translation'>('m6-refusal-pressure');
@@ -354,6 +359,17 @@
 </script>
 
 <div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-6">
+	<!-- Contextual Material Primer: Ingesting Theory Before Practice -->
+	<LabFrictionPrimer
+		modalityId="m6"
+		primaryReadingCode="Module 12"
+		failureMode="Endless revision cycles trying to polish a fundamentally broken brief, capitulating to all client/audience feedback, or issuing defensive, reactive refusals."
+		directorialDiscipline="Cap revisions at 3 named cycles before forcing a formal Re-Brief, translate client comments to underlying functional outcomes, and issue structured, principled refusals."
+		benchmarkPass="Names the exact causal failure before revising; chooses Re-Brief when premise is compromised; articulates an ethical/positional refusal without hostility."
+		benchmarkFail="Attempts 'Revision Cycle 8' on a flawed premise; uncritically implements client styling suggestions."
+		onOpenFullReading={(r) => activeReadingForModal = r}
+	/>
+
 	<!-- Studio Header -->
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
@@ -1078,5 +1094,15 @@
 				/>
 			{/if}
 		</div>
+	{/if}
+
+	<!-- Full Text Reading Modal for M6 Ingestion -->
+	{#if activeReadingForModal}
+		<ReadingModal
+			reading={activeReadingForModal}
+			isOpen={!!activeReadingForModal}
+			onClose={() => activeReadingForModal = null}
+			onSelectReading={(r) => activeReadingForModal = r}
+		/>
 	{/if}
 </div>

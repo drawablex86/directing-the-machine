@@ -569,19 +569,35 @@
 									</div>
 								</div>
 
-								<button
-									type="button"
-									onclick={toggleReadingStatus}
-									class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shrink-0 {isCompleted ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow' : 'bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow'}"
-								>
-									{#if isCompleted}
-										<CheckCircle2 class="w-4 h-4" />
-										<span>Module Completed!</span>
-									{:else}
-										<Circle class="w-4 h-4" />
-										<span>Sign Off & Complete Module</span>
+								<div class="flex items-center gap-2">
+									{#if onSelectModality}
+										<button
+											type="button"
+											onclick={() => {
+												onClose();
+												onSelectModality(reading.targetModalityId);
+											}}
+											class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 shadow flex items-center gap-1.5 transition cursor-pointer"
+										>
+											<span>Enter Studio Lab</span>
+											<ArrowRight class="w-3.5 h-3.5" />
+										</button>
 									{/if}
-								</button>
+
+									<button
+										type="button"
+										onclick={toggleReadingStatus}
+										class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shrink-0 {isCompleted ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow' : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-200 border border-neutral-700'}"
+									>
+										{#if isCompleted}
+											<CheckCircle2 class="w-4 h-4" />
+											<span>Module Completed!</span>
+										{:else}
+											<Circle class="w-4 h-4" />
+											<span>Sign Off & Complete</span>
+										{/if}
+									</button>
+								</div>
 							</div>
 
 							<!-- 1-Line Reflection Hook -->

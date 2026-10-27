@@ -3,10 +3,15 @@
 	import { lintObservation } from '$lib/engine/adjective-linter';
 	import { Eye, AlertTriangle, CheckCircle, Sliders, ArrowRight, Target, Wand2 } from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import LabFrictionPrimer from '$lib/components/course/LabFrictionPrimer.svelte';
+	import ReadingModal from '$lib/components/shell/ReadingModal.svelte';
+	import type { CoreReading } from '$lib/data/core-readings';
 	import { getDrillById } from '$lib/data/drills';
 	import { LlmTriggerButton, LlmCritiqueCard } from '$lib/components/llm';
 	import { executePrompt, applySurgicalPatches } from '$lib/engine/prompt-registry';
 	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
+
+	let activeReadingForModal = $state<CoreReading | null>(null);
 
 	let activeTool = $state<'drill' | 'linter' | 'ladder' | 'canvas' | 'sixQuestions'>('drill');
 
@@ -184,6 +189,17 @@
 </script>
 
 <div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-6">
+	<!-- Contextual Material Primer: Ingesting Theory Before Practice -->
+	<LabFrictionPrimer
+		modalityId="m2"
+		primaryReadingCode="Module 1"
+		failureMode="Relying on evaluative shortcuts ('it looks cool', 'cinematic lighting', 'too messy') and fixing surface artifacts while ignoring structural composition and narrative premises."
+		directorialDiscipline="Enforce zero-adjective objective descriptions and traverse the Diagnostic Ladder from Level 1 (Premise/Focal Intent) downward before touching rendering polish."
+		benchmarkPass="Describes spatial entry vectors, value masses, and specific causing decisions without evaluative adjectives."
+		benchmarkFail="Uses adjectives ('beautiful composition', 'bad lighting') without observable physical evidence."
+		onOpenFullReading={(r) => activeReadingForModal = r}
+	/>
+
 	<!-- Studio Header -->
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
@@ -592,5 +608,15 @@
 				></canvas>
 			</div>
 		</div>
+	{/if}
+
+	<!-- Full Text Reading Modal for M2 Ingestion -->
+	{#if activeReadingForModal}
+		<ReadingModal
+			reading={activeReadingForModal}
+			isOpen={!!activeReadingForModal}
+			onClose={() => activeReadingForModal = null}
+			onSelectReading={(r) => activeReadingForModal = r}
+		/>
 	{/if}
 </div>

@@ -1395,3 +1395,9 @@ export function searchReadings(query: string): CoreReading[] {
     r.tags.some((t) => t.toLowerCase().includes(q))
   );
 }
+
+export function getReadingsByModality(modalityId: string): CoreReading[] {
+  if (!modalityId) return [];
+  const clean = modalityId.trim().toLowerCase();
+  return CORE_READINGS.filter((r) => r.targetModalityId.toLowerCase() === clean);
+}

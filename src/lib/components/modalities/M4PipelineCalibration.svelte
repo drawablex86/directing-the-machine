@@ -3,11 +3,16 @@
 	import type { CalibrationEntry } from '$lib/schemas/course.schema';
 	import { Sliders, AlertTriangle, CheckCircle, Clock, ShieldCheck, HeartPulse, Target, Sparkles, Trash2, Compass, Check, ArrowRight, ShieldAlert, History } from '@lucide/svelte';
 	import DrillRunner from '$lib/components/shell/DrillRunner.svelte';
+	import LabFrictionPrimer from '$lib/components/course/LabFrictionPrimer.svelte';
+	import ReadingModal from '$lib/components/shell/ReadingModal.svelte';
+	import type { CoreReading } from '$lib/data/core-readings';
 	import { getDrillById } from '$lib/data/drills';
 	import LlmTriggerButton from '$lib/components/llm/LlmTriggerButton.svelte';
 	import LlmCritiqueCard from '$lib/components/llm/LlmCritiqueCard.svelte';
 	import { executePrompt } from '$lib/engine/prompt-registry';
 	import type { CritiqueResult, LlmAction } from '$lib/types/llm-prompts';
+
+	let activeReadingForModal = $state<CoreReading | null>(null);
 
 	let activeSubTab = $state<'pipeline' | 'calibration' | 'ergonomics' | 'drills'>('pipeline');
 	let activeDrillId = $state<'predict-then-run' | 'm4-causal-ablation'>('predict-then-run');
@@ -238,6 +243,17 @@
 </script>
 
 <div class="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-6">
+	<!-- Contextual Material Primer: Ingesting Theory Before Practice -->
+	<LabFrictionPrimer
+		modalityId="m4"
+		primaryReadingCode="Module 8"
+		failureMode="Tweaking seeds and prompts randomly ('slot machine prompting') without causal understanding of what specific variable changed the output."
+		directorialDiscipline="State explicit predictions and confidence ratings before generating, isolate single-variable ablations, and audit your calibration curve against taste narrowness."
+		benchmarkPass="Logs a falsifiable prediction before running the model; correctly explains the causal failure when prediction fails."
+		benchmarkFail="Runs 20 generations blindly and selects whichever looks prettiest without isolating causal variables."
+		onOpenFullReading={(r) => activeReadingForModal = r}
+	/>
+
 	<!-- Studio Header -->
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
@@ -815,5 +831,15 @@
 				/>
 			{/if}
 		</div>
+	{/if}
+
+	<!-- Full Text Reading Modal for M4 Ingestion -->
+	{#if activeReadingForModal}
+		<ReadingModal
+			reading={activeReadingForModal}
+			isOpen={!!activeReadingForModal}
+			onClose={() => activeReadingForModal = null}
+			onSelectReading={(r) => activeReadingForModal = r}
+		/>
 	{/if}
 </div>
