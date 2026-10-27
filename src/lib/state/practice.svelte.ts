@@ -145,13 +145,20 @@ export class PracticeEngine {
 	// BYOK Inference Engine Configuration (Local-First)
 	byokSettings = $state<ByokSettings>(JSON.parse(JSON.stringify(DEFAULT_BYOK_SETTINGS)));
 
-	// Pacing & Onboarding (Appendix O)
+	// Pacing & Onboarding (Appendix O & Mastery Gating)
 	intensityPath = $state<IntensityPath>('full-time-12w');
 	showDeepening = $state<boolean>(false);
 	activePart = $state<number>(0); // 0 = Week 0, 1..6 = Parts I-VI, 7..12 = Months 4-9
 	activeWeek = $state<number>(1); // 0 to 18
 	activeDay = $state<number>(1); // 1 (Mon) to 7 (Sun)
 	currentStepIndex = $state<number>(0); // 0..7 within today's daily 8-step routine
+
+	// Progressive Onboarding & Mastery Gating State (Norman DOET & Khan Academy)
+	hasCompletedOrientation = $state<boolean>(false);
+	pacingMode = $state<'session' | 'calendar'>('session');
+	unlockedModalities = $state<string[]>(['m0']); // M0 is open by default; M1–M7 unlock via progression
+	unlockedWeeks = $state<number[]>([0, 1]); // Week 0 & Week 1 open by default
+	bypassMasteryLocks = $state<boolean>(false); // Educator/advanced bypass toggle
 
 	// Guided Learning Pipeline State
 	completedTaskIds = $state<string[]>([]);
@@ -405,6 +412,83 @@ export class PracticeEngine {
 			.slice(0, limit);
 	}
 
+	// Progressive Mastery Gating Methods
+	completeOrientation() {
+		this.hasCompletedOrientation = true;
+		this.saveToStorage();
+	}
+
+	resetOrientation() {
+		this.hasCompletedOrientation = false;
+		this.saveToStorage();
+	}
+
+	setPacingMode(mode: 'session' | 'calendar') {
+		this.pacingMode = mode;
+		this.saveToStorage();
+	}
+
+	unlockModality(modId: string) {
+		const clean = modId.toLowerCase();
+		if (!this.unlockedModalities.includes(clean)) {
+			this.unlockedModalities.push(clean);
+			this.saveToStorage();
+		}
+	}
+
+	isModalityUnlocked(modId: string): boolean {
+		if (this.bypassMasteryLocks) return true;
+		const clean = modId.toLowerCase();
+		// M0 is always unlocked
+		if (clean === 'm0') return true;
+		// If user has unlocked it explicitly or passed related baseline/part
+		if (this.unlockedModalities.includes(clean)) return true;
+		// Progression rules:
+		// If M0 baseline has been completed (any score changed or saved problem), M1 & M2 unlock
+		const hasBaseline = this.baseline.some(b => b.score > 2 || b.notes.trim().length > 0) || this.problems.length > 0;
+		if (hasBaseline && (clean === 'm1' || clean === 'm2')) return true;
+		// If activePart >= 1, M1, M2, M3 unlock
+		if (this.activePart >= 1 && (clean === 'm1' || clean === 'm2' || clean === 'm3')) return true;
+		// If activePart >= 2, M4 unlocks
+		if (this.activePart >= 2 && clean === 'm4') return true;
+		// If activePart >= 3, M5 unlocks
+		if (this.activePart >= 3 && clean === 'm5') return true;
+		// If activePart >= 4, M6 unlocks
+		if (this.activePart >= 4 && clean === 'm6') return true;
+		// If activePart >= 5, M7 unlocks
+		if (this.activePart >= 5 && clean === 'm7') return true;
+
+		return false;
+	}
+
+	getModalityUnlockRequirement(modId: string): string {
+		const clean = modId.toLowerCase();
+		switch (clean) {
+			case 'm0': return 'Unlocked (Starting Hub)';
+			case 'm1': return 'Complete M0 Baseline Diagnostic';
+			case 'm2': return 'Complete M0 Baseline Diagnostic';
+			case 'm3': return 'Complete Part I (Weeks 1–3)';
+			case 'm4': return 'Complete Part II (Weeks 4–6)';
+			case 'm5': return 'Complete Part III (Weeks 7–9)';
+			case 'm6': return 'Complete Part IV (Weeks 10–12)';
+			case 'm7': return 'Complete Part V (Weeks 13–15)';
+			default: return 'Complete previous milestone';
+		}
+	}
+
+	toggleBypassMasteryLocks() {
+		this.bypassMasteryLocks = !this.bypassMasteryLocks;
+		this.saveToStorage();
+	}
+
+	isWeekUnlocked(weekNum: number): boolean {
+		if (this.bypassMasteryLocks) return true;
+		if (weekNum <= 1) return true;
+		if (this.unlockedWeeks.includes(weekNum)) return true;
+		// Week unlocks if previous week has at least one completed task
+		return weekNum <= this.activeWeek;
+	}
+
 	setTomorrowAction(action: string) {
 		this.tomorrowFirstAction = action;
 		this.saveToStorage();
@@ -625,6 +709,11 @@ export class PracticeEngine {
 				activeWeek: this.activeWeek,
 				activeDay: this.activeDay,
 				currentStepIndex: this.currentStepIndex,
+				hasCompletedOrientation: this.hasCompletedOrientation,
+				pacingMode: this.pacingMode,
+				unlockedModalities: this.unlockedModalities,
+				unlockedWeeks: this.unlockedWeeks,
+				bypassMasteryLocks: this.bypassMasteryLocks,
 				completedTaskIds: this.completedTaskIds,
 				completedReadingCodes: this.completedReadingCodes,
 				tomorrowFirstAction: this.tomorrowFirstAction,
@@ -684,6 +773,11 @@ export class PracticeEngine {
 			if (typeof data.activeWeek === 'number') this.activeWeek = data.activeWeek;
 			if (typeof data.activeDay === 'number') this.activeDay = data.activeDay;
 			if (typeof data.currentStepIndex === 'number') this.currentStepIndex = data.currentStepIndex;
+			if (typeof data.hasCompletedOrientation === 'boolean') this.hasCompletedOrientation = data.hasCompletedOrientation;
+			if (data.pacingMode === 'session' || data.pacingMode === 'calendar') this.pacingMode = data.pacingMode;
+			if (Array.isArray(data.unlockedModalities)) this.unlockedModalities = data.unlockedModalities;
+			if (Array.isArray(data.unlockedWeeks)) this.unlockedWeeks = data.unlockedWeeks;
+			if (typeof data.bypassMasteryLocks === 'boolean') this.bypassMasteryLocks = data.bypassMasteryLocks;
 			if (Array.isArray(data.completedTaskIds)) this.completedTaskIds = data.completedTaskIds;
 			if (Array.isArray(data.completedReadingCodes)) this.completedReadingCodes = data.completedReadingCodes;
 			if (typeof data.tomorrowFirstAction === 'string') this.tomorrowFirstAction = data.tomorrowFirstAction;
