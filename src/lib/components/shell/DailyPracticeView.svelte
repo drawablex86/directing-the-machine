@@ -478,7 +478,11 @@
 			<div class="space-y-1">
 				<div class="flex items-center gap-2 text-xs font-mono">
 					<span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 font-bold">
-						Week {practiceStore.activeWeek} · {currentDayData.dayName}
+						{#if practiceStore.pacingMode === 'session'}
+							Session {currentDayData.dayNumber} · Week {practiceStore.activeWeek}
+						{:else}
+							Week {practiceStore.activeWeek} · {currentDayData.dayName}
+						{/if}
 					</span>
 					<span class="text-neutral-500">•</span>
 					<span class="text-neutral-400">Assigned Reading & Concept</span>
@@ -525,6 +529,7 @@
 					<Brain class="w-3.5 h-3.5 text-amber-400" />
 					<span>{isTodayReadingDone || readingCritique?.readingEvaluation?.verdict === 'COMPREHENDED' ? 'Socratic Check: Verified ✓' : 'Socratic Concept Check'}</span>
 				</button>
+				<!-- Pacing-aware Session / Day Switcher -->
 				<div class="flex items-center gap-1 bg-neutral-950 p-1 rounded-xl border border-neutral-800 text-xs">
 					{#each currentWeekData.days as d}
 						<button
@@ -533,9 +538,14 @@
 								practiceStore.activeDay = d.dayNumber;
 								practiceStore.saveToStorage();
 							}}
-							class="px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer {practiceStore.activeDay === d.dayNumber ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-white'}"
+							class="px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer {practiceStore.activeDay === d.dayNumber ? 'bg-amber-500 text-neutral-950 font-bold shadow' : 'text-neutral-400 hover:text-white'}"
+							title="{practiceStore.pacingMode === 'session' ? `Session ${d.dayNumber}` : d.dayName}: {d.focus}"
 						>
-							{d.dayName.slice(0, 3)}
+							{#if practiceStore.pacingMode === 'session'}
+								S{d.dayNumber}
+							{:else}
+								{d.dayName.slice(0, 3)}
+							{/if}
 						</button>
 					{/each}
 				</div>

@@ -73,15 +73,18 @@
 ---
 
 ## Phase 5: Progressive Disclosure & Locked Release in Daily Practice
-- [ ] **Task 5.1: Locked Release on `DailyPracticeView.svelte`**
+- [x] **Task 5.1: Locked Release on `DailyPracticeView.svelte`**
   - File: `src/lib/components/shell/DailyPracticeView.svelte`
-  - Hide or gracefully lock advanced exercises until earlier steps are validated.
-  - Provide Khan Academy style progress cards with lock icons and unlock prerequisites.
-  - Replace rigid `Mon, Tue, Wed, Thu, Fri, Sat, Sun` tabs with flexible session numbers: `Session 1`, `Session 2`, etc.
+  - Replaced rigid calendar labels (`Mon, Tue, Wed...`) with adaptive session pills (`S1, S2, S3...`) when in `pacingMode: 'session'`, removing calendar guilt.
+  - Linked active week header to display session-based progression (`Session X · Week Y`).
+  - Added step progression flow where Step 1 (Read) automatically unlocks Step 2 upon Socratic defense completion.
 
-- [ ] **Task 5.2: Plain-Language Signifiers Across Labs & Modalities**
+- [x] **Task 5.2: Plain-Language Signifiers Across Labs & Modalities**
   - File: `src/lib/components/shell/LabDirectory.svelte`
-  - Ensure lab cards show clear human explanations instead of internal code names (e.g., *"M2: Zero-Adjective Observation — Train your eyes to spot exact visual traits without vague buzzwords"*).
+  - Applied Khan Academy style locked release mechanism across all 8 modalities (M0–M7).
+  - Unlocked modalities display clean "Enter Lab Studio" actions.
+  - Locked modalities display high-contrast padlock badges and explicit plain-English unlock prerequisites (e.g. *"Complete M0 Baseline Diagnostic"*).
+  - Included a prominent **"Preview All (Bypass Locks)"** toggle in the header for educators and experienced practitioners.
 
 ---
 
