@@ -38,19 +38,19 @@
 ---
 
 ## Phase 3: Handholding & Orientation Hub ("First-Run Experience")
-- [ ] **Task 3.1: Design & Build `OrientationGuideView.svelte`**
+- [x] **Task 3.1: Design & Build `OrientationGuideView.svelte`**
   - Component: `src/lib/components/shell/OrientationGuideView.svelte`
   - Multi-step interactive handholding guide:
-    - **Step 1: The Conceptual Model**: Clear, jargon-free explanation of Creative Authorship vs. Prompting.
-    - **Step 2: Anatomy of the Studio**: 4 simple pillars (Concept $\to$ Drill $\to$ Output $\to$ Reflective Log).
-    - **Step 3: Demystifying Jargon**: Plain translations for terms like *M0 Baseline*, *Diagnostic Ladder*, *Zero-Adjective Linter*, *Brier Score*.
-    - **Step 4: The Path Forward**: Single action button to begin the first milestone (M0 Baseline) with zero distraction.
-  - Interactive "Skip to Studio if returning expert" option.
+    - **Step 1: The Conceptual Model**: Clear, jargon-free explanation of Creative Authorship vs. Gambler Prompting, with side-by-side contrast cards.
+    - **Step 2: Studio Anatomy**: 4 simple pillars (Read concept $\to$ Perform micro-drill $\to$ Apply in active project $\to$ 10m reflective log) with Khan Academy locked release notes.
+    - **Step 3: Demystifying Jargon**: Plain translations for terms like *M0 Baseline*, *Zero-Adjective Linter*, *Brier Score*, *Hemingway Stop Gate*.
+    - **Step 4: Your First Mission**: Action card briefing the user for *Milestone 1: Baseline Diagnostic (M0)* with clear time expectations (~5-10 mins) and explicit unlock benefits.
+  - Interactive "Skip to Studio if returning expert" button.
 
-- [ ] **Task 3.2: Router Integration & Seamless First-Time Detection**
+- [x] **Task 3.2: Router Integration & Seamless First-Time Detection**
   - File: `src/routes/app/+page.svelte`
-  - Conditionally render `OrientationGuideView` when `!practiceStore.hasCompletedOrientation`.
-  - Provide an accessible "Rewatch Orientation" button in Studio header/settings anytime.
+  - Rendered `OrientationGuideView` as the primary view whenever `!practiceStore.hasCompletedOrientation`.
+  - Added a "Rewatch Orientation" button in the top breadcrumb bar for learners to revisit orientation at any time.
 
 ---
 

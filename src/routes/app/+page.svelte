@@ -20,6 +20,7 @@
 	import M6DirectionCollab from '$lib/components/modalities/M6DirectionCollab.svelte';
 	import M7AgencyBlankSheet from '$lib/components/modalities/M7AgencyBlankSheet.svelte';
 	import CourseSyllabusView from '$lib/components/course/CourseSyllabusView.svelte';
+	import OrientationGuideView from '$lib/components/shell/OrientationGuideView.svelte';
 	import { practiceStore } from '$lib/state/practice.svelte';
 	import { page } from '$app/state';
 	import { onMount } from 'svelte';
@@ -193,15 +194,33 @@
 				<span class="text-neutral-600">/</span>
 				<span class="text-neutral-100 font-semibold font-mono">Interactive Studio</span>
 			</div>
-			<div class="text-[11px] text-neutral-500 hidden sm:inline">
-				Local-First • 100% Client-Side Storage
+			<div class="flex items-center gap-3">
+				{#if practiceStore.hasCompletedOrientation}
+					<button
+						type="button"
+						onclick={() => practiceStore.resetOrientation()}
+						class="text-[11px] text-neutral-400 hover:text-amber-400 flex items-center gap-1 transition cursor-pointer"
+						title="Rewatch Studio Orientation Guide"
+					>
+						<Compass class="w-3.5 h-3.5 text-amber-500" />
+						<span>Rewatch Orientation</span>
+					</button>
+					<span class="text-neutral-700 hidden sm:inline">•</span>
+				{/if}
+				<div class="text-[11px] text-neutral-500 hidden sm:inline">
+					Local-First • 100% Client-Side Storage
+				</div>
 			</div>
 		</div>
 
-		<!-- Onboarding Banner (dismissible) -->
-		<WelcomeBanner onSelectModality={openLab} />
+		{#if !practiceStore.hasCompletedOrientation}
+			<!-- Norman / DOET First-Time Handholding & Orientation Flow -->
+			<OrientationGuideView onBeginFirstMission={() => openLab('m0')} />
+		{:else}
+			<!-- Onboarding Banner (dismissible) -->
+			<WelcomeBanner onSelectModality={openLab} />
 
-		<!-- Primary Studio Navigation Tabs -->
+			<!-- Primary Studio Navigation Tabs -->
 		{#if activeTab !== 'lab-session'}
 			<div class="flex items-center justify-between border-b border-neutral-800 pb-2">
 				<nav class="flex items-center gap-1.5 overflow-x-auto text-xs md:text-sm">
@@ -336,6 +355,7 @@
 			{:else if activeLabId === 'm7'}
 				<M7AgencyBlankSheet />
 			{/if}
+		{/if}
 		{/if}
 	</main>
 
