@@ -217,13 +217,10 @@
 			<!-- Norman / DOET First-Time Handholding & Orientation Flow -->
 			<OrientationGuideView onBeginFirstMission={() => openLab('m0')} />
 		{:else}
-			<!-- Onboarding Banner (dismissible) -->
-			<WelcomeBanner onSelectModality={openLab} />
-
-			<!-- Primary Studio Navigation Tabs -->
-		{#if activeTab !== 'lab-session'}
-			<div class="flex items-center justify-between border-b border-neutral-800 pb-2">
-				<nav class="flex items-center gap-1.5 overflow-x-auto text-xs md:text-sm">
+			<!-- Primary Studio Navigation Tabs (Hidden during an active lab/test session for pure focus) -->
+			{#if activeTab !== 'lab-session'}
+				<div class="flex items-center justify-between border-b border-neutral-800 pb-2">
+					<nav class="flex items-center gap-1.5 overflow-x-auto text-xs md:text-sm">
 					<button
 						type="button"
 						onclick={() => switchTab('today')}
