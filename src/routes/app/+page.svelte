@@ -217,31 +217,31 @@
 			<!-- Norman / DOET First-Time Handholding & Orientation Flow -->
 			<OrientationGuideView onBeginFirstMission={() => openLab('m0')} />
 		{:else}
-			<!-- Active Milestone Focus Card (Replaces Cluttered Wall of Text) -->
-			{#if activeTab !== 'lab-session'}
+			<!-- Active Milestone Focus Card (Only shown in exploratory tabs, omitted in Today's Practice to prevent island duplication) -->
+			{#if activeTab !== 'lab-session' && activeTab !== 'today'}
 				<ActiveFocusCard
 					onSelectModality={openLab}
 					onContinueSession={() => switchTab('today')}
 				/>
 			{/if}
 
-			<!-- Primary Studio Navigation Tabs (Hidden during an active lab/test session for pure focus) -->
+			<!-- Primary Studio Navigation Tabs (4 Clear Modes) -->
 			{#if activeTab !== 'lab-session'}
 				<div class="flex items-center justify-between border-b border-neutral-800 pb-2">
 					<nav class="flex items-center gap-1.5 overflow-x-auto text-xs md:text-sm">
 					<button
 						type="button"
 						onclick={() => switchTab('today')}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'today' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'today' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow font-bold' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Calendar class="w-4 h-4" />
-						<span>Today's Practice</span>
+						<span>Today's Session</span>
 					</button>
 
 					<button
 						type="button"
 						onclick={() => switchTab('curriculum')}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'curriculum' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'curriculum' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow font-bold' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Compass class="w-4 h-4" />
 						<span>Curriculum & Projects</span>
@@ -250,25 +250,16 @@
 					<button
 						type="button"
 						onclick={() => switchTab('labs')}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'labs' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'labs' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow font-bold' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<Layers class="w-4 h-4" />
-						<span>Studios & Labs</span>
-					</button>
-
-					<button
-						type="button"
-						onclick={() => switchTab('assessment')}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'assessment' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
-					>
-						<Activity class="w-4 h-4" />
-						<span>Progress & Radar</span>
+						<span>Practice Studios</span>
 					</button>
 
 					<button
 						type="button"
 						onclick={() => switchTab('manual')}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'manual' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'manual' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow font-bold' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
 						<BookOpen class="w-4 h-4" />
 						<span>Field Manual</span>
@@ -276,25 +267,36 @@
 
 					<button
 						type="button"
-						onclick={() => { initialSettingsTab = 'inference'; isPreferencesModalOpen = true; }}
-						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60"
-						title="Studio Settings & BYOK Inference Configuration"
+						onclick={() => switchTab('assessment')}
+						class="px-3.5 py-2 rounded-xl font-semibold flex items-center gap-2 transition cursor-pointer studio-tab {activeTab === 'assessment' ? 'active-studio-tab bg-amber-500 text-neutral-950 shadow font-bold' : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800/60'}"
 					>
-						<Sliders class="w-4 h-4 text-neutral-400" />
-						<span>Settings</span>
+						<Activity class="w-4 h-4" />
+						<span>Progress & Growth</span>
+					</button>
+				</nav>
+
+				<div class="flex items-center gap-2 shrink-0">
+					<button
+						type="button"
+						onclick={() => { initialSettingsTab = 'inference'; isPreferencesModalOpen = true; }}
+						class="px-3 py-1.5 rounded-xl font-semibold text-xs bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white hover:bg-neutral-800 transition flex items-center gap-1.5 cursor-pointer"
+						title="Studio Settings & BYOK Inference"
+					>
+						<Sliders class="w-3.5 h-3.5 text-neutral-400" />
+						<span class="hidden sm:inline">Settings</span>
 						{#if practiceStore.hasActiveApiKey()}
 							<span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Active AI Key Configured"></span>
 						{/if}
 					</button>
-				</nav>
 
-				<a
-					href="/logs"
-					class="px-3 py-1.5 rounded-xl font-semibold text-xs bg-neutral-900 border border-neutral-800 text-amber-400 hover:bg-neutral-800 transition flex items-center gap-1.5"
-				>
-					<span>Open Logbook</span>
-					<ChevronRight class="w-3.5 h-3.5" />
-				</a>
+					<a
+						href="/logs"
+						class="px-3 py-1.5 rounded-xl font-semibold text-xs bg-neutral-900 border border-neutral-800 text-amber-400 hover:bg-neutral-800 transition flex items-center gap-1.5"
+					>
+						<span>Logbook</span>
+						<ChevronRight class="w-3.5 h-3.5" />
+					</a>
+				</div>
 			</div>
 		{:else}
 			<!-- Breadcrumb back navigation when inside a specific lab -->
