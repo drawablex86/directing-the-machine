@@ -20,10 +20,13 @@
 		onContinueSession?: () => void;
 	} = $props();
 
-	// Check if user has completed baseline (scores or problems)
+	// Check if user has completed baseline:
+	// Either they formally locked it via Phase Gate 0, audited notes/scores, logged problems, or passed week 0
 	const hasBaselineCompleted = $derived(
-		practiceStore.baseline.some((b) => b.score > 2 || b.notes.trim().length > 0) ||
-		practiceStore.problems.length > 0
+		practiceStore.passedMasteryGates.includes(0) ||
+		practiceStore.baseline.some((b) => b.score !== 2 || b.notes.trim().length > 0) ||
+		practiceStore.problems.length > 0 ||
+		practiceStore.activePart >= 1
 	);
 
 	// Contextual active mission
@@ -38,7 +41,7 @@
 				tag: 'Current Focus'
 			};
 		}
-		if (practiceStore.activePart === 0 || practiceStore.activeWeek === 1) {
+		if (practiceStore.activePart === 0 && !practiceStore.passedMasteryGates.includes(0)) {
 			return {
 				title: 'Milestone 2: Diagnostic Observation & Non-Instrumental Sight',
 				subtitle: 'Train your eyes to detect exact visual/textual mechanics with the Zero-Adjective Linter',
@@ -49,11 +52,11 @@
 			};
 		}
 		return {
-			title: `Week ${practiceStore.activeWeek} Focus: Part ${practiceStore.activePart}`,
+			title: `Active Mission: Part ${practiceStore.activePart === 0 ? 'I' : practiceStore.activePart} Deliberate Practice`,
 			subtitle: 'Deliberate micro-drill and project execution in the 70–80% challenge zone',
 			duration: 'In Progress',
-			actionLabel: "Continue Today's Practice",
-			targetModality: null,
+			actionLabel: "Enter Active Practice Studio",
+			targetModality: 'm2',
 			tag: 'Active Module'
 		};
 	});
