@@ -3,7 +3,6 @@
 	import type { IntensityPath } from '$lib/schemas/course.schema';
 	import {
 		Target,
-		ShieldCheck,
 		Clock,
 		ArrowRight,
 		ArrowLeft,
@@ -12,14 +11,14 @@
 		Sparkles,
 		Eye,
 		BookOpen,
-		FileCheck,
-		ChevronRight,
-		Sliders
+		Sliders,
+		HelpCircle,
+		ShieldCheck
 	} from '@lucide/svelte';
 	import BaselineCompetencyCard from './BaselineCompetencyCard.svelte';
 	import { COMPETENCY_DETAILS } from '$lib/schemas/competency-details';
 	import ReadingModal from '$lib/components/shell/ReadingModal.svelte';
-	import { getReadingByCode, type CoreReading } from '$lib/data/core-readings';
+	import { getReadingByCode } from '$lib/data/core-readings';
 
 	let {
 		onNavigateTab,
@@ -29,13 +28,13 @@
 		onSelectModality?: (modId: string) => void;
 	} = $props();
 
-	// 6-Stage Sequential Week 0 Journey:
-	// 0: Theory & Mindset (Module 0: Deliberate Practice)
-	// 1: Diagnostic Skills Audit (12 Competencies)
-	// 2: Diagnostic Synthesis (Strengths & Primary Growth Target)
+	// 6-Stage Sequential Orientation Runway:
+	// 0: Theory & Mindset
+	// 1: Baseline Skills Evaluation (12 Competencies)
+	// 2: Diagnostic Synthesis (Strengths & Growth Targets)
 	// 3: Schedule & Weekly Commitment (Intensity Path)
 	// 4: Observation & Free Play Habits (Attention & Play logs)
-	// 5: Lock Contract & Launch Week 1
+	// 5: Sign Practice Contract & Enter Week 1
 	type FlowStage = 0 | 1 | 2 | 3 | 4 | 5;
 	let currentStage = $state<FlowStage>(0);
 
@@ -67,20 +66,20 @@
 	);
 
 	const stages = [
-		{ id: 0, label: 'Theory & Mindset' },
-		{ id: 1, label: 'Skills Audit' },
+		{ id: 0, label: 'Orientation & Mindset' },
+		{ id: 1, label: 'Skills Self-Audit' },
 		{ id: 2, label: 'Diagnostic Profile' },
 		{ id: 3, label: 'Weekly Schedule' },
-		{ id: 4, label: 'Observation & Play' },
+		{ id: 4, label: 'Creative Habits' },
 		{ id: 5, label: 'Sign Contract' }
 	];
 
 	// Pacing Runway Options
 	const paths: { id: IntensityPath; title: string; hours: string; weeks: string; desc: string }[] = [
-		{ id: 'full-time-12w', title: 'Full-Time Intensive', hours: '18–25h/w', weeks: '12 Weeks', desc: 'Accelerated immersion for practitioners with uninterrupted time.' },
+		{ id: 'full-time-12w', title: 'Full-Time Intensive', hours: '18–25h/w', weeks: '12 Weeks', desc: 'Accelerated immersion for practitioners with dedicated daily time.' },
 		{ id: 'extended-24w', title: 'Extended Intensive', hours: '12–18h/w', weeks: '24 Weeks', desc: 'Balanced pacing for practitioners balancing client work or commitments.' },
-		{ id: 'distributed-48w', title: 'Distributed Practice', hours: '6–10h/w', weeks: '48 Weeks', desc: 'Sustainable pacing for working designers and engineers.' },
-		{ id: 'maintenance-4h', title: 'Maintenance Mode', hours: '~4h/w', weeks: 'Self-Paced', desc: 'Preserves baseline capacity during heavy work seasons.' }
+		{ id: 'distributed-48w', title: 'Distributed Practice', hours: '6–10h/w', weeks: '48 Weeks', desc: 'Sustainable pacing for working designers and engineers (~1h/day).' },
+		{ id: 'maintenance-4h', title: 'Maintenance Mode', hours: '~4h/w', weeks: 'Self-Paced', desc: 'Preserves baseline skills during heavy work cycles.' }
 	];
 
 	function nextCompetency() {
@@ -143,9 +142,9 @@
 		<div class="flex items-center justify-between pb-3 border-b border-neutral-800 text-xs">
 			<div class="flex items-center gap-2">
 				<span class="px-2 py-0.5 rounded-full font-mono text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">
-					Foundation Stage
+					Orientation Runway
 				</span>
-				<span class="font-bold text-white">Orientation Runway</span>
+				<span class="font-bold text-white">Foundation Setup</span>
 			</div>
 			<span class="text-neutral-400 font-mono text-[11px]">
 				Step {currentStage + 1} of {stages.length}: <span class="text-amber-400 font-semibold">{stages[currentStage].label}</span>
@@ -153,7 +152,7 @@
 		</div>
 
 		<!-- Stepper Pills -->
-		<div class="grid grid-cols-6 gap-1.5 pt-3">
+		<div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pt-3">
 			{#each stages as s}
 				<button
 					type="button"
@@ -168,13 +167,13 @@
 
 	<!-- STAGE 0: Theory & Mindset -->
 	{#if currentStage === 0}
-		<div class="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
+		<div class="p-6 sm:p-8 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
 			<div class="space-y-2">
 				<span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">
-					Foundational Theory
+					Foundation Mindset
 				</span>
 				<h2 class="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
-					How Deliberate Practice Works in Generative Creative Work
+					How Deliberate Practice Works in Generative Work
 				</h2>
 				<p class="text-xs sm:text-sm text-neutral-300 leading-relaxed">
 					Before generating thousands of synthetic variations, creative directors isolate specific perceptual mechanisms. This foundation establishes why and how this studio operates.
@@ -182,7 +181,7 @@
 			</div>
 
 			<!-- Core Mental Model Card -->
-			<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
+			<div class="p-5 sm:p-6 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-4">
 				<div class="flex items-center justify-between border-b border-neutral-800/80 pb-3">
 					<div class="flex items-center gap-2 text-xs font-bold text-amber-400">
 						<Sparkles class="w-4 h-4" />
@@ -195,7 +194,7 @@
 							class="text-xs font-mono text-amber-400 hover:text-amber-300 underline flex items-center gap-1 cursor-pointer"
 						>
 							<BookOpen class="w-3.5 h-3.5" />
-							<span>Read Full Text (Theory)</span>
+							<span>Read Core Text (Module 0)</span>
 						</button>
 					{/if}
 				</div>
@@ -212,34 +211,40 @@
 
 			<div class="flex items-center justify-between pt-2">
 				<div class="text-xs text-neutral-500 font-mono">
-					Next: 12-Competency Self-Audit
+					Next: 12-Skill Baseline Evaluation
 				</div>
 				<button
 					type="button"
 					onclick={() => (currentStage = 1)}
 					class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs transition flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/20"
 				>
-					<span>Begin Skills Audit</span>
+					<span>Begin Skills Evaluation</span>
 					<ArrowRight class="w-4 h-4" />
 				</button>
 			</div>
 		</div>
 
-	<!-- STAGE 1: The 12-Competency Diagnostic Audit -->
+	<!-- STAGE 1: The 12-Competency Baseline Evaluation -->
 	{:else if currentStage === 1}
 		<div class="space-y-4">
-			<!-- Stepper Tracker -->
-			<div class="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-				<div class="flex items-center gap-2">
-					<Target class="w-4 h-4 text-amber-400" />
-					<span class="font-bold text-white">Competency {currentCompetencyIndex + 1} of 12:</span>
-					<span class="text-amber-400 font-semibold">{currentCompetency.name}</span>
+			<!-- Explanation Banner: What are you being asked? -->
+			<div class="p-4 sm:p-5 rounded-2xl bg-neutral-900 border border-neutral-800 space-y-2">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<Target class="w-4 h-4 text-amber-400" />
+						<span class="font-bold text-white text-sm">
+							Skill {currentCompetencyIndex + 1} of 12: <span class="text-amber-400">{currentCompetency.name}</span>
+						</span>
+					</div>
+					<div class="flex items-center gap-3 font-mono text-xs text-neutral-400">
+						<span>Evaluated: <strong class="text-white">{auditedCount}/12</strong></span>
+						<span>•</span>
+						<span>Average: <strong class="text-white">{avgScore} / 4.0</strong></span>
+					</div>
 				</div>
-				<div class="flex items-center gap-3 font-mono text-[11px] text-neutral-400">
-					<span>Audited: <strong class="text-white">{auditedCount}/12</strong></span>
-					<span>•</span>
-					<span>Current Avg: <strong class="text-white">{avgScore} / 4.0</strong></span>
-				</div>
+				<p class="text-xs text-neutral-300 leading-relaxed">
+					This self-evaluation establishes your starting profile so future drills can target your real bottlenecks. Rate your day-to-day reflex from <strong>1 (Novice)</strong> to <strong>4 (Mastered)</strong>. There is no penalty for low ratings.
+				</p>
 			</div>
 
 			<!-- Stepper Progress Dots -->
@@ -250,7 +255,7 @@
 						type="button"
 						onclick={() => (currentCompetencyIndex = idx)}
 						class="h-2 rounded-full transition cursor-pointer {idx === currentCompetencyIndex ? 'bg-amber-500 ring-2 ring-amber-500/40' : isAudited ? 'bg-emerald-500/80' : 'bg-neutral-800'}"
-						title="{comp.name} ({comp.score}/4)"
+						title="{comp.name} (Rating: {comp.score}/4)"
 					></button>
 				{/each}
 			</div>
@@ -264,7 +269,7 @@
 				/>
 			</div>
 
-			<!-- Next / Previous Controls -->
+			<!-- Navigation Controls -->
 			<div class="p-4 rounded-2xl bg-neutral-900 border border-neutral-800 flex items-center justify-between">
 				<button
 					type="button"
@@ -281,8 +286,8 @@
 						onclick={nextCompetency}
 						class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-neutral-950 transition flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/20"
 					>
-						<span>Next Competency</span>
-						<ArrowRight class="w-3.5 h-3.5" />
+						<span>Next Skill ({currentCompetencyIndex + 2} of 12)</span>
+						<ArrowRight class="w-4 h-4" />
 					</button>
 				{:else}
 					<button
@@ -291,31 +296,31 @@
 						class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-neutral-950 transition flex items-center gap-2 cursor-pointer shadow-md shadow-emerald-500/20"
 					>
 						<Check class="w-3.5 h-3.5" />
-						<span>View Diagnostic Profile →</span>
+						<span>View Diagnostic Summary →</span>
 					</button>
 				{/if}
 			</div>
 		</div>
 
-	<!-- STAGE 2: Diagnostic Synthesis -->
+	<!-- STAGE 2: Diagnostic Summary -->
 	{:else if currentStage === 2}
-		<div class="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
+		<div class="p-6 sm:p-8 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
 			<div class="space-y-1">
 				<span class="text-xs font-mono uppercase tracking-widest text-emerald-400 font-semibold">
-					Diagnostic Mirror
+					Diagnostic Summary
 				</span>
 				<h2 class="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
 					Your Baseline Creative Profile
 				</h2>
 				<p class="text-xs sm:text-sm text-neutral-400 leading-relaxed">
-					Based on your self-assessment, here is your primary growth bottleneck and strengths breakdown across the three mastery layers.
+					Based on your self-evaluation, here is your primary growth bottleneck and strengths breakdown across the three mastery layers.
 				</p>
 			</div>
 
 			<!-- Score Overview Grid -->
 			<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
 				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800">
-					<span class="text-[10px] text-neutral-500 uppercase">Overall Baseline</span>
+					<span class="text-[10px] text-neutral-500 uppercase">Overall Average</span>
 					<div class="text-lg font-bold text-white mt-1">{synthesis.avgScore} <span class="text-xs text-neutral-500">/ 4.0</span></div>
 				</div>
 				<div class="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800">
@@ -332,12 +337,12 @@
 				</div>
 			</div>
 
-			<!-- Primary Leverage Bottleneck Card -->
+			<!-- Primary Growth Target Card -->
 			<div class="p-5 rounded-2xl bg-neutral-950 border border-neutral-800 space-y-3">
 				<div class="flex items-center justify-between pb-2 border-b border-neutral-800">
-					<span class="text-xs font-mono font-bold text-red-400 uppercase">Primary Growth Bottleneck</span>
-					<span class="text-xs font-mono bg-red-950/60 text-red-300 border border-red-500/30 px-2 py-0.5 rounded">
-						Score: {synthesis.primaryBottleneck.score}/4
+					<span class="text-xs font-mono font-bold text-amber-400 uppercase">Primary Growth Focus</span>
+					<span class="text-xs font-mono bg-amber-950/60 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded">
+						Rating: {synthesis.primaryBottleneck.score}/4
 					</span>
 				</div>
 				<div class="font-bold text-base text-white">
@@ -356,7 +361,7 @@
 					class="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white transition flex items-center gap-2 cursor-pointer"
 				>
 					<ArrowLeft class="w-3.5 h-3.5" />
-					<span>Review Scores</span>
+					<span>Adjust Ratings</span>
 				</button>
 				<button
 					type="button"
@@ -371,16 +376,16 @@
 
 	<!-- STAGE 3: Schedule & Weekly Commitment -->
 	{:else if currentStage === 3}
-		<div class="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
+		<div class="p-6 sm:p-8 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
 			<div class="space-y-1">
 				<span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">
-					Runway Calibration
+					Weekly Rhythm
 				</span>
 				<h2 class="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
-					Select Your Practice Runway
+					Select Your Weekly Time Commitment
 				</h2>
 				<p class="text-xs sm:text-sm text-neutral-300 leading-relaxed">
-					Burnout happens when arbitrary course timelines clash with real work commitments. Select the weekly commitment that aligns with your life. You can adjust this anytime.
+					Burnout happens when arbitrary course timelines clash with real work commitments. Select the weekly commitment that aligns with your life. You can adjust this anytime in your preferences.
 				</p>
 			</div>
 
@@ -423,7 +428,7 @@
 					onclick={() => (currentStage = 4)}
 					class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs transition flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/20"
 				>
-					<span>Setup Daily Observation & Free Play</span>
+					<span>Setup Daily Habits</span>
 					<ArrowRight class="w-4 h-4" />
 				</button>
 			</div>
@@ -431,13 +436,13 @@
 
 	<!-- STAGE 4: Observation & Play Habits -->
 	{:else if currentStage === 4}
-		<div class="p-6 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
+		<div class="p-6 sm:p-8 rounded-3xl bg-neutral-900 border border-neutral-800 space-y-6 shadow-xl">
 			<div class="space-y-1">
 				<span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">
-					Creative Resilience
+					Creative Habits
 				</span>
 				<h2 class="text-xl sm:text-2xl font-serif font-bold text-white tracking-tight">
-					Establish Observation & Free Play Habits
+					Set Up Observation & Free Play Habits
 				</h2>
 				<p class="text-xs sm:text-sm text-neutral-300 leading-relaxed">
 					Two foundational daily counterweights: noticing the physical world without turning everything into a client project, and playing without grading or evaluation.
@@ -534,20 +539,20 @@
 		<div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-amber-950/30 border-2 border-amber-500/40 space-y-6 shadow-2xl">
 			<div class="space-y-2">
 				<span class="text-xs font-mono uppercase tracking-widest text-amber-400 font-semibold">
-					Official Practice Commitment
+					Practice Commitment
 				</span>
 				<h2 class="text-2xl sm:text-3xl font-serif font-bold text-white tracking-tight">
 					Lock Foundation & Enter Active Practice
 				</h2>
 				<p class="text-xs sm:text-sm text-neutral-300 leading-relaxed max-w-2xl">
-					You have completed the orientation runway: audited your 12 competencies, established your schedule ({paths.find(p => p.id === practiceStore.intensityPath)?.hours}), and set your creative counterweights.
+					You have completed the orientation runway: evaluated your 12 skills, established your schedule ({paths.find(p => p.id === practiceStore.intensityPath)?.hours}), and set your creative counterweights.
 				</p>
 			</div>
 
 			<!-- Summary Capsule -->
 			<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-neutral-950 border border-neutral-800 text-xs font-mono">
 				<div>
-					<span class="text-neutral-500 text-[10px] uppercase">Primary Target</span>
+					<span class="text-neutral-500 text-[10px] uppercase">Primary Growth Focus</span>
 					<div class="font-bold text-amber-400 mt-0.5 truncate">{synthesis.primaryBottleneck.name}</div>
 				</div>
 				<div>
@@ -555,7 +560,7 @@
 					<div class="font-bold text-white mt-0.5">{paths.find(p => p.id === practiceStore.intensityPath)?.hours}</div>
 				</div>
 				<div>
-					<span class="text-neutral-500 text-[10px] uppercase">Upcoming Milestone</span>
+					<span class="text-neutral-500 text-[10px] uppercase">Upcoming Studio</span>
 					<div class="font-bold text-emerald-400 mt-0.5">Week 1: Observation Studio</div>
 				</div>
 			</div>
@@ -575,7 +580,7 @@
 					onclick={() => (currentStage = 1)}
 					class="text-xs text-neutral-400 hover:text-white transition px-4 py-2 cursor-pointer"
 				>
-					Review Self-Audit
+					Review Skill Ratings
 				</button>
 			</div>
 		</div>
