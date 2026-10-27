@@ -359,12 +359,12 @@
 		<div>
 			<div class="flex items-center gap-2">
 				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">
-					M6
+					Direction Studio
 				</span>
-				<h2 class="text-base font-bold text-white">Production Direction, Collaboration & Refusal Studio</h2>
+				<h2 class="text-base font-bold text-white">Creative Direction, Feedback & Boundary Setting</h2>
 			</div>
 			<p class="text-xs text-neutral-400 mt-1">
-				Module 12, 13, 14, 19, Appendix F: Revision vs Re-Brief Fork, Refusal Composer, and Mentorship.
+				Decide between surgical revision and re-briefing, triage collaborator critique, and craft principled refusals.
 			</p>
 		</div>
 
@@ -377,7 +377,7 @@
 					? 'bg-amber-500 text-neutral-950 font-bold'
 					: 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				Revision Fork
+				Revision vs. Re-Brief
 			</button>
 			<button
 				type="button"
@@ -395,7 +395,7 @@
 					? 'bg-amber-500 text-neutral-950 font-bold'
 					: 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				5-Mode Refusal
+				Creative Boundaries
 			</button>
 			<button
 				type="button"

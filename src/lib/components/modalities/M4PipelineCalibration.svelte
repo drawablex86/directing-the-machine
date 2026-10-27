@@ -242,13 +242,13 @@
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
 			<div class="flex items-center gap-2">
-				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">
-					M4
+				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">
+					Calibration Studio
 				</span>
-				<h2 class="text-base font-bold text-white">Causal Pipeline & Calibration-vs-Range Lab</h2>
+				<h2 class="text-base font-bold text-white">Pipeline Mapping & Prediction Calibration</h2>
 			</div>
 			<p class="text-xs text-neutral-400 mt-1">
-				Module 8, 9, V3, W3: Pre-Run Confidence Lock, Brier Score, and Taste-Narrowness Detector.
+				Map generative variables, lock confidence scores prior to generation, and monitor predictive calibration.
 			</p>
 		</div>
 
@@ -266,7 +266,7 @@
 				onclick={() => activeSubTab = 'calibration'}
 				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'calibration' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				Calibration & Range
+				Calibration & Predictions
 			</button>
 			<button
 				type="button"

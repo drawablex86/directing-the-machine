@@ -198,8 +198,8 @@
 							<div class="flex items-center gap-2">
 								<Brain class="w-4 h-4 {practiceStore.learnerPreferences.focusMode ? 'text-amber-400' : 'text-neutral-500'}" />
 								<div>
-									<div class="font-medium">Single-Task Horizon</div>
-									<div class="text-[10px] text-neutral-400">Hide extraneous tabs & noise</div>
+									<div class="font-medium">Single-Task Focus Mode</div>
+									<div class="text-[10px] text-neutral-400">Hide extraneous tabs & distractions</div>
 								</div>
 							</div>
 							<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-900 text-neutral-400 border border-neutral-800">
@@ -218,8 +218,8 @@
 						>
 							<PauseCircle class="w-4 h-4 text-amber-400 shrink-0" />
 							<div>
-								<div class="font-medium">Stop Gate / Hemingway Pause</div>
-								<div class="text-[10px] text-neutral-400">Save progress & declare session done</div>
+								<div class="font-medium">Pause & Save Session</div>
+								<div class="text-[10px] text-neutral-400">Save progress and set tomorrow's starting action</div>
 							</div>
 						</button>
 
@@ -234,8 +234,8 @@
 						>
 							<ShieldAlert class="w-4 h-4 text-red-400 shrink-0" />
 							<div>
-								<div class="font-medium text-red-300">Failure Triage (I'm Stuck)</div>
-								<div class="text-[10px] text-neutral-400">Diagnose output, habit, or log decay</div>
+								<div class="font-medium text-red-300">Get Unstuck (Diagnose Block)</div>
+								<div class="text-[10px] text-neutral-400">Diagnose output, habit, or prompt fatigue</div>
 							</div>
 						</button>
 
@@ -251,8 +251,8 @@
 							<div class="flex items-center gap-2">
 								<BookOpen class="w-4 h-4 text-neutral-400 shrink-0" />
 								<div>
-									<div class="font-medium">Field Reference Drawer</div>
-									<div class="text-[10px] text-neutral-400">Appendices A–Q quick lookup</div>
+									<div class="font-medium">Field Reference Manual</div>
+									<div class="text-[10px] text-neutral-400">Searchable course guides & protocols</div>
 								</div>
 							</div>
 							<kbd class="text-[10px] font-mono text-neutral-500 bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">⌘K</kbd>

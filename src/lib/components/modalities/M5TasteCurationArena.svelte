@@ -387,13 +387,13 @@
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
 			<div class="flex items-center gap-2">
-				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">
-					M5
+				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">
+					Taste Arena
 				</span>
-				<h2 class="text-base font-bold text-white">Taste Infrastructure & Blind Curation Arena</h2>
+				<h2 class="text-base font-bold text-white">Taste Benchmark & Blind Curation Arena</h2>
 			</div>
 			<p class="text-xs text-neutral-400 mt-1">
-				Module 10, V4, W4, 11: 5-Part Taste Builder, Blind Provenance Ranker, and Reverse-Direction Challenge.
+				Construct explicit taste criteria, rank outputs blindly without provenance bias, and reverse-engineer direction.
 			</p>
 		</div>
 
@@ -406,7 +406,7 @@
 					? 'bg-amber-500 text-neutral-950 font-bold'
 					: 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				5-Part Taste
+				5-Part Taste Formula
 			</button>
 			<button
 				type="button"
@@ -415,7 +415,7 @@
 					? 'bg-amber-500 text-neutral-950 font-bold'
 					: 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				Blind Ranker
+				Blind Comparison
 			</button>
 			<button
 				type="button"

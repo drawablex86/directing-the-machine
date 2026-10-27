@@ -275,13 +275,13 @@
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
 			<div class="flex items-center gap-2">
-				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">
-					M3
+				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">
+					Brief Studio
 				</span>
-				<h2 class="text-base font-bold text-white">Premise Forge, Brief Architect & Provenance Ledger</h2>
+				<h2 class="text-base font-bold text-white">Creative Brief Builder & Premise Forge</h2>
 			</div>
 			<p class="text-xs text-neutral-400 mt-1">
-				Module 5, 6, V2, W2, Module 7: Premise Viability, Constraint Tri-View, and Provenance Stamp.
+				Generate high-tension premises, architect checkable 7-layer briefs, and establish immutable provenance stamps.
 			</p>
 		</div>
 
@@ -294,7 +294,7 @@
 			>
 				<span class="flex items-center gap-1.5">
 					<Target class="w-3.5 h-3.5" />
-					<span>Drills</span>
+					<span>Practice Drills</span>
 				</span>
 			</button>
 			<button

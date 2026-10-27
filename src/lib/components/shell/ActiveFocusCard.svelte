@@ -33,20 +33,20 @@
 	const currentMission = $derived.by(() => {
 		if (!hasBaselineCompleted) {
 			return {
-				title: 'Milestone 1: Establish Your Creative Baseline',
-				subtitle: 'Calibrate your 12 directorial competencies (Observation, Premise, Direction, Curation)',
+				title: 'Milestone 1: Assess Your Creative Baseline',
+				subtitle: 'Calibrate your confidence across 12 creative capabilities to tailor your learning roadmap',
 				duration: '~5–10 mins',
-				actionLabel: 'Take Baseline Diagnostic (M0)',
+				actionLabel: 'Open Baseline Skills Audit',
 				targetModality: 'm0',
 				tag: 'Current Focus'
 			};
 		}
 		if (practiceStore.activePart === 0 && !practiceStore.passedMasteryGates.includes(0)) {
 			return {
-				title: 'Milestone 2: Diagnostic Observation & Non-Instrumental Sight',
-				subtitle: 'Train your eyes to detect exact visual/textual mechanics with the Zero-Adjective Linter',
+				title: 'Milestone 2: Precision Observation & Removing Buzzwords',
+				subtitle: 'Train your eyes to detect exact visual and structural mechanics with the Precision Linter',
 				duration: '~15 mins',
-				actionLabel: 'Launch Observation Lab (M2)',
+				actionLabel: 'Launch Observation Studio',
 				targetModality: 'm2',
 				tag: 'Week 1 Focus'
 			};

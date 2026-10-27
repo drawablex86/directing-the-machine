@@ -28,29 +28,29 @@
 			labs: [
 				{
 					id: 'm0',
-					code: 'M0',
-					name: 'Baseline & Deliberate Practice Contract',
+					code: 'Core 0',
+					name: 'Baseline Skills Audit & Learning Runway',
 					icon: Target,
 					time: '15–30m',
-					phase: 'Week 0 Baseline',
-					purpose: '12-competency radar self-audit, play log, non-instrumental attention, and Appendix O pacing selection.'
+					phase: 'Initial Baseline',
+					purpose: '12-competency self-audit, free play space, daily observation log, and weekly pace selection.'
 				},
 				{
 					id: 'm1',
-					code: 'M1',
-					name: 'Problem-Finding & Positionality Lab',
+					code: 'Core 1',
+					name: 'Problem Discovery & Positionality Lab',
 					icon: Compass,
 					time: '30–60m',
-					phase: 'Part I (Weeks 1–3)',
-					purpose: '6-step problem funnel, personal standing verification, and protected 60-minute unassigned exploration.'
+					phase: 'Foundations (Weeks 1–3)',
+					purpose: '6-step problem discovery funnel, ethical standing verification, and protected 60-minute unassigned exploration.'
 				},
 				{
 					id: 'm2',
-					code: 'M2',
-					name: 'Diagnostic Vision & Observation Linter',
+					code: 'Core 2',
+					name: 'Observation Precision & Zero-Adjective Linter',
 					icon: Eye,
 					time: '20–45m',
-					phase: 'Part I (Weeks 1–3)',
+					phase: 'Foundations (Weeks 1–3)',
 					purpose: 'Strict zero-adjective regex linter, 6-question decision audit, 5-rung diagnostic ladder, and massing canvas.'
 				}
 			]
@@ -63,30 +63,30 @@
 			labs: [
 				{
 					id: 'm3',
-					code: 'M3',
-					name: 'Premise Forge & 7-Layer Brief Lab',
+					code: 'Core 3',
+					name: 'Creative Brief Builder & Premise Forge',
 					icon: FileText,
 					time: '30–60m',
-					phase: 'Part II (Weeks 4–6)',
+					phase: 'Systems (Weeks 4–6)',
 					purpose: '3-premise generator with explicit rejection reasons, 7-layer briefs, and 3/6/10 constraint views.'
 				},
 				{
 					id: 'm4',
-					code: 'M4',
-					name: 'Pipeline & Mathematical Calibration Lab',
+					code: 'Core 4',
+					name: 'Pipeline Mapping & Prediction Calibration',
 					icon: Sliders,
 					time: '45–90m',
-					phase: 'Part III (Weeks 7–9)',
-					purpose: '9-layer pipeline mapping, pre-run confidence score locking, Brier telemetry, and taste-narrowness warnings.'
+					phase: 'Calibration (Weeks 7–9)',
+					purpose: 'Variable pipeline mapping, pre-run confidence score locking, predictive accuracy tracking, and bias detection.'
 				},
 				{
 					id: 'm5',
-					code: 'M5',
-					name: 'Taste & Blind Provenance Arena',
+					code: 'Core 5',
+					name: 'Taste Benchmark & Blind Curation Arena',
 					icon: Sparkles,
 					time: '30–45m',
-					phase: 'Part IV (Weeks 10–12)',
-					purpose: '5-part taste formula, blind provenance ranking with hidden labels, and ≥40% human anchor library.'
+					phase: 'Taste (Weeks 10–12)',
+					purpose: '5-part taste criteria builder, blind comparisons with hidden provenance labels, and human anchor library.'
 				}
 			]
 		},
@@ -98,20 +98,20 @@
 			labs: [
 				{
 					id: 'm6',
-					code: 'M6',
-					name: 'Direction, Collab & Refusal Studio',
+					code: 'Core 6',
+					name: 'Creative Direction, Feedback & Refusal Studio',
 					icon: Users,
 					time: '30–60m',
-					phase: 'Part V (Weeks 13–15)',
-					purpose: 'Revision vs re-brief decision fork, stakeholder critique triage, and 5-mode refusal composer.'
+					phase: 'Direction (Weeks 13–15)',
+					purpose: 'Revision vs re-brief decision fork, stakeholder critique triage, and principled refusal composer.'
 				},
 				{
 					id: 'm7',
-					code: 'M7',
-					name: 'Blank-Sheet Authorship Capstone',
+					code: 'Core 7',
+					name: 'Independent Authorship & Capstone Studio',
 					icon: Award,
 					time: '60m+',
-					phase: 'Part VI & Months 4–9',
+					phase: 'Months 4–9',
 					purpose: 'Stated vs inferred gap audit, cross-medium synthesis tests, and 14-step blank-sheet capstone projects.'
 				}
 			]
@@ -199,7 +199,7 @@
 								<h4 class="font-bold text-sm {isUnlocked ? 'text-neutral-100 group-hover:text-white' : 'text-neutral-300'} transition">
 									{lab.name}
 								</h4>
-								<span class="text-[11px] font-semibold text-amber-400/90 inline-block mt-0.5">
+								<span class="text-[11px] font-medium text-neutral-400 inline-block mt-0.5">
 									{lab.phase}
 								</span>
 								<p class="text-xs text-neutral-400 mt-2 line-clamp-2 leading-relaxed">

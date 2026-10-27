@@ -206,13 +206,13 @@
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
 			<div class="flex items-center gap-2">
-				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">
-					M1
+				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+					Core Studio
 				</span>
-				<h2 class="text-base font-bold text-white">Problem-Finding & Positionality Lab</h2>
+				<h2 class="text-base font-bold text-white">Problem Discovery & Positionality Lab</h2>
 			</div>
 			<p class="text-xs text-neutral-400 mt-1">
-				Module 2, Positionality Compass, and 60-Minute Unassigned Beginning.
+				Identify meaningful creative problems from observation, clarify your ethical standing, and stress-test tension.
 			</p>
 		</div>
 
@@ -226,14 +226,14 @@
 					class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeTab === 'drill' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 				>
 					<Target class="w-3 h-3" />
-					<span>Drill Runner</span>
+					<span>Practice Drills</span>
 				</button>
 				<button
 					type="button"
 					onclick={() => activeTab = 'funnel'}
 					class="px-3 py-1.5 rounded-lg transition {activeTab === 'funnel' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 				>
-					Problem Funnel
+					Problem Discovery Funnel
 				</button>
 			</div>
 
@@ -248,7 +248,7 @@
 					onclick={toggleUnassignedTimer}
 					class="text-[11px] font-bold text-amber-400 hover:text-amber-300 ml-1"
 				>
-					{unassignedRunning ? 'Pause' : 'Start 60m'}
+					{unassignedRunning ? 'Pause' : 'Start 60m Unassigned'}
 				</button>
 			</div>
 		</div>

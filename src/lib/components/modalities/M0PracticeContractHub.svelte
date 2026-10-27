@@ -132,13 +132,13 @@
 	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
 		<div>
 			<div class="flex items-center gap-2">
-				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">
-					M0
+				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+					Starting Hub
 				</span>
-				<h2 class="text-base font-bold text-white">Deliberate Practice, Play & Contract Studio</h2>
+				<h2 class="text-base font-bold text-white">Baseline Skills & Learning Runway</h2>
 			</div>
 			<p class="text-xs text-neutral-400 mt-1">
-				Module 0, Week 0 Baseline Diagnostic, Appendix I, and Appendix O Pacing.
+				Evaluate your current confidence across 12 creative capabilities, choose a weekly pace, and set your baseline.
 			</p>
 		</div>
 
@@ -149,28 +149,28 @@
 				onclick={() => activeSubTab = 'baseline'}
 				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'baseline' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				Baseline (1–4)
+				Skills Audit (1–4)
 			</button>
 			<button
 				type="button"
 				onclick={() => activeSubTab = 'intensity'}
 				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'intensity' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				Intensity Path
+				Weekly Schedule
 			</button>
 			<button
 				type="button"
 				onclick={() => activeSubTab = 'play'}
 				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'play' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				Play Practice
+				Free Play
 			</button>
 			<button
 				type="button"
 				onclick={() => activeSubTab = 'attention'}
 				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'attention' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				Attention
+				Daily Observation
 			</button>
 			<button
 				type="button"
@@ -178,7 +178,7 @@
 				class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeSubTab === 'synthesis' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
 				<FileCheck class="w-3.5 h-3.5" />
-				<span>Synthesis & Contract</span>
+				<span>Diagnostic Summary</span>
 				{#if synthesis.isBaselineLocked}
 					<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
 				{:else if auditedCount >= 10}
@@ -191,7 +191,7 @@
 				class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 {activeSubTab === 'drills' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
 				<Target class="w-3.5 h-3.5" />
-				<span>Drills</span>
+				<span>Practice Drills</span>
 			</button>
 		</div>
 	</div>
@@ -205,10 +205,10 @@
 					<div>
 						<h3 class="text-sm font-bold text-white flex items-center gap-2">
 							<Target class="w-4 h-4 text-amber-400" />
-							<span>The Week 0 Baseline Diagnostic Map</span>
+							<span>12 Creative Directorial Competencies</span>
 						</h3>
 						<p class="text-xs text-neutral-400 mt-0.5">
-							This is not a test or a grade. It is an honest diagnostic mirror to identify your reflexive defaults and blind spots before training.
+							An honest diagnostic mirror to identify your current strengths and blind spots before beginning focused training.
 						</p>
 					</div>
 
@@ -431,7 +431,7 @@
 	{:else if activeSubTab === 'intensity'}
 		<div class="space-y-4">
 			<div class="p-3 bg-neutral-950 rounded-xl border border-neutral-800 text-xs text-neutral-400 leading-relaxed">
-				<strong class="text-neutral-200">Adaptive Pacing (Appendix O):</strong> Burnout is not a character flaw; it is an intensity mismatch. Choose an intensity compatible with your work and life. You can switch at any time without resetting progress.
+				<strong class="text-neutral-200">Adaptive Pace Selection:</strong> Burnout happens when expectations clash with reality. Choose an intensity compatible with your actual schedule. You can adjust this at any time without losing progress.
 			</div>
 
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -738,14 +738,14 @@
 				<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-3">
 					<div class="flex items-center gap-2">
 						<Clock class="w-4 h-4 text-amber-400" />
-						<h4 class="text-sm font-bold text-white">Your Selected Operating Runway (Appendix O)</h4>
+						<h4 class="text-sm font-bold text-white">Your Selected Practice Schedule</h4>
 					</div>
 					<button
 						type="button"
 						onclick={() => activeSubTab = 'intensity'}
 						class="text-xs text-amber-400 hover:text-amber-300 underline font-medium cursor-pointer"
 					>
-						Modify Pacing Mode →
+						Modify Weekly Schedule →
 					</button>
 				</div>
 

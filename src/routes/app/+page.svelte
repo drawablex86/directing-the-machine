@@ -158,14 +158,14 @@
 	}
 
 	const labNames: Record<string, string> = {
-		m0: 'M0: Deliberate Contract & Baseline Hub',
-		m1: 'M1: Problem-Finding & Positionality Lab',
-		m2: 'M2: Diagnostic Vision & Observation',
-		m3: 'M3: Premise Forge & 7-Layer Brief Lab',
-		m4: 'M4: Pipeline & Calibration Lab',
-		m5: 'M5: Taste & Blind Curation Arena',
-		m6: 'M6: Direction, Collab & Refusal Studio',
-		m7: 'M7: Authorship & Blank-Sheet Capstone'
+		m0: 'Baseline Self-Audit Hub',
+		m1: 'Problem Discovery Lab',
+		m2: 'Observation & Precision Linter',
+		m3: 'Creative Brief Builder',
+		m4: 'Prediction & Calibration Lab',
+		m5: 'Taste & Quality Benchmark Arena',
+		m6: 'Direction & Creative Boundaries',
+		m7: 'Independent Capstone Studio'
 	};
 </script>
 

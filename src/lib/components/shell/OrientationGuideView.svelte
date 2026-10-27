@@ -252,7 +252,7 @@
 			<div class="space-y-3">
 				<div class="p-4 rounded-xl bg-neutral-900/60 border border-neutral-800 space-y-1">
 					<div class="flex items-center justify-between">
-						<span class="text-xs font-bold font-mono text-amber-400">M0: Practice Contract & Baseline Hub</span>
+						<span class="text-xs font-bold font-mono text-amber-400">Baseline Skills Audit</span>
 						<span class="text-[10px] uppercase font-mono text-neutral-500">Starting Point</span>
 					</div>
 					<p class="text-xs text-neutral-300">
@@ -262,8 +262,8 @@
 
 				<div class="p-4 rounded-xl bg-neutral-900/60 border border-neutral-800 space-y-1">
 					<div class="flex items-center justify-between">
-						<span class="text-xs font-bold font-mono text-amber-400">Zero-Adjective Observation Linter</span>
-						<span class="text-[10px] uppercase font-mono text-neutral-500">M2 Studio Tool</span>
+						<span class="text-xs font-bold font-mono text-amber-400">Zero-Adjective Precision Linter</span>
+						<span class="text-[10px] uppercase font-mono text-neutral-500">Observation Studio</span>
 					</div>
 					<p class="text-xs text-neutral-300">
 						A tool that flags emotional buzzwords like <em>"breathtaking"</em> or <em>"masterpiece"</em> and forces you to state verifiable physical properties (contrast, palette, rhythm).
@@ -272,8 +272,8 @@
 
 				<div class="p-4 rounded-xl bg-neutral-900/60 border border-neutral-800 space-y-1">
 					<div class="flex items-center justify-between">
-						<span class="text-xs font-bold font-mono text-amber-400">Brier Score & Calibration</span>
-						<span class="text-[10px] uppercase font-mono text-neutral-500">M4 Measurement</span>
+						<span class="text-xs font-bold font-mono text-amber-400">Prediction & Calibration</span>
+						<span class="text-[10px] uppercase font-mono text-neutral-500">Calibration Studio</span>
 					</div>
 					<p class="text-xs text-neutral-300">
 						A mathematical measurement of how well your predictions match actual outcomes. When you adjust a parameter, can you predict what the AI will produce?
@@ -282,7 +282,7 @@
 
 				<div class="p-4 rounded-xl bg-neutral-900/60 border border-neutral-800 space-y-1">
 					<div class="flex items-center justify-between">
-						<span class="text-xs font-bold font-mono text-amber-400">Hemingway Stop Gate</span>
+						<span class="text-xs font-bold font-mono text-amber-400">Session Pause & Stop Gate</span>
 						<span class="text-[10px] uppercase font-mono text-neutral-500">Session Boundary</span>
 					</div>
 					<p class="text-xs text-neutral-300">
@@ -313,7 +313,7 @@
 				<div class="flex items-center justify-between pb-3 border-b border-neutral-800">
 					<div class="flex items-center gap-2">
 						<div class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></div>
-						<span class="font-bold text-neutral-100 text-sm">Action Mission: M0 Hub</span>
+						<span class="font-bold text-neutral-100 text-sm">Action Mission: Baseline Skills Audit</span>
 					</div>
 					<span class="text-xs font-mono text-amber-400">Est. Time: ~5–10 mins</span>
 				</div>
@@ -323,7 +323,7 @@
 						In this first exercise, you will assess yourself across 12 directorial competencies (Observation, Premise, Direction, Curation, etc.) on a simple 1–4 scale.
 					</p>
 					<p class="text-neutral-400">
-						Completing this unlocks <strong>M1 (Problem Lab)</strong> and <strong>M2 (Diagnostic Vision)</strong>, generating your customized Competency Radar.
+						Completing this unlocks the <strong>Problem Discovery Lab</strong> and <strong>Observation Precision Linter</strong>, tailoring your practice roadmap.
 					</p>
 				</div>
 
@@ -333,7 +333,7 @@
 						onclick={completeAndLaunch}
 						class="w-full py-3.5 px-6 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-sm shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
 					>
-						<span>Enter M0: Baseline Diagnostic</span>
+						<span>Begin Baseline Skills Audit</span>
 						<ArrowRight class="w-4 h-4" />
 					</button>
 				</div>

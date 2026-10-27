@@ -308,12 +308,12 @@
 		<div>
 			<div class="flex items-center gap-2">
 				<span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400">
-					M7
+					Capstone Studio
 				</span>
-				<h2 class="text-base font-bold text-white">Position Gap, Synthesis & Blank-Sheet Capstone</h2>
+				<h2 class="text-base font-bold text-white">Independent Authorship & Blank-Sheet Capstone</h2>
 			</div>
 			<p class="text-xs text-neutral-400 mt-1">
-				Module 15, 16, 17, 18, V6, W6: Position Gap Analyzer, Cross-Medium Removal Test, and 14-Step Blank Sheet.
+				Audit alignment between stated and inferred artistic positions, verify unassisted transfer, and author original capstones.
 			</p>
 		</div>
 
@@ -331,7 +331,7 @@
 				onclick={() => activeSubTab = 'gap'}
 				class="px-3 py-1.5 rounded-lg transition {activeSubTab === 'gap' ? 'bg-amber-500 text-neutral-950 font-bold' : 'text-neutral-400 hover:text-neutral-200'}"
 			>
-				Position Gap
+				Position Alignment Audit
 			</button>
 			<button
 				type="button"
