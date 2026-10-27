@@ -374,6 +374,31 @@ input[type="reset"] {
 	font-family: var(--font-app-dyslexic);
 }
 
+/* Markdown & Reader Prose Styles (Stone & Paper Reactive) */
+.reader-prose {
+	color: var(--text-primary);
+}
+
+.reader-prose p {
+	color: var(--text-secondary);
+	line-height: 1.75;
+}
+
+.reader-prose strong {
+	color: var(--text-primary);
+	font-weight: 700;
+}
+
+.reader-prose em {
+	color: var(--text-secondary);
+}
+
+.reader-prose h1,
+.reader-prose h2,
+.reader-prose h3 {
+	color: var(--text-primary);
+}
+
 .reader-prose h2,
 .reader-prose h3,
 .reader-prose h4 {
@@ -389,6 +414,28 @@ input[type="reset"] {
 
 .reader-prose a.reading-anchor-link:hover {
 	color: var(--accent-hover);
+}
+
+/* Callouts in Stone & Paper */
+.reader-callout {
+	background-color: var(--bg-card);
+	border: 1px solid var(--border-primary);
+	color: var(--text-primary);
+}
+
+.reader-callout p {
+	color: var(--text-secondary);
+}
+
+/* Code blocks in reader */
+.reader-code-container {
+	background-color: var(--bg-surface);
+	border: 1px solid var(--border-primary);
+}
+
+.reader-code-header {
+	background-color: var(--bg-card-muted);
+	border-bottom: 1px solid var(--border-primary);
 }
 
 /* Custom Scrollbar */
